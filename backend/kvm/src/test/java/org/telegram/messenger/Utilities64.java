@@ -3,8 +3,7 @@ package org.telegram.messenger;
 import com.github.unidbg.AndroidEmulator;
 import com.github.unidbg.LibraryResolver;
 import com.github.unidbg.Module;
-import com.github.unidbg.arm.backend.DynarmicFactory;
-import com.github.unidbg.arm.backend.HypervisorFactory;
+import com.github.unidbg.arm.backend.KvmFactory;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.DalvikModule;
@@ -31,8 +30,7 @@ public class Utilities64 extends TestCase {
         return AndroidEmulatorBuilder
                 .for64Bit()
                 .setProcessName("org.telegram.messenger")
-                .addBackendFactory(new HypervisorFactory(true))
-                .addBackendFactory(new DynarmicFactory(true))
+                .addBackendFactory(new KvmFactory(false))
                 .build();
     }
 
@@ -65,7 +63,7 @@ public class Utilities64 extends TestCase {
         System.out.println("destroy");
     }
 
-    public void test() throws Exception {
+    public void test() {
         this.aesCbcEncryptionByteArray();
         this.aesCtrDecryptionByteArray();
         this.pbkdf2();
