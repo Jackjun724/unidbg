@@ -6,8 +6,8 @@ JAVA_PLATFORM_INC="$(dirname "$(find "$JAVA_INC" -name jni_md.h)")"
 
 UNICORN_HOME=~/git/unicorn
 
-gcc -o libunicorn.so -shared -O3 -DNDEBUG \
+gcc -m64 -o unicorn.dll -shared -O3 -static -DNDEBUG \
   -I $UNICORN_HOME/include unicorn.c sample_arm.c sample_arm64.c \
   -I "$JAVA_INC" -I "$JAVA_PLATFORM_INC" -fPIC \
-  $UNICORN_HOME/libunicorn.a &&
-  mv libunicorn.so ../resources/natives/linux_64/
+  $UNICORN_HOME/unicorn.a &&
+  mv unicorn.dll ../resources/natives/windows_64/
