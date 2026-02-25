@@ -22,6 +22,4 @@ function build_UIKit() {
 }
 
 build_UIKit UIKit "Foundation"
-build_framework Security "CoreFoundation"
-build_framework QuartzCore "CoreFoundation"
-build_CoreGraphics CoreGraphics "CoreFoundation"
+build_framework Network "Foundation"

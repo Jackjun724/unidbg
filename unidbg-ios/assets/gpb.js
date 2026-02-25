@@ -285,7 +285,7 @@ const list_gpbs = function (filter) {
     console.log("Try list gpbs: " + filter)
     let haveGPB = false;
     for (const className in ObjC.classes) {
-        if (filter) {
+        if (filter && "ALL" !== filter) {
             if (className.toLowerCase().indexOf(filter.toLowerCase()) === -1) {
                 continue;
             }
@@ -313,8 +313,9 @@ const list_gpbs = function (filter) {
                     classArray.push(className);
                 }
             }
+            classArray.sort();
             console.log("Found class: " + JSON.stringify(classArray));
-        } else {
+        } else if("ALL" !== filter) {
             for (const className in ObjC.classes) {
                 if (className.toLowerCase().indexOf(filter.toLowerCase()) !== -1) {
                     console.log("Found class: " + className)
