@@ -63,8 +63,8 @@ enum arm_exception_class {
 #define ARM_EL_IL (1 << ARM_EL_IL_SHIFT)
 #define ARM_EL_ISV (1 << ARM_EL_ISV_SHIFT)
 
-static uint32_t syn_get_ec(uint32_t syn) {
-  return syn >> ARM_EL_EC_SHIFT;
+static uint32_t syn_get_ec(uint64_t syn) {
+  return (uint32_t) (syn >> ARM_EL_EC_SHIFT);
 }
 
 #define PSR_MODE_EL0t	0x00000000

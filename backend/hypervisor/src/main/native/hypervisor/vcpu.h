@@ -6,8 +6,14 @@
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_images.h>
 
-// Diagnostics
-#define HYP_ASSERT_SUCCESS(ret) assert((hv_return_t) (ret) == HV_SUCCESS)
+// Diagnostics — must not be disabled by NDEBUG
+#define HYP_ASSERT_SUCCESS(ret) do { \
+    hv_return_t _ret = (hv_return_t) (ret); \
+    if (__builtin_expect(_ret != HV_SUCCESS, 0)) { \
+        fprintf(stderr, "HYP_ASSERT_SUCCESS failed: %d at %s:%d\n", (int)_ret, __FILE__, __LINE__); \
+        abort(); \
+    } \
+} while(0)
 #define HV_REG_SP HV_SYS_REG_SP_EL0
 
 typedef struct vcpu_context {
@@ -331,6 +337,10 @@ static const mach_header *findHypervisorHeader(intptr_t *out_slide) {
 }
 
 static void *find_vcpus() {
+    static void *cached_vcpus = nullptr;
+    if(cached_vcpus) {
+        return cached_vcpus;
+    }
     intptr_t slide = 0;
     const mach_header *header = findHypervisorHeader(&slide);
     if(header) {
@@ -356,8 +366,8 @@ static void *find_vcpus() {
             for(uint i = 0; i < symtab_cmd->nsyms; i++, symtab++) {
                 const uint32_t strtab_offset = symtab->n_un.n_strx;
                 if(const char *symbol_name = strtab + strtab_offset; strcmp(symbol_name, "_vcpus") == 0) {
-                    void *vcpus = (void *) (symtab->n_value + slide);
-                    return vcpus;
+                    cached_vcpus = (void *) (symtab->n_value + slide);
+                    return cached_vcpus;
                 }
             }
         }

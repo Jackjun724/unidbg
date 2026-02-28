@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/errno.h>
+#include <atomic>
 
 #include "hypervisor.h"
 #include "com_github_unidbg_arm_backend_hypervisor_Hypervisor.h"
@@ -14,7 +15,7 @@ typedef struct hypervisor {
   void **page_table = nullptr;
   pthread_key_t cpu_key = 0;
   jobject callback = nullptr;
-  volatile bool stop_request = false;
+  std::atomic<bool> stop_request{false};
   uint64_t sp = 0ULL;
   uint64_t cpacr = 0ULL;
   uint64_t tpidr = 0ULL;
@@ -23,6 +24,7 @@ typedef struct hypervisor {
 
 static jmethodID handleException = nullptr;
 static jmethodID handleUnknownException = nullptr;
+static jclass cBackendException = nullptr;
 
 static char *get_memory_page(khash_t(memory) *memory, uint64_t vaddr, size_t num_page_table_entries, void **page_table) {
     uint64_t idx = vaddr >> PAGE_BITS;
@@ -267,6 +269,34 @@ JNIEXPORT void JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
   }
 }
 
+static const hv_sys_reg_t kDbgWcrRegs[16] = {
+  HV_SYS_REG_DBGWCR0_EL1,  HV_SYS_REG_DBGWCR1_EL1,  HV_SYS_REG_DBGWCR2_EL1,  HV_SYS_REG_DBGWCR3_EL1,
+  HV_SYS_REG_DBGWCR4_EL1,  HV_SYS_REG_DBGWCR5_EL1,  HV_SYS_REG_DBGWCR6_EL1,  HV_SYS_REG_DBGWCR7_EL1,
+  HV_SYS_REG_DBGWCR8_EL1,  HV_SYS_REG_DBGWCR9_EL1,  HV_SYS_REG_DBGWCR10_EL1, HV_SYS_REG_DBGWCR11_EL1,
+  HV_SYS_REG_DBGWCR12_EL1, HV_SYS_REG_DBGWCR13_EL1, HV_SYS_REG_DBGWCR14_EL1, HV_SYS_REG_DBGWCR15_EL1,
+};
+
+static const hv_sys_reg_t kDbgWvrRegs[16] = {
+  HV_SYS_REG_DBGWVR0_EL1,  HV_SYS_REG_DBGWVR1_EL1,  HV_SYS_REG_DBGWVR2_EL1,  HV_SYS_REG_DBGWVR3_EL1,
+  HV_SYS_REG_DBGWVR4_EL1,  HV_SYS_REG_DBGWVR5_EL1,  HV_SYS_REG_DBGWVR6_EL1,  HV_SYS_REG_DBGWVR7_EL1,
+  HV_SYS_REG_DBGWVR8_EL1,  HV_SYS_REG_DBGWVR9_EL1,  HV_SYS_REG_DBGWVR10_EL1, HV_SYS_REG_DBGWVR11_EL1,
+  HV_SYS_REG_DBGWVR12_EL1, HV_SYS_REG_DBGWVR13_EL1, HV_SYS_REG_DBGWVR14_EL1, HV_SYS_REG_DBGWVR15_EL1,
+};
+
+static const hv_sys_reg_t kDbgBcrRegs[16] = {
+  HV_SYS_REG_DBGBCR0_EL1,  HV_SYS_REG_DBGBCR1_EL1,  HV_SYS_REG_DBGBCR2_EL1,  HV_SYS_REG_DBGBCR3_EL1,
+  HV_SYS_REG_DBGBCR4_EL1,  HV_SYS_REG_DBGBCR5_EL1,  HV_SYS_REG_DBGBCR6_EL1,  HV_SYS_REG_DBGBCR7_EL1,
+  HV_SYS_REG_DBGBCR8_EL1,  HV_SYS_REG_DBGBCR9_EL1,  HV_SYS_REG_DBGBCR10_EL1, HV_SYS_REG_DBGBCR11_EL1,
+  HV_SYS_REG_DBGBCR12_EL1, HV_SYS_REG_DBGBCR13_EL1, HV_SYS_REG_DBGBCR14_EL1, HV_SYS_REG_DBGBCR15_EL1,
+};
+
+static const hv_sys_reg_t kDbgBvrRegs[16] = {
+  HV_SYS_REG_DBGBVR0_EL1,  HV_SYS_REG_DBGBVR1_EL1,  HV_SYS_REG_DBGBVR2_EL1,  HV_SYS_REG_DBGBVR3_EL1,
+  HV_SYS_REG_DBGBVR4_EL1,  HV_SYS_REG_DBGBVR5_EL1,  HV_SYS_REG_DBGBVR6_EL1,  HV_SYS_REG_DBGBVR7_EL1,
+  HV_SYS_REG_DBGBVR8_EL1,  HV_SYS_REG_DBGBVR9_EL1,  HV_SYS_REG_DBGBVR10_EL1, HV_SYS_REG_DBGBVR11_EL1,
+  HV_SYS_REG_DBGBVR12_EL1, HV_SYS_REG_DBGBVR13_EL1, HV_SYS_REG_DBGBVR14_EL1, HV_SYS_REG_DBGBVR15_EL1,
+};
+
 /*
  * Class:     com_github_unidbg_arm_backend_hypervisor_Hypervisor
  * Method:    install_watchpoint
@@ -276,79 +306,12 @@ JNIEXPORT void JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
   (JNIEnv *env, jclass clazz, jlong handle, jint n, jlong dbgwcr, jlong dbgwvr) {
   auto hypervisor = (t_hypervisor) handle;
   t_hypervisor_cpu cpu = get_hypervisor_cpu(env, hypervisor);
-  if(n < 0 || n >= cpu->WRPs) {
+  if(n < 0 || n >= cpu->WRPs || n >= 16) {
     abort();
     return;
   }
-  switch (n) {
-    case 0:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR0_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR0_EL1, dbgwvr));
-      break;
-    case 1:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR1_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR1_EL1, dbgwvr));
-      break;
-    case 2:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR2_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR2_EL1, dbgwvr));
-      break;
-    case 3:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR3_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR3_EL1, dbgwvr));
-      break;
-    case 4:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR4_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR4_EL1, dbgwvr));
-      break;
-    case 5:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR5_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR5_EL1, dbgwvr));
-      break;
-    case 6:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR6_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR6_EL1, dbgwvr));
-      break;
-    case 7:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR7_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR7_EL1, dbgwvr));
-      break;
-    case 8:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR8_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR8_EL1, dbgwvr));
-      break;
-    case 9:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR9_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR9_EL1, dbgwvr));
-      break;
-    case 10:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR10_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR10_EL1, dbgwvr));
-      break;
-    case 11:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR11_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR11_EL1, dbgwvr));
-      break;
-    case 12:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR12_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR12_EL1, dbgwvr));
-      break;
-    case 13:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR13_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR13_EL1, dbgwvr));
-      break;
-    case 14:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR14_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR14_EL1, dbgwvr));
-      break;
-    case 15:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWCR15_EL1, dbgwcr));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGWVR15_EL1, dbgwvr));
-      break;
-    default:
-      abort();
-      break;
-  }
+  HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, kDbgWcrRegs[n], dbgwcr));
+  HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, kDbgWvrRegs[n], dbgwvr));
 }
 
 /*
@@ -360,79 +323,12 @@ JNIEXPORT void JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
   (JNIEnv *env, jclass clazz, jlong handle, jint n, jlong address) {
   auto hypervisor = (t_hypervisor) handle;
   t_hypervisor_cpu cpu = get_hypervisor_cpu(env, hypervisor);
-  if(n < 0 || n >= cpu->BRPs) {
+  if(n < 0 || n >= cpu->BRPs || n >= 16) {
     abort();
     return;
   }
-  switch (n) {
-    case 0:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR0_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR0_EL1, address));
-      break;
-    case 1:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR1_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR1_EL1, address));
-      break;
-    case 2:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR2_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR2_EL1, address));
-      break;
-    case 3:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR3_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR3_EL1, address));
-      break;
-    case 4:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR4_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR4_EL1, address));
-      break;
-    case 5:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR5_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR5_EL1, address));
-      break;
-    case 6:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR6_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR6_EL1, address));
-      break;
-    case 7:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR7_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR7_EL1, address));
-      break;
-    case 8:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR8_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR8_EL1, address));
-      break;
-    case 9:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR9_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR9_EL1, address));
-      break;
-    case 10:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR10_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR10_EL1, address));
-      break;
-    case 11:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR11_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR11_EL1, address));
-      break;
-    case 12:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR12_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR12_EL1, address));
-      break;
-    case 13:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR13_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR13_EL1, address));
-      break;
-    case 14:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR14_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR14_EL1, address));
-      break;
-    case 15:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR15_EL1, 0x5));
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBVR15_EL1, address));
-      break;
-    default:
-      abort();
-      break;
-  }
+  HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, kDbgBcrRegs[n], 0x5));
+  HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, kDbgBvrRegs[n], address));
 }
 
 /*
@@ -444,63 +340,11 @@ JNIEXPORT void JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
   (JNIEnv *env, jclass clazz, jlong handle, jint n) {
   auto hypervisor = (t_hypervisor) handle;
   t_hypervisor_cpu cpu = get_hypervisor_cpu(env, hypervisor);
-  if(n < 0 || n >= cpu->BRPs) {
+  if(n < 0 || n >= cpu->BRPs || n >= 16) {
     abort();
     return;
   }
-  switch (n) {
-    case 0:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR0_EL1, 0x0));
-      break;
-    case 1:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR1_EL1, 0x0));
-      break;
-    case 2:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR2_EL1, 0x0));
-      break;
-    case 3:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR3_EL1, 0x0));
-      break;
-    case 4:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR4_EL1, 0x0));
-      break;
-    case 5:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR5_EL1, 0x0));
-      break;
-    case 6:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR6_EL1, 0x0));
-      break;
-    case 7:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR7_EL1, 0x0));
-      break;
-    case 8:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR8_EL1, 0x0));
-      break;
-    case 9:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR9_EL1, 0x0));
-      break;
-    case 10:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR10_EL1, 0x0));
-      break;
-    case 11:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR11_EL1, 0x0));
-      break;
-    case 12:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR12_EL1, 0x0));
-      break;
-    case 13:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR13_EL1, 0x0));
-      break;
-    case 14:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR14_EL1, 0x0));
-      break;
-    case 15:
-      HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, HV_SYS_REG_DBGBCR15_EL1, 0x0));
-      break;
-    default:
-      abort();
-      break;
-  }
+  HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(cpu->vcpu, kDbgBcrRegs[n], 0x0));
 }
 
 /*
@@ -651,6 +495,11 @@ JNIEXPORT void JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
     if(ret != 0) {
       fprintf(stderr, "munmap failed[%s->%s:%d]: page_table=%p, ret=%d\n", __FILE__, __func__, __LINE__, hypervisor->page_table, ret);
     }
+  }
+  auto cpu = (t_hypervisor_cpu) pthread_getspecific(hypervisor->cpu_key);
+  if(cpu) {
+    pthread_setspecific(hypervisor->cpu_key, nullptr);
+    destroy_hypervisor_cpu(cpu);
   }
   pthread_key_delete(hypervisor->cpu_key);
   free(hypervisor);
@@ -971,8 +820,10 @@ JNIEXPORT jint JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
     uint64_t len = end - start;
     char *addr = get_memory_page(memory, vaddr, hypervisor->num_page_table_entries, hypervisor->page_table);
     if(addr == nullptr) {
-      fprintf(stderr, "mem_write failed[%s->%s:%d]: vaddr=%p\n", __FILE__, __func__, __LINE__, (void*)vaddr);
+      char msg[256];
+      snprintf(msg, sizeof(msg), "mem_write failed[%s->%s:%d]: vaddr=%p, address=%p, size=%d", __FILE__, __func__, __LINE__, (void*)vaddr, (void*)address, size);
       env->ReleaseByteArrayElements(bytes, data, JNI_ABORT);
+      env->ThrowNew(cBackendException, msg);
       return 1;
     }
     char *dest = &addr[start];
@@ -1002,8 +853,10 @@ JNIEXPORT jbyteArray JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hyper
     uint64_t len = end - start;
     char *addr = get_memory_page(memory, vaddr, hypervisor->num_page_table_entries, hypervisor->page_table);
     if(addr == nullptr) {
-      fprintf(stderr, "mem_read failed[%s->%s:%d]: vaddr=%p\n", __FILE__, __func__, __LINE__, (void*)vaddr);
+      char msg[256];
+      snprintf(msg, sizeof(msg), "mem_read failed[%s->%s:%d]: vaddr=%p, address=%p, size=%d", __FILE__, __func__, __LINE__, (void*)vaddr, (void*)address, size);
       env->DeleteLocalRef(bytes);
+      env->ThrowNew(cBackendException, msg);
       return nullptr;
     }
     auto *src = (jbyte *)&addr[start];
@@ -1164,6 +1017,13 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
   }
   handleException = env->GetMethodID(cHypervisorCallback, "handleException", "(JJJJ)Z");
   handleUnknownException = env->GetMethodID(cHypervisorCallback, "handleUnknownException", "(IJJJ)V");
+
+  jclass localBackendException = env->FindClass("com/github/unidbg/arm/backend/BackendException");
+  if (env->ExceptionCheck()) {
+    return JNI_ERR;
+  }
+  cBackendException = (jclass) env->NewGlobalRef(localBackendException);
+  env->DeleteLocalRef(localBackendException);
 
   return JNI_VERSION_1_6;
 }
