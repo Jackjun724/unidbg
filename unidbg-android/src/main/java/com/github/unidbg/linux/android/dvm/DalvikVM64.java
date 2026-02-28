@@ -188,10 +188,10 @@ public class DalvikVM64 extends BaseVM implements VM {
                 UnidbgPointer clazz = context.getPointerArg(1);
                 Pointer message = context.getPointerArg(2);
                 DvmClass dvmClass = classMap.get(clazz.toIntPeer());
-                if (log.isDebugEnabled()) {
-                    log.debug("ThrowNew clazz={}, lr={}", dvmClass, context.getLRPointer());
-                }
-                throw new IllegalStateException("dvmClass=" + dvmClass + ", msg=" + message.getString(0));
+                DvmObject<?> dvmObject = dvmClass.newObject(message);
+                log.debug("ThrowNew clazz={}, lr={}", dvmClass, context.getLRPointer());
+                throwable = dvmObject;
+                return 0;
             }
         });
 

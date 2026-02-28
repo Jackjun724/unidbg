@@ -131,7 +131,7 @@ public class Hypervisor implements Closeable {
             throw new IllegalStateException("Only one hypervisor VM instance per process allowed.");
         }
 
-        this.nativeHandle = nativeInitialize(is64Bit);
+        this.nativeHandle = nativeInitialize(true);
         singleInstance = this;
     }
 
@@ -313,10 +313,11 @@ public class Hypervisor implements Closeable {
         if (index < 0 || index > 30) {
             throw new IllegalArgumentException("index=" + index);
         }
+        long value = reg_read(nativeHandle, index);
         if (log.isTraceEnabled()) {
-            log.trace("reg_read64 index={}", index);
+            log.trace("reg_read64 index={}, value=0x{}", index, Long.toHexString(value));
         }
-        return reg_read(nativeHandle, index);
+        return value;
     }
 
     public long reg_read_sp64() {

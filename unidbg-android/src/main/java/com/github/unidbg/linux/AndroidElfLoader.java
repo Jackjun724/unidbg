@@ -1,10 +1,6 @@
 package com.github.unidbg.linux;
 
-import com.github.unidbg.Alignment;
-import com.github.unidbg.Emulator;
-import com.github.unidbg.LibraryResolver;
-import com.github.unidbg.Module;
-import com.github.unidbg.Symbol;
+import com.github.unidbg.*;
 import com.github.unidbg.arm.ARM;
 import com.github.unidbg.arm.ARMEmulator;
 import com.github.unidbg.file.FileIO;
@@ -583,7 +579,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
                 case ARMEmulator.R_ARM_IRELATIVE:
                 case ARMEmulator.R_ARM_REL32:
                 default:
-                    log.warn("[" + soName + "]Unhandled relocation type " + type + ", symbol=" + symbol + ", relocationAddr=" + relocationAddr + ", offset=0x" + Long.toHexString(relocation.offset()) + ", addend=" + relocation.addend() + ", android=" + relocation.isAndroid());
+                    log.warn("[{}]Unhandled relocation type {}, symbol={}, relocationAddr={}, offset=0x{}, addend={}, android={}", soName, type, symbol, relocationAddr, Long.toHexString(relocation.offset()), relocation.addend(), relocation.isAndroid());
                     break;
             }
         }
@@ -759,6 +755,9 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
     @Override
     public long mmap2(long start, int length, int prot, int flags, int fd, int offset) {
         int aligned = (int) ARM.alignSize(length, emulator.getPageAlign());
+        if (log.isDebugEnabled()) {
+            log.debug("mmap2: start=0x{}, length=0x{}, prot=0x{}, fd={}, offset=0x{}", Long.toHexString(start), Integer.toHexString(length), Integer.toHexString(prot), fd, Integer.toHexString(offset));
+        }
 
         boolean isAnonymous = ((flags & MAP_ANONYMOUS) != 0) || (start == 0 && fd <= 0 && offset == 0);
         if ((flags & MAP_FIXED) != 0 && isAnonymous) {
@@ -813,12 +812,18 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
             FileIO file;
             if (fd > 0 && (file = syscallHandler.getFileIO(fd)) != null) {
                 if ((start & (emulator.getPageAlign() - 1)) != 0) {
+                    if (log.isDebugEnabled()) {
+                        log.warn("mmap2 start=0x{}, start=0x{}, flags=0x{}, length=0x{}", Long.toHexString(start), Long.toHexString(start), Integer.toHexString(flags), Integer.toHexString(length));
+                    }
                     return MAP_FAILED;
                 }
                 long end = start + length;
                 for (Map.Entry<Long, MemoryMap> entry : memoryMap.entrySet()) {
                     MemoryMap map = entry.getValue();
                     if (Math.max(start, entry.getKey()) <= Math.min(map.base + map.size, end)) {
+                        if (log.isDebugEnabled()) {
+                            log.warn("mmap2 start=0x{}, entry={}, flags=0x{}, length=0x{}", Long.toHexString(start), entry, Integer.toHexString(flags), Integer.toHexString(length));
+                        }
                         return MAP_FAILED;
                     }
                 }
