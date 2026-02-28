@@ -2,24 +2,10 @@ package com.github.unidbg.arm;
 
 import capstone.api.Instruction;
 import capstone.api.RegsAccess;
-import com.github.unidbg.AssemblyCodeDumper;
-import com.github.unidbg.Emulator;
-import com.github.unidbg.Family;
-import com.github.unidbg.Module;
-import com.github.unidbg.Symbol;
-import com.github.unidbg.TraceMemoryHook;
-import com.github.unidbg.Utils;
-import com.github.unidbg.arm.backend.Backend;
-import com.github.unidbg.arm.backend.BlockHook;
-import com.github.unidbg.arm.backend.ReadHook;
-import com.github.unidbg.arm.backend.UnHook;
-import com.github.unidbg.arm.backend.WriteHook;
-import com.github.unidbg.debugger.BreakPoint;
-import com.github.unidbg.debugger.BreakPointCallback;
-import com.github.unidbg.debugger.DebugListener;
-import com.github.unidbg.debugger.DebugRunnable;
-import com.github.unidbg.debugger.Debugger;
-import com.github.unidbg.debugger.FunctionCallListener;
+import com.alibaba.fastjson.JSONObject;
+import com.github.unidbg.*;
+import com.github.unidbg.arm.backend.*;
+import com.github.unidbg.debugger.*;
 import com.github.unidbg.mcp.McpServer;
 import com.github.unidbg.memory.MemRegion;
 import com.github.unidbg.memory.Memory;
@@ -31,7 +17,6 @@ import com.github.unidbg.unwind.Unwinder;
 import com.github.unidbg.utils.Inspector;
 import com.github.zhkl0228.demumble.DemanglerFactory;
 import com.github.zhkl0228.demumble.GccDemangler;
-import com.alibaba.fastjson.JSONObject;
 import com.sun.jna.Pointer;
 import keystone.Keystone;
 import keystone.KeystoneEncoded;
@@ -45,28 +30,13 @@ import unicorn.Arm64Const;
 import unicorn.ArmConst;
 import unicorn.UnicornConst;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.math.BigInteger;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -347,13 +317,7 @@ public abstract class AbstractARMDebugger implements Debugger {
                 boolean foundTerminated = false;
                 while (true) {
                     byte[] data = pointer.getByteArray(addr, 0x10);
-                    int length = data.length;
-                    for (int i = 0; i < data.length; i++) {
-                        if (data[i] == 0) {
-                            length = i;
-                            break;
-                        }
-                    }
+                    int length = Utils.indexOfNullTerminator(data);
                     baos.write(data, 0, length);
                     addr += length;
 
@@ -394,15 +358,7 @@ public abstract class AbstractARMDebugger implements Debugger {
                 long value = buffer.getLong();
                 sb.append(", value=0x").append(Long.toHexString(value));
             } else if (_length == 16) {
-                byte[] tmp = Arrays.copyOf(data, 0x10);
-                for (int i = 0; i < 8; i++) {
-                    byte b = tmp[i];
-                    tmp[i] = tmp[15 - i];
-                    tmp[15 - i] = b;
-                }
-                byte[] bytes = new byte[tmp.length + 1];
-                System.arraycopy(tmp, 0, bytes, 1, tmp.length); // makePositive
-                sb.append(", value=0x").append(new BigInteger(bytes).toString(16));
+                sb.append(", value=0x").append(ARM.newBigInteger(Arrays.copyOf(data, 0x10)).toString(16));
             }
             if (data.length >= 1024) {
                 sb.append(", hex=").append(Hex.encodeHexString(data));
@@ -469,6 +425,63 @@ public abstract class AbstractARMDebugger implements Debugger {
     private TraceMemoryHook traceWrite;
     private PrintStream traceWriteRedirectStream;
 
+    private void setupTraceMemory(Backend backend, String line, boolean isRead, int traceSize) throws IOException {
+        String type = isRead ? "Read" : "Write";
+        String typeLower = isRead ? "read" : "write";
+        Pattern pattern = Pattern.compile("trace" + type + "\\s+(\\w+)\\s+(\\w+)");
+        Matcher matcher = pattern.matcher(line);
+        TraceMemoryHook existingHook = isRead ? traceRead : traceWrite;
+        if (existingHook != null) {
+            existingHook.detach();
+        }
+        TraceMemoryHook hook = new TraceMemoryHook(isRead);
+        long begin, end;
+        if (matcher.find()) {
+            begin = Utils.parseNumber(matcher.group(1));
+            end = Utils.parseNumber(matcher.group(2));
+            if (begin > end && end > 0 && end <= traceSize) {
+                end += begin;
+            }
+        } else {
+            begin = 1;
+            end = 0;
+        }
+        PrintStream redirectStream = null;
+        if (begin >= end) {
+            File traceFile = new File("target/trace" + type + ".txt");
+            if (!traceFile.exists() && !traceFile.createNewFile()) {
+                throw new IllegalStateException("createNewFile: " + traceFile);
+            }
+            redirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
+            redirectStream.printf("[%s]Start trace%s%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), type);
+            hook.setRedirect(redirectStream);
+            System.out.printf("Set trace all memory %s success with trace file: %s.%n", typeLower, traceFile.getAbsolutePath());
+        } else {
+            boolean needTraceFile = end - begin > traceSize;
+            if (needTraceFile) {
+                File traceFile = new File(String.format("target/trace%s_0x%x-0x%x.txt", type, begin, end));
+                if (!traceFile.exists() && !traceFile.createNewFile()) {
+                    throw new IllegalStateException("createNewFile: " + traceFile);
+                }
+                redirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
+                redirectStream.printf("[%s]Start trace%s: 0x%x-0x%x%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), type, begin, end);
+                hook.setRedirect(redirectStream);
+                System.out.printf("Set trace 0x%x->0x%x memory %s success with trace file: %s.%n", begin, end, typeLower, traceFile.getAbsolutePath());
+            } else {
+                System.out.printf("Set trace 0x%x->0x%x memory %s success.%n", begin, end, typeLower);
+            }
+        }
+        if (isRead) {
+            traceRead = hook;
+            traceReadRedirectStream = redirectStream;
+            backend.hook_add_new((ReadHook) hook, begin, end, emulator);
+        } else {
+            traceWrite = hook;
+            traceWriteRedirectStream = redirectStream;
+            backend.hook_add_new((WriteHook) hook, begin, end, emulator);
+        }
+    }
+
     final boolean handleCommon(Backend backend, String line, long address, int size, long nextAddress, DebugRunnable<?> runnable) throws Exception {
         if ("exit".equals(line) || "quit".equals(line) || "q".equals(line)) { // continue
             return true;
@@ -485,7 +498,7 @@ public abstract class AbstractARMDebugger implements Debugger {
             return false;
         }
         if (line.startsWith("mcp")) {
-            startMcpServer(line, runnable);
+            startMcpServer(line);
             return false;
         }
         if ("_mcp".equals(line)) {
@@ -587,113 +600,13 @@ public abstract class AbstractARMDebugger implements Debugger {
                 return false;
             }
         }
-        final int traceSize = 0x10000;
+        int traceSize = 0x10000;
         if (line.startsWith("traceRead")) { // start trace memory read
-            Pattern pattern = Pattern.compile("traceRead\\s+(\\w+)\\s+(\\w+)");
-            Matcher matcher = pattern.matcher(line);
-            if (traceRead != null) {
-                traceRead.detach();
-            }
-            traceRead = new TraceMemoryHook(true);
-            long begin, end;
-            if (matcher.find()) {
-                begin = Utils.parseNumber(matcher.group(1));
-                end = Utils.parseNumber(matcher.group(2));
-                if (begin > end && end > 0 && end <= traceSize) {
-                    end += begin;
-                }
-                if (begin >= end) {
-                    File traceFile = new File("target/traceRead.txt");
-                    if (!traceFile.exists() && !traceFile.createNewFile()) {
-                        throw new IllegalStateException("createNewFile: " + traceFile);
-                    }
-                    traceReadRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                    traceReadRedirectStream.printf("[%s]Start traceRead%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                    traceRead.setRedirect(traceReadRedirectStream);
-                    System.out.printf("Set trace all memory read success with trace file: %s.%n", traceFile);
-                } else {
-                    boolean needTraceFile = end - begin > traceSize;
-                    if (needTraceFile) {
-                        File traceFile = new File(String.format("target/traceRead_0x%x-0x%x.txt", begin, end));
-                        if (!traceFile.exists() && !traceFile.createNewFile()) {
-                            throw new IllegalStateException("createNewFile: " + traceFile);
-                        }
-                        traceReadRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                        traceReadRedirectStream.printf("[%s]Start traceRead: 0x%x-0x%x%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), begin, end);
-                        traceRead.setRedirect(traceReadRedirectStream);
-                        System.out.printf("Set trace 0x%x->0x%x memory read success with trace file: %s.%n", begin, end, traceFile.getAbsolutePath());
-                    } else {
-                        System.out.printf("Set trace 0x%x->0x%x memory read success.%n", begin, end);
-                    }
-                }
-            } else {
-                begin = 1;
-                end = 0;
-
-                File traceFile = new File("target/traceRead.txt");
-                if (!traceFile.exists() && !traceFile.createNewFile()) {
-                    throw new IllegalStateException("createNewFile: " + traceFile);
-                }
-                traceReadRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                traceReadRedirectStream.printf("[%s]Start traceRead%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                traceRead.setRedirect(traceReadRedirectStream);
-                System.out.printf("Set trace all memory read success with trace file: %s.%n", traceFile.getAbsolutePath());
-            }
-            backend.hook_add_new((ReadHook) traceRead, begin, end, emulator);
+            setupTraceMemory(backend, line, true, traceSize);
             return false;
         }
         if (line.startsWith("traceWrite")) { // start trace memory write
-            Pattern pattern = Pattern.compile("traceWrite\\s+(\\w+)\\s+(\\w+)");
-            Matcher matcher = pattern.matcher(line);
-            if (traceWrite != null) {
-                traceWrite.detach();
-            }
-            traceWrite = new TraceMemoryHook(false);
-            long begin, end;
-            if (matcher.find()) {
-                begin = Utils.parseNumber(matcher.group(1));
-                end = Utils.parseNumber(matcher.group(2));
-                if (begin > end && end > 0 && end <= traceSize) {
-                    end += begin;
-                }
-                if (begin >= end) {
-                    File traceFile = new File("target/traceWrite.txt");
-                    if (!traceFile.exists() && !traceFile.createNewFile()) {
-                        throw new IllegalStateException("createNewFile: " + traceFile);
-                    }
-                    traceWriteRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                    traceWriteRedirectStream.printf("[%s]Start traceWrite%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                    traceWrite.setRedirect(traceWriteRedirectStream);
-                    System.out.printf("Set trace all memory write success with trace file: %s.%n", traceFile);
-                } else {
-                    boolean needTraceFile = end - begin > traceSize;
-                    if (needTraceFile) {
-                        File traceFile = new File(String.format("target/traceWrite_0x%x-0x%x.txt", begin, end));
-                        if (!traceFile.exists() && !traceFile.createNewFile()) {
-                            throw new IllegalStateException("createNewFile: " + traceFile);
-                        }
-                        traceWriteRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                        traceWriteRedirectStream.printf("[%s]Start traceWrite: 0x%x-0x%x%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), begin, end);
-                        traceWrite.setRedirect(traceWriteRedirectStream);
-                        System.out.printf("Set trace 0x%x->0x%x memory write success with trace file: %s.%n", begin, end, traceFile.getAbsolutePath());
-                    } else {
-                        System.out.printf("Set trace 0x%x->0x%x memory write success.%n", begin, end);
-                    }
-                }
-            } else {
-                begin = 1;
-                end = 0;
-
-                File traceFile = new File("target/traceWrite.txt");
-                if (!traceFile.exists() && !traceFile.createNewFile()) {
-                    throw new IllegalStateException("createNewFile: " + traceFile);
-                }
-                traceWriteRedirectStream = new PrintStream(new BufferedOutputStream(Files.newOutputStream(traceFile.toPath())), true);
-                traceWriteRedirectStream.printf("[%s]Start traceWrite%n", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                traceWrite.setRedirect(traceWriteRedirectStream);
-                System.out.printf("Set trace all memory write success with trace file: %s.%n", traceFile.getAbsolutePath());
-            }
-            backend.hook_add_new((WriteHook) traceWrite, begin, end, emulator);
+            setupTraceMemory(backend, line, false, traceSize);
             return false;
         }
         if ("traceAll".equals(line)) {
@@ -955,6 +868,15 @@ public abstract class AbstractARMDebugger implements Debugger {
 
     void showHelp(long address) {}
 
+    private void appendSymbolInfo(StringBuilder sb, Emulator<?> emulator, long address) {
+        Module module = findModuleByAddress(emulator, address);
+        Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
+        if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
+        }
+    }
+
     /**
      * @return next address
      */
@@ -963,12 +885,7 @@ public abstract class AbstractARMDebugger implements Debugger {
         boolean on = false;
         int maxLength = emulator.getMemory().getMaxLengthLibraryName().length();
         StringBuilder sb = new StringBuilder();
-        Module module = findModuleByAddress(emulator, address);
-        Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
-        if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-            GccDemangler demangler = DemanglerFactory.createDemangler();
-            sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
-        }
+        appendSymbolInfo(sb, emulator, address);
         long nextAddr = address - size;
         for (CodeHistory history : Arrays.asList(
                 new CodeHistory(address - size, size, thumb),
@@ -1022,12 +939,7 @@ public abstract class AbstractARMDebugger implements Debugger {
     @Override
     public final void disassembleBlock(Emulator<?> emulator, long address, boolean thumb) {
         StringBuilder sb = new StringBuilder();
-        Module module = findModuleByAddress(emulator, address);
-        Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
-        if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-            GccDemangler demangler = DemanglerFactory.createDemangler();
-            sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
-        }
+        appendSymbolInfo(sb, emulator, address);
         long nextAddr = address;
         UnidbgPointer pointer = UnidbgPointer.pointer(emulator, address);
         assert pointer != null;
@@ -1116,7 +1028,7 @@ public abstract class AbstractARMDebugger implements Debugger {
         }
     }
 
-    private void startMcpServer(String line, DebugRunnable<?> runnable) {
+    private void startMcpServer(String line) {
         if (mcpServer != null) {
             int p = mcpServer.getPort();
             System.out.println("MCP server already running on port " + p);

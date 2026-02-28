@@ -62,7 +62,10 @@ public class McpSession {
         }
     }
 
-    public void close() {
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
         closed = true;
         if (sseOutput != null) {
             try {

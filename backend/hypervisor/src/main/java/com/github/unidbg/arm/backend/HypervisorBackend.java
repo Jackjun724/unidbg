@@ -180,6 +180,13 @@ public abstract class HypervisorBackend extends FastBackend implements Backend, 
         }
     }
 
+    protected final void notifyInterruptHook(int intno, int swi) {
+        if (interruptHookNotifier == null) {
+            throw new IllegalStateException("interruptHookNotifier is null, bindInterruptHook not called before exception intno=" + intno + ", swi=" + swi);
+        }
+        interruptHookNotifier.notifyCallSVC(this, intno, swi);
+    }
+
     protected final void callSVC(long pc, int swi) {
         if (log.isDebugEnabled()) {
             log.debug("callSVC pc=0x{}, until=0x{}, swi={}", Long.toHexString(pc), Long.toHexString(until), swi);
@@ -188,10 +195,7 @@ public abstract class HypervisorBackend extends FastBackend implements Backend, 
             emu_stop();
             return;
         }
-        if (interruptHookNotifier == null) {
-            throw new IllegalStateException("bindInterruptHook bindInterruptHook is null, bindings not initialized before SVC at pc=0x" + Long.toHexString(pc));
-        }
-        interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_SWI, swi);
+        notifyInterruptHook(ARMEmulator.EXCP_SWI, swi);
     }
 
     @Override

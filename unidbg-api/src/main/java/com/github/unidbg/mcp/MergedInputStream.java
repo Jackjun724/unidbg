@@ -12,23 +12,44 @@ public class MergedInputStream extends InputStream {
 
     private final InputStream keyboard;
     private final InputStream pipe;
+    private volatile boolean pipeClosed;
 
     public MergedInputStream(InputStream keyboard, InputStream pipe) {
         this.keyboard = keyboard;
         this.pipe = pipe;
     }
 
+    private int pipeAvailable() {
+        if (pipeClosed) {
+            return 0;
+        }
+        try {
+            return pipe.available();
+        } catch (IOException e) {
+            pipeClosed = true;
+            return 0;
+        }
+    }
+
+    private int keyboardAvailable() {
+        try {
+            return keyboard.available();
+        } catch (IOException e) {
+            return 0;
+        }
+    }
+
     @Override
     public int read() throws IOException {
         while (true) {
-            if (pipe.available() > 0) {
+            if (pipeAvailable() > 0) {
                 return pipe.read();
             }
-            if (keyboard.available() > 0) {
+            if (keyboardAvailable() > 0) {
                 return keyboard.read();
             }
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return -1;
@@ -39,16 +60,16 @@ public class MergedInputStream extends InputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         while (true) {
-            int pipeAvail = pipe.available();
+            int pipeAvail = pipeAvailable();
             if (pipeAvail > 0) {
                 return pipe.read(b, off, Math.min(len, pipeAvail));
             }
-            int kbAvail = keyboard.available();
+            int kbAvail = keyboardAvailable();
             if (kbAvail > 0) {
                 return keyboard.read(b, off, Math.min(len, kbAvail));
             }
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return -1;
@@ -58,11 +79,12 @@ public class MergedInputStream extends InputStream {
 
     @Override
     public int available() throws IOException {
-        return pipe.available() + keyboard.available();
+        return pipeAvailable() + keyboardAvailable();
     }
 
     @Override
     public void close() throws IOException {
+        pipeClosed = true;
         pipe.close();
         keyboard.close();
     }

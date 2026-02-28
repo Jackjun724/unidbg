@@ -61,7 +61,7 @@ public class McpServer {
             t.setName("mcp-server");
             return t;
         };
-        executor = Executors.newFixedThreadPool(4, daemonFactory);
+        executor = Executors.newCachedThreadPool(daemonFactory);
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.setExecutor(executor);
         httpServer.createContext("/sse", this::handleSse);
@@ -192,10 +192,8 @@ public class McpServer {
         params.put("data", data.toJSONString());
         notification.put("params", params);
 
+        sessions.entrySet().removeIf(entry -> entry.getValue().isClosed());
         for (McpSession session : sessions.values()) {
-            if (session.isClosed()) {
-                continue;
-            }
             session.sendNotification(notification);
         }
     }
@@ -243,7 +241,18 @@ public class McpServer {
     private void handleStreamableHttp(HttpExchange exchange) throws IOException {
         String body = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
         log.debug("[MCP] /sse POST body: {}", body);
-        JSONObject request = JSON.parseObject(body);
+        JSONObject request;
+        try {
+            request = JSON.parseObject(body);
+        } catch (Exception e) {
+            log.warn("[MCP] Invalid JSON in /sse POST: {}", e.getMessage());
+            sendErrorResponse(exchange, 400, "Invalid JSON: " + e.getMessage());
+            return;
+        }
+        if (request == null) {
+            sendErrorResponse(exchange, 400, "Empty JSON body");
+            return;
+        }
 
         String rpcMethod = request.getString("method");
         Object id = request.get("id");
@@ -299,7 +308,18 @@ public class McpServer {
         }
 
         String body = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-        JSONObject request = JSON.parseObject(body);
+        JSONObject request;
+        try {
+            request = JSON.parseObject(body);
+        } catch (Exception e) {
+            log.warn("[MCP] Invalid JSON in /message: {}", e.getMessage());
+            sendErrorResponse(exchange, 400, "Invalid JSON: " + e.getMessage());
+            return;
+        }
+        if (request == null) {
+            sendErrorResponse(exchange, 400, "Empty JSON body");
+            return;
+        }
 
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.sendResponseHeaders(202, -1);

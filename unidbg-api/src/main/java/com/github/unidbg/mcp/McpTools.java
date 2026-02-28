@@ -285,7 +285,8 @@ public class McpTools {
             Backend backend = emulator.getBackend();
             List<String> results = new ArrayList<>();
             long chunkSize = 0x10000;
-            for (long addr = start; addr < end; addr += chunkSize) {
+            long step = Math.max(1, chunkSize - (pattern.length - 1));
+            for (long addr = start; addr < end; addr += step) {
                 long readSize = Math.min(chunkSize, end - addr);
                 byte[] chunk = backend.mem_read(addr, (int) readSize);
                 for (int i = 0; i <= chunk.length - pattern.length; i++) {
@@ -301,7 +302,7 @@ public class McpTools {
                         if (results.size() >= 100) break;
                     }
                 }
-                if (results.size() == 100) break;
+                if (results.size() >= 100) break;
             }
             if (results.isEmpty()) {
                 return textResult("Pattern not found");
@@ -345,6 +346,9 @@ public class McpTools {
             Backend backend = emulator.getBackend();
             if (emulator.is64Bit()) {
                 long val = backend.reg_read(regId).longValue();
+                if (name.startsWith("W")) {
+                    val &= 0xFFFFFFFFL;
+                }
                 return textResult(name + " = 0x" + Long.toHexString(val));
             } else {
                 long val = backend.reg_read(regId).intValue() & 0xffffffffL;
@@ -765,9 +769,23 @@ public class McpTools {
 
     private int resolveRegister(String name) {
         if (emulator.is64Bit()) {
-            if (name.startsWith("X") || name.startsWith("W")) {
+            if (name.startsWith("X")) {
                 int num = Integer.parseInt(name.substring(1));
-                return Arm64Const.UC_ARM64_REG_X0 + num;
+                if (num >= 0 && num <= 28) {
+                    return Arm64Const.UC_ARM64_REG_X0 + num;
+                } else if (num == 29) {
+                    return Arm64Const.UC_ARM64_REG_FP;
+                } else if (num == 30) {
+                    return Arm64Const.UC_ARM64_REG_LR;
+                }
+                throw new IllegalArgumentException("Invalid X register number: " + num);
+            }
+            if (name.startsWith("W")) {
+                int num = Integer.parseInt(name.substring(1));
+                if (num >= 0 && num <= 30) {
+                    return Arm64Const.UC_ARM64_REG_W0 + num;
+                }
+                throw new IllegalArgumentException("Invalid W register number: " + num);
             }
             switch (name) {
                 case "SP": return Arm64Const.UC_ARM64_REG_SP;
@@ -779,7 +797,16 @@ public class McpTools {
         } else {
             if (name.startsWith("R")) {
                 int num = Integer.parseInt(name.substring(1));
-                return ArmConst.UC_ARM_REG_R0 + num;
+                if (num >= 0 && num <= 12) {
+                    return ArmConst.UC_ARM_REG_R0 + num;
+                } else if (num == 13) {
+                    return ArmConst.UC_ARM_REG_SP;
+                } else if (num == 14) {
+                    return ArmConst.UC_ARM_REG_LR;
+                } else if (num == 15) {
+                    return ArmConst.UC_ARM_REG_PC;
+                }
+                throw new IllegalArgumentException("Invalid R register number: " + num);
             }
             switch (name) {
                 case "SP": return ArmConst.UC_ARM_REG_SP;

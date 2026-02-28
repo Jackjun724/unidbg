@@ -40,6 +40,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
     }
 
     private Disassembler disassembler;
+    private Keystone keystone;
 
     private synchronized Disassembler createDisassembler() {
         if (disassembler == null) {
@@ -47,6 +48,13 @@ public class HypervisorBackend64 extends HypervisorBackend {
             this.disassembler.setDetail(true);
         }
         return disassembler;
+    }
+
+    private synchronized Keystone getKeystone() {
+        if (keystone == null) {
+            this.keystone = new Keystone(KeystoneArchitecture.Arm64, KeystoneMode.LittleEndian);
+        }
+        return keystone;
     }
 
     private static final long DARWIN_KERNEL_BASE = 0xffffff80001f0000L;
@@ -63,11 +71,15 @@ public class HypervisorBackend64 extends HypervisorBackend {
 
     private DebugHook debugCallback;
     private Object debugUserData;
+    private long debugBegin;
+    private long debugEnd;
 
     @Override
     public void debugger_add(DebugHook callback, long begin, long end, Object user_data) throws BackendException {
         this.debugCallback = callback;
         this.debugUserData = user_data;
+        this.debugBegin = begin;
+        this.debugEnd = end;
     }
 
     private final HypervisorBreakPoint[] breakpoints;
@@ -118,19 +130,12 @@ public class HypervisorBackend64 extends HypervisorBackend {
     public void handleUnknownException(int ec, long esr, long far, long virtualAddress) {
         switch (ec) {
             case EC_DATAABORT:
-                boolean isv = (esr & ARM_EL_ISV) != 0; // Instruction Syndrome Valid. Indicates whether the syndrome information in ISS[23:14] is valid.
+                boolean isv = (esr & ARM_EL_ISV) != 0;
                 boolean isWrite = ((esr >> 6) & 1) != 0;
-                int sas = (int) ((esr >> 22) & 3); // Syndrome Access Size. Indicates the size of the access attempted by the faulting operation.
+                int sas = (int) ((esr >> 22) & 3);
                 int accessSize = isv ? 1 << sas : 0;
-                int srt = (int) ((esr >> 16) & 0x1f); // Syndrome Register Transfer. The register number of the Wt/Xt/Rt operand of the faulting instruction.
-                /*
-                 * Width of the register accessed by the instruction is Sixty-Four.
-                 * 0b0	Instruction loads/stores a 32-bit wide register.
-                 * 0b1	Instruction loads/stores a 64-bit wide register.
-                 */
-                boolean sf = ((esr >> 15) & 1) != 0;
                 if (log.isDebugEnabled()) {
-                    log.debug("handleDataAbort srt={}, sf={}, accessSize={}", srt, sf, accessSize);
+                    log.debug("handleDataAbort isWrite={}, accessSize={}, virtualAddress=0x{}", isWrite, accessSize, Long.toHexString(virtualAddress));
                 }
                 if (eventMemHookNotifier != null) {
                     eventMemHookNotifier.notifyDataAbort(isWrite, accessSize, virtualAddress);
@@ -147,7 +152,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
         }
     }
 
-    private long lastHitPointAddress;
+    private long lastHitPointAddress = -1;
 
     @Override
     public boolean handleException(long esr, long far, final long elr, long cpsr) {
@@ -171,7 +176,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
             }
             case EC_AA64_BKPT: {
                 int bkpt = (int) (esr & 0xffff);
-                interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_BKPT, bkpt);
+                notifyInterruptHook(ARMEmulator.EXCP_BKPT, bkpt);
                 return true;
             }
             case EC_SOFTWARESTEP: {
@@ -229,12 +234,16 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 int Op0 = ((int) (esr >>> 20) & 0x3);
                 if (isRead) {
                     if (CRm == 0 && CRn == 14 && Op1 == 3 && Op2 == 1 && Op0 == 3) { // CNTPCT_EL0
-                        hypervisor.reg_write64(Rt, 0);
+                        if (Rt < 31) {
+                            hypervisor.reg_write64(Rt, 0);
+                        }
                         hypervisor.reg_set_elr_el1(elr + 4);
                         return true;
                     }
                     if (CRm == 0 && CRn == 14 && Op1 == 3 && Op2 == 2 && Op0 == 3) { // CNTVCT_EL0
-                        hypervisor.reg_write64(Rt, 0);
+                        if (Rt < 31) {
+                            hypervisor.reg_write64(Rt, 0);
+                        }
                         hypervisor.reg_set_elr_el1(elr + 4);
                         return true;
                     }
@@ -320,14 +329,15 @@ public class HypervisorBackend64 extends HypervisorBackend {
                     step();
                     return;
                 }
+                break;
             }
         }
         if (hitWp == null) {
-            interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_BKPT, status);
+            notifyInterruptHook(ARMEmulator.EXCP_BKPT, status);
         } else {
             if (repeatWatchpoint) {
                 if (exclusiveMonitorEscaper != null) {
-                    interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_BKPT, status);
+                    notifyInterruptHook(ARMEmulator.EXCP_BKPT, status);
                 } else {
                     exclusiveMonitorEscaper = new ExclusiveMonitorEscaper(new WatchpointExclusiveMonitorEscaper(hitWp));
                 }
@@ -355,12 +365,16 @@ public class HypervisorBackend64 extends HypervisorBackend {
         }
     }
 
+    private boolean isInDebugRange(long address) {
+        return debugBegin >= debugEnd || (address >= debugBegin && address < debugEnd);
+    }
+
     private void onBreakpoint(long esr, long elr) {
-        if (debugCallback != null) {
+        if (debugCallback != null && isInDebugRange(elr)) {
             debugCallback.onBreak(this, elr, INS_SIZE, debugUserData);
         } else {
             int status = (int) (esr & 0x3f);
-            interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_BKPT, status);
+            notifyInterruptHook(ARMEmulator.EXCP_BKPT, status);
         }
     }
 
@@ -386,11 +400,11 @@ public class HypervisorBackend64 extends HypervisorBackend {
             this.callback = callback;
             step();
         }
-        private long loadExclusiveAddress;
+        private long loadExclusiveAddress = -1;
         private int loadExclusiveCount;
         private final List<Long> exclusiveRegionAddressList = new ArrayList<>();
         private void resetRegionInfo() {
-            loadExclusiveAddress = 0;
+            loadExclusiveAddress = -1;
             loadExclusiveCount = 0;
             exclusiveRegionAddressList.clear();
         }
@@ -398,13 +412,19 @@ public class HypervisorBackend64 extends HypervisorBackend {
             if ((asm & 0xbffffc00) == 0x885ffc00) { // ldaxr
                 return true;
             }
+            if ((asm & 0xbffffc00) == 0x885f7c00) { // ldxr
+                return true;
+            }
             if ((asm & 0xfffffc00) == 0x485ffc00) { // ldaxrh
                 return true;
             }
-            if ((asm & 0xfffffc00) == 0x485f7c00) { // 0x40808dbc: ldxrh w5, [x1]
+            if ((asm & 0xfffffc00) == 0x485f7c00) { // ldxrh
                 return true;
             }
-            return (asm & 0xbffffc00) == 0x885f7c00; // ldxr
+            if ((asm & 0xfffffc00) == 0x085ffc00) { // ldaxrb
+                return true;
+            }
+            return (asm & 0xfffffc00) == 0x085f7c00; // ldxrb
         }
         final void onSoftwareStep(long spsr, long address) {
             UnidbgPointer pointer = UnidbgPointer.pointer(emulator, address);
@@ -421,7 +441,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 }
                 loadExclusiveAddress = address;
             } else {
-                if (loadExclusiveAddress == 0) {
+                if (loadExclusiveAddress == -1) {
                     resetRegionInfo();
                 }
             }
@@ -440,13 +460,16 @@ public class HypervisorBackend64 extends HypervisorBackend {
                         case "stlxr":
                         case "stxrh":
                         case "stlxrh":
+                        case "stxrb":
+                        case "stlxrb":
                             foundAddress = pc;
                             break;
                     }
                     builder.append(String.format("0x%x: %s%n", instruction.getAddress(), instruction));
                 }
                 if (foundAddress == 0) {
-                    log.info("CodeHookNotifier.onSoftwareStep: \n{}", builder);
+                    log.warn("No store-exclusive found in exclusive region, skipping escape: \n{}", builder);
+                    resetRegionInfo();
                 } else {
                     resetRegionInfo();
                     final long breakAddress = foundAddress + 4;
@@ -462,7 +485,6 @@ public class HypervisorBackend64 extends HypervisorBackend {
                                     breakpoints[n] = null;
                                     hypervisor.disable_hw_breakpoint(n);
                                     callback.onEscapeSuccess();
-                                    step();
                                     return true;
                                 }
                             });
@@ -475,7 +497,8 @@ public class HypervisorBackend64 extends HypervisorBackend {
                             return;
                         }
                     }
-                    log.warn("No more BKPs: {}", breakpoints.length);
+                    log.warn("No free breakpoint slot for exclusive monitor escape, max BKPs: {}", breakpoints.length);
+                    resetRegionInfo();
                 }
             }
             callback.notifyCallback(address);
@@ -534,11 +557,11 @@ public class HypervisorBackend64 extends HypervisorBackend {
             return;
         }
         if (--singleStep == 0) {
-            if (debugCallback != null) {
+            if (debugCallback != null && isInDebugRange(address)) {
                 debugCallback.onBreak(this, address, INS_SIZE, debugUserData);
             } else {
                 int status = (int) (esr & 0x3f);
-                interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_BKPT, status);
+                notifyInterruptHook(ARMEmulator.EXCP_BKPT, status);
             }
         } else {
             hypervisor.reg_set_spsr_el1(spsr | Hypervisor.PSTATE$SS);
@@ -795,10 +818,8 @@ public class HypervisorBackend64 extends HypervisorBackend {
 
     @Override
     protected byte[] addSoftBreakPoint(long address, int svcNumber, boolean thumb) {
-        try (Keystone keystone = new Keystone(KeystoneArchitecture.Arm64, KeystoneMode.LittleEndian)) {
-            KeystoneEncoded encoded = keystone.assemble("brk #" + svcNumber);
-            return encoded.getMachineCode();
-        }
+        KeystoneEncoded encoded = getKeystone().assemble("brk #" + svcNumber);
+        return encoded.getMachineCode();
     }
 
     @Override
@@ -807,6 +828,11 @@ public class HypervisorBackend64 extends HypervisorBackend {
 
         IOUtils.close(disassembler);
         disassembler = null;
+
+        if (keystone != null) {
+            keystone.close();
+            keystone = null;
+        }
     }
 
     @Override
