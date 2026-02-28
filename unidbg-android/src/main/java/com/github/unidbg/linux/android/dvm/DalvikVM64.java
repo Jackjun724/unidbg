@@ -10,13 +10,7 @@ import com.github.unidbg.arm.backend.BackendException;
 import com.github.unidbg.arm.context.Arm64RegisterContext;
 import com.github.unidbg.arm.context.RegisterContext;
 import com.github.unidbg.linux.android.dvm.apk.Apk;
-import com.github.unidbg.linux.android.dvm.array.ArrayObject;
-import com.github.unidbg.linux.android.dvm.array.ByteArray;
-import com.github.unidbg.linux.android.dvm.array.DoubleArray;
-import com.github.unidbg.linux.android.dvm.array.FloatArray;
-import com.github.unidbg.linux.android.dvm.array.IntArray;
-import com.github.unidbg.linux.android.dvm.array.PrimitiveArray;
-import com.github.unidbg.linux.android.dvm.array.ShortArray;
+import com.github.unidbg.linux.android.dvm.array.*;
 import com.github.unidbg.memory.SvcMemory;
 import com.github.unidbg.pointer.UnidbgPointer;
 import com.github.unidbg.utils.Inspector;
@@ -119,7 +113,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                     }
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("ToReflectedMethod clazz=" + dvmClass + ", jmethodID=" + jmethodID + ", lr=" + context.getLRPointer());
+                    log.debug("ToReflectedMethod clazz={}, jmethodID={}, lr={}", dvmClass, jmethodID, context.getLRPointer());
                 }
                 if (dvmMethod == null) {
                     throw new BackendException();
@@ -143,8 +137,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                     System.out.printf("JNIEnv->GetSuperClass(%s) was called from %s%n", dvmClass, context.getLRPointer());
                 }
                 if (dvmClass.getClassName().equals("java/lang/Object")) {
-                    log.debug("JNIEnv->GetSuperClass was called, class = " + dvmClass.getClassName() + " According to Java Native Interface Specification, " +
-                            "If clazz specifies the class Object, returns NULL.");
+                    log.debug("JNIEnv->GetSuperClass was called, class = {} According to Java Native Interface Specification, If clazz specifies the class Object, returns NULL.", dvmClass.getClassName());
                     throw new BackendException();
                 }
                 DvmClass superClass = dvmClass.getSuperclass();
@@ -182,7 +175,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                 RegisterContext context = emulator.getContext();
                 UnidbgPointer object = context.getPointerArg(1);
                 DvmObject<?> dvmObject = getObject(object.toIntPeer());
-                log.warn("Throw dvmObject=" + dvmObject + ", class=" + (dvmObject != null ? dvmObject.getObjectType() : null));
+                log.warn("Throw dvmObject={}, class={}", dvmObject, dvmObject != null ? dvmObject.getObjectType() : null);
                 throwable = dvmObject;
                 return 0;
             }
@@ -191,7 +184,14 @@ public class DalvikVM64 extends BaseVM implements VM {
         Pointer _ThrowNew = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer clazz = context.getPointerArg(1);
+                Pointer message = context.getPointerArg(2);
+                DvmClass dvmClass = classMap.get(clazz.toIntPeer());
+                if (log.isDebugEnabled()) {
+                    log.debug("ThrowNew clazz={}, lr={}", dvmClass, context.getLRPointer());
+                }
+                throw new IllegalStateException("dvmClass=" + dvmClass + ", msg=" + message.getString(0));
             }
         });
 
@@ -200,7 +200,7 @@ public class DalvikVM64 extends BaseVM implements VM {
             public long handle(Emulator<?> emulator) {
                 long exception = throwable == null ? JNI_NULL : (throwable.hashCode() & 0xffffffffL);
                 if (log.isDebugEnabled()) {
-                    log.debug("ExceptionOccurred: 0x" + Long.toHexString(exception));
+                    log.debug("ExceptionOccurred: 0x{}", Long.toHexString(exception));
                 }
                 return exception;
             }
@@ -237,7 +237,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                 RegisterContext context = emulator.getContext();
                 int capacity = context.getIntArg(1);
                 if (log.isDebugEnabled()) {
-                    log.debug("PushLocalFrame capacity=" + capacity);
+                    log.debug("PushLocalFrame capacity={}", capacity);
                 }
                 return JNI_OK;
             }
