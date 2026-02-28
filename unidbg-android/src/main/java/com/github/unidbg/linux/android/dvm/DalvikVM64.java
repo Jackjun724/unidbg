@@ -3000,7 +3000,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                     buffer.putChar(c);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("GetStringUTFChars string={}, isCopy={}, value={}, lr={}", string, isCopy, value, context.getLRPointer());
+                    log.debug("GetStringChars string={}, isCopy={}, value={}, lr={}", string, isCopy, value, context.getLRPointer());
                 }
                 if (verbose || verboseMethodOperation) {
                     System.out.printf("JNIEnv->GetStringUTFChars(\"%s\") was called from %s%n", value, context.getLRPointer());
@@ -3344,7 +3344,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                 }
                 float[] data = buf.getFloatArray(0, length);
                 if (log.isDebugEnabled()) {
-                    log.debug("SetIntArrayRegion array={}, start={}, length={}, buf={}", array, start, length, buf);
+                    log.debug("SetFloatArrayRegion array={}, start={}, length={}, buf={}", array, start, length, buf);
                 }
                 Objects.requireNonNull(array).setData(start, data);
                 return 0;
