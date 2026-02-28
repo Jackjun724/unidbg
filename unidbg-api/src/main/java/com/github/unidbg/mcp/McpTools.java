@@ -143,6 +143,19 @@ public class McpTools {
         tools.add(toolSchema("read_string", "Read a null-terminated C string (UTF-8) from memory at address. Useful for reading strings pointed to by registers or memory.",
                 param("address", "string", "Hex address to read string from"),
                 param("max_length", "integer", "Max bytes to read before giving up. Default 256.")));
+        tools.add(toolSchema("read_pointer", "Read pointer value(s) at address, optionally following a pointer chain. " +
+                        "Useful for traversing data structures like ObjC isa chains, vtables, linked lists, etc. " +
+                        "Each level dereferences the pointer and reads the next value. " +
+                        "Returns each level's address, pointer value, module info, and nearest symbol.",
+                param("address", "string", "Hex address to read pointer from"),
+                param("depth", "integer", "Optional. Number of levels to follow the pointer chain. Default 1 (just read one pointer)."),
+                param("offset", "integer", "Optional. Byte offset to add at each dereference level. Default 0. E.g. offset=8 reads *(ptr+8) at each level.")));
+        tools.add(toolSchema("read_typed", "Read memory as typed values. Interprets raw bytes as the specified data type. " +
+                        "Supports: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer. " +
+                        "For pointer type, also shows module+offset and nearest symbol for each value.",
+                param("address", "string", "Hex address to read from"),
+                param("type", "string", "Data type: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer"),
+                param("count", "integer", "Optional. Number of elements to read. Default 1.")));
 
         tools.add(toolSchema("list_modules", "List all loaded modules with name, base address and size"));
         tools.add(toolSchema("get_module_info", "Get detailed information about a loaded module",
@@ -210,6 +223,8 @@ public class McpTools {
             case "get_callstack": return getCallstack();
             case "find_symbol": return findSymbol(args);
             case "read_string": return readString(args);
+            case "read_pointer": return readPointer(args);
+            case "read_typed": return readTyped(args);
             case "list_modules": return listModules();
             case "get_module_info": return getModuleInfo(args);
             default:
@@ -899,6 +914,124 @@ public class McpTools {
             return textResult(sb.toString());
         } catch (Exception e) {
             return errorResult("Failed to read string at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+        }
+    }
+
+    private JSONObject readPointer(JSONObject args) {
+        long address = parseAddress(args.getString("address"));
+        int depth = args.containsKey("depth") ? args.getIntValue("depth") : 1;
+        int offset = args.containsKey("offset") ? args.getIntValue("offset") : 0;
+        boolean is64 = emulator.is64Bit();
+        int ptrSize = is64 ? 8 : 4;
+        Backend backend = emulator.getBackend();
+        Memory memory = emulator.getMemory();
+        GccDemangler demangler = DemanglerFactory.createDemangler();
+
+        StringBuilder sb = new StringBuilder();
+        long currentAddr = address;
+        try {
+            for (int level = 0; level <= depth; level++) {
+                sb.append(String.format("[%d] 0x%x", level, currentAddr));
+                Module module = memory.findModuleByAddress(currentAddr);
+                if (module != null) {
+                    sb.append(String.format("  (%s+0x%x)", module.name, currentAddr - module.base));
+                    Symbol symbol = module.findClosestSymbolByAddress(currentAddr, false);
+                    if (symbol != null && currentAddr - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+                        sb.append(String.format("  <%s>", demangler.demangle(symbol.getName())));
+                    }
+                }
+                sb.append('\n');
+
+                if (level < depth) {
+                    long readAddr = currentAddr + offset;
+                    byte[] data = backend.mem_read(readAddr, ptrSize);
+                    long ptrValue;
+                    if (is64) {
+                        ptrValue = 0;
+                        for (int i = 7; i >= 0; i--) {
+                            ptrValue = (ptrValue << 8) | (data[i] & 0xFFL);
+                        }
+                    } else {
+                        ptrValue = 0;
+                        for (int i = 3; i >= 0; i--) {
+                            ptrValue = (ptrValue << 8) | (data[i] & 0xFFL);
+                        }
+                    }
+                    if (offset != 0) {
+                        sb.append(String.format("    -> read at 0x%x+0x%x = 0x%x%n", currentAddr, offset, ptrValue));
+                    } else {
+                        sb.append(String.format("    -> 0x%x%n", ptrValue));
+                    }
+                    if (ptrValue == 0) {
+                        sb.append("    (null pointer, chain ends)\n");
+                        break;
+                    }
+                    currentAddr = ptrValue;
+                }
+            }
+        } catch (Exception e) {
+            sb.append(String.format("    (read failed at 0x%x: %s)%n", currentAddr, e.getMessage()));
+        }
+        return textResult(sb.toString());
+    }
+
+    private JSONObject readTyped(JSONObject args) {
+        long address = parseAddress(args.getString("address"));
+        String type = args.getString("type").toLowerCase();
+        int count = args.containsKey("count") ? args.getIntValue("count") : 1;
+
+        int elemSize;
+        switch (type) {
+            case "int8": case "uint8": elemSize = 1; break;
+            case "int16": case "uint16": elemSize = 2; break;
+            case "int32": case "uint32": case "float": elemSize = 4; break;
+            case "int64": case "uint64": case "double": elemSize = 8; break;
+            case "pointer": elemSize = emulator.is64Bit() ? 8 : 4; break;
+            default: return errorResult("Unsupported type: " + type + ". Supported: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer");
+        }
+
+        try {
+            byte[] data = emulator.getBackend().mem_read(address, elemSize * count);
+            java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(data).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+            Memory memory = emulator.getMemory();
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < count; i++) {
+                long elemAddr = address + (long) i * elemSize;
+                sb.append(String.format("[%d] 0x%x: ", i, elemAddr));
+                switch (type) {
+                    case "int8": sb.append(data[i]); break;
+                    case "uint8": sb.append(data[i] & 0xFF); break;
+                    case "int16": sb.append(buf.getShort(i * 2)); break;
+                    case "uint16": sb.append(buf.getShort(i * 2) & 0xFFFF); break;
+                    case "int32": sb.append(buf.getInt(i * 4)); break;
+                    case "uint32": sb.append(Integer.toUnsignedString(buf.getInt(i * 4))); break;
+                    case "float": sb.append(buf.getFloat(i * 4)); break;
+                    case "int64": sb.append(buf.getLong(i * 8)); break;
+                    case "uint64": sb.append(Long.toUnsignedString(buf.getLong(i * 8))); break;
+                    case "double": sb.append(buf.getDouble(i * 8)); break;
+                    case "pointer": {
+                        long ptrVal = emulator.is64Bit() ? buf.getLong(i * 8) : (buf.getInt(i * 4) & 0xFFFFFFFFL);
+                        sb.append("0x").append(Long.toHexString(ptrVal));
+                        if (ptrVal != 0) {
+                            Module module = memory.findModuleByAddress(ptrVal);
+                            if (module != null) {
+                                sb.append(String.format("  (%s+0x%x)", module.name, ptrVal - module.base));
+                                Symbol symbol = module.findClosestSymbolByAddress(ptrVal, false);
+                                if (symbol != null && ptrVal - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+                                    sb.append(String.format("  <%s>", demangler.demangle(symbol.getName())));
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                sb.append('\n');
+            }
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to read typed data at 0x" + Long.toHexString(address) + ": " + e.getMessage());
         }
     }
 
