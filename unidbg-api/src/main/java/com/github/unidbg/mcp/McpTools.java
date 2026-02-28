@@ -156,6 +156,19 @@ public class McpTools {
                 param("address", "string", "Hex address to read from"),
                 param("type", "string", "Data type: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer"),
                 param("count", "integer", "Optional. Number of elements to read. Default 1.")));
+        tools.add(toolSchema("call_function", "Call a native function at the given address with arguments and return the result. " +
+                        "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
+                        "The function executes synchronously and may fail with any exception (crash, invalid memory, etc). " +
+                        "You can set up trace_code/trace_read/trace_write BEFORE calling this tool — " +
+                        "traces will be active during the function execution, and trace events can be retrieved via poll_events after call_function returns. " +
+                        "Arguments are passed via args array. Each element is a string with a type prefix: " +
+                        "'0x1234' or '1234' for integer/hex values, " +
+                        "'s:hello world' for C string (auto-allocated in memory, pointer passed), " +
+                        "'b:48656c6c6f' for byte array (auto-allocated, pointer passed), " +
+                        "'null' for null pointer. " +
+                        "Return value is the function's return (X0 on ARM64, R0 on ARM32).",
+                param("address", "string", "Hex address of the function to call"),
+                param("args", "array", "Optional. Array of argument strings with type prefix. E.g. [\"0x1\", \"s:hello\", \"null\"]")));
 
         tools.add(toolSchema("list_modules", "List all loaded modules with name, base address and size"));
         tools.add(toolSchema("get_module_info", "Get detailed information about a loaded module",
@@ -225,6 +238,7 @@ public class McpTools {
             case "read_string": return readString(args);
             case "read_pointer": return readPointer(args);
             case "read_typed": return readTyped(args);
+            case "call_function": return callFunction(args);
             case "list_modules": return listModules();
             case "get_module_info": return getModuleInfo(args);
             default:
@@ -1033,6 +1047,99 @@ public class McpTools {
         } catch (Exception e) {
             return errorResult("Failed to read typed data at 0x" + Long.toHexString(address) + ": " + e.getMessage());
         }
+    }
+
+    private JSONObject callFunction(JSONObject args) {
+        if (emulator.isRunning()) {
+            return errorResult("Cannot call function while emulator is running.");
+        }
+
+        long address = parseAddress(args.getString("address"));
+        JSONArray argsArray = args.getJSONArray("args");
+        Object[] funcArgs;
+        if (argsArray == null || argsArray.isEmpty()) {
+            funcArgs = new Object[0];
+        } else {
+            funcArgs = new Object[argsArray.size()];
+            for (int i = 0; i < argsArray.size(); i++) {
+                String argStr = argsArray.getString(i);
+                try {
+                    funcArgs[i] = parseCallArg(argStr);
+                } catch (Exception e) {
+                    return errorResult("Invalid argument[" + i + "] '" + argStr + "': " + e.getMessage());
+                }
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Calling 0x").append(Long.toHexString(address));
+        Module module = emulator.getMemory().findModuleByAddress(address);
+        if (module != null) {
+            sb.append(" (").append(module.name).append("+0x").append(Long.toHexString(address - module.base)).append(')');
+        }
+        sb.append(" with ").append(funcArgs.length).append(" arg(s)\n");
+        for (int i = 0; i < funcArgs.length; i++) {
+            Object arg = funcArgs[i];
+            if (arg instanceof Long) {
+                sb.append(String.format("  arg[%d]: 0x%x%n", i, (Long) arg));
+            } else if (arg instanceof String) {
+                sb.append(String.format("  arg[%d]: string \"%s\"%n", i, arg));
+            } else if (arg instanceof byte[]) {
+                sb.append(String.format("  arg[%d]: byte[%d] %s%n", i, ((byte[]) arg).length, Hex.encodeHexString((byte[]) arg)));
+            } else {
+                sb.append(String.format("  arg[%d]: null%n", i));
+            }
+        }
+
+        try {
+            Number result = Module.emulateFunction(emulator, address, funcArgs);
+            long retVal = result.longValue();
+            sb.append("\nResult: 0x").append(Long.toHexString(retVal));
+            sb.append(" (").append(retVal).append(")\n");
+            Module retModule = emulator.getMemory().findModuleByAddress(retVal);
+            if (retModule != null) {
+                sb.append("  -> ").append(retModule.name).append("+0x").append(Long.toHexString(retVal - retModule.base)).append('\n');
+            }
+            if (retVal > 0x1000 && retVal < 0xFFFFFFFFL) {
+                try {
+                    byte[] strData = emulator.getBackend().mem_read(retVal, 64);
+                    int len = 0;
+                    boolean printable = true;
+                    while (len < strData.length && strData[len] != 0) {
+                        if (strData[len] < 0x20 || strData[len] > 0x7e) {
+                            printable = false;
+                            break;
+                        }
+                        len++;
+                    }
+                    if (printable && len > 0) {
+                        sb.append("  -> string: \"").append(new String(strData, 0, len, java.nio.charset.StandardCharsets.UTF_8)).append("\"\n");
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            sb.append("\nCall FAILED: ").append(e.getClass().getName()).append(": ").append(e.getMessage()).append('\n');
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                sb.append("Caused by: ").append(cause.getClass().getName()).append(": ").append(cause.getMessage()).append('\n');
+            }
+            return errorResult(sb.toString());
+        }
+    }
+
+    private Object parseCallArg(String argStr) throws DecoderException {
+        if (argStr == null || "null".equalsIgnoreCase(argStr)) {
+            return null;
+        }
+        if (argStr.startsWith("s:")) {
+            return argStr.substring(2);
+        }
+        if (argStr.startsWith("b:")) {
+            return Hex.decodeHex(argStr.substring(2).toCharArray());
+        }
+        return parseAddress(argStr);
     }
 
     private JSONObject listModules() {
