@@ -64,10 +64,17 @@ public class McpTools {
                 param("address", "string", "Hex address"),
                 param("hex_bytes", "string", "Hex encoded bytes to write")));
         tools.add(toolSchema("list_memory_map", "List all memory mapped regions with base, size and permissions"));
-        tools.add(toolSchema("search_memory", "Search for byte pattern in memory range",
-                param("pattern", "string", "Hex encoded byte pattern to search for"),
-                param("start", "string", "Hex start address"),
-                param("end", "string", "Hex end address")));
+        tools.add(toolSchema("search_memory", "Search for byte pattern or text string in memory. " +
+                        "Supports: (1) hex byte pattern with optional ?? wildcards (e.g. '48656c6c6f', 'ff??00??ab'), " +
+                        "(2) text string search (set type='string'). " +
+                        "Search scope: specify module_name to search within a module, or start+end for a specific range, " +
+                        "or omit all to search all readable mapped memory.",
+                param("pattern", "string", "The pattern to search. For hex: hex bytes, ?? for wildcard. For string: the text to find."),
+                param("type", "string", "Optional. 'hex' (default) or 'string'. If 'string', pattern is treated as UTF-8 text."),
+                param("module_name", "string", "Optional. Search only within this module."),
+                param("start", "string", "Optional. Hex start address."),
+                param("end", "string", "Optional. Hex end address."),
+                param("max_results", "integer", "Optional. Max matches to return. Default 50.")));
 
         tools.add(toolSchema("get_registers", "Read all general purpose registers"));
         tools.add(toolSchema("get_register", "Read a specific register by name",
@@ -277,42 +284,127 @@ public class McpTools {
     }
 
     private JSONObject searchMemory(JSONObject args) {
-        long start = parseAddress(args.getString("start"));
-        long end = parseAddress(args.getString("end"));
-        String patternHex = args.getString("pattern");
+        String patternStr = args.getString("pattern");
+        String type = args.containsKey("type") ? args.getString("type") : "hex";
+        String moduleName = args.getString("module_name");
+        String startStr = args.getString("start");
+        String endStr = args.getString("end");
+        int maxResults = args.containsKey("max_results") ? args.getIntValue("max_results") : 50;
+
+        byte[] patternBytes;
+        byte[] maskBytes;
         try {
-            byte[] pattern = Hex.decodeHex(patternHex.toCharArray());
-            Backend backend = emulator.getBackend();
-            List<String> results = new ArrayList<>();
-            long chunkSize = 0x10000;
-            long step = Math.max(1, chunkSize - (pattern.length - 1));
-            for (long addr = start; addr < end; addr += step) {
-                long readSize = Math.min(chunkSize, end - addr);
-                byte[] chunk = backend.mem_read(addr, (int) readSize);
-                for (int i = 0; i <= chunk.length - pattern.length; i++) {
-                    boolean match = true;
-                    for (int j = 0; j < pattern.length; j++) {
-                        if (chunk[i + j] != pattern[j]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match) {
-                        results.add("0x" + Long.toHexString(addr + i));
-                        if (results.size() >= 100) break;
+            if ("string".equalsIgnoreCase(type)) {
+                patternBytes = patternStr.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                maskBytes = null;
+            } else {
+                String hex = patternStr.replace(" ", "");
+                if (hex.length() % 2 != 0) {
+                    return errorResult("Hex pattern must have even number of characters: " + patternStr);
+                }
+                int byteLen = hex.length() / 2;
+                patternBytes = new byte[byteLen];
+                maskBytes = new byte[byteLen];
+                boolean hasMask = false;
+                for (int i = 0; i < byteLen; i++) {
+                    String byteStr = hex.substring(i * 2, i * 2 + 2);
+                    if ("??".equals(byteStr)) {
+                        patternBytes[i] = 0;
+                        maskBytes[i] = 0;
+                        hasMask = true;
+                    } else {
+                        patternBytes[i] = (byte) Integer.parseInt(byteStr, 16);
+                        maskBytes[i] = (byte) 0xFF;
                     }
                 }
-                if (results.size() >= 100) break;
+                if (!hasMask) {
+                    maskBytes = null;
+                }
             }
-            if (results.isEmpty()) {
-                return textResult("Pattern not found");
-            }
-            return textResult("Found " + results.size() + " match(es):\n" + String.join("\n", results));
-        } catch (DecoderException e) {
-            return errorResult("Invalid hex pattern: " + patternHex);
-        } catch (Exception e) {
-            return errorResult("Search failed: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            return errorResult("Invalid hex pattern: " + patternStr);
         }
+
+        List<long[]> ranges = new ArrayList<>();
+        if (moduleName != null && !moduleName.isEmpty()) {
+            Module module = emulator.getMemory().findModule(moduleName);
+            if (module == null) {
+                return errorResult("Module not found: " + moduleName);
+            }
+            ranges.add(new long[]{module.base, module.base + module.size});
+        } else if (startStr != null && endStr != null) {
+            ranges.add(new long[]{parseAddress(startStr), parseAddress(endStr)});
+        } else {
+            for (MemoryMap map : emulator.getMemory().getMemoryMap()) {
+                if ((map.prot & 1) != 0) {
+                    ranges.add(new long[]{map.base, map.base + map.size});
+                }
+            }
+        }
+
+        Backend backend = emulator.getBackend();
+        Memory memory = emulator.getMemory();
+        List<String> results = new ArrayList<>();
+        int chunkSize = 0x10000;
+
+        for (long[] range : ranges) {
+            long rangeStart = range[0];
+            long rangeEnd = range[1];
+            long overlap = patternBytes.length - 1;
+            long step = Math.max(1, chunkSize - overlap);
+
+            for (long addr = rangeStart; addr < rangeEnd && results.size() < maxResults; addr += step) {
+                int readSize = (int) Math.min(chunkSize, rangeEnd - addr);
+                byte[] chunk;
+                try {
+                    chunk = backend.mem_read(addr, readSize);
+                } catch (Exception e) {
+                    continue;
+                }
+                for (int i = 0; i <= chunk.length - patternBytes.length && results.size() < maxResults; i++) {
+                    if (matchPattern(chunk, i, patternBytes, maskBytes)) {
+                        long matchAddr = addr + i;
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("0x").append(Long.toHexString(matchAddr));
+                        Module module = memory.findModuleByAddress(matchAddr);
+                        if (module != null) {
+                            sb.append("  (").append(module.name).append("+0x").append(Long.toHexString(matchAddr - module.base)).append(')');
+                        }
+                        results.add(sb.toString());
+                    }
+                }
+            }
+            if (results.size() >= maxResults) break;
+        }
+
+        if (results.isEmpty()) {
+            return textResult("Pattern not found.");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Found ").append(results.size()).append(" match(es)");
+        if (results.size() >= maxResults) {
+            sb.append(" (limit reached)");
+        }
+        sb.append(":\n");
+        for (String r : results) {
+            sb.append(r).append('\n');
+        }
+        return textResult(sb.toString());
+    }
+
+    private static boolean matchPattern(byte[] data, int offset, byte[] pattern, byte[] mask) {
+        for (int j = 0; j < pattern.length; j++) {
+            if (mask != null) {
+                if ((data[offset + j] & mask[j]) != (pattern[j] & mask[j])) {
+                    return false;
+                }
+            } else {
+                if (data[offset + j] != pattern[j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private JSONObject getRegisters() {
