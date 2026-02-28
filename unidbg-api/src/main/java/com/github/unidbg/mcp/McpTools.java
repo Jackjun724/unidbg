@@ -5,13 +5,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.unidbg.Emulator;
 import com.github.unidbg.Module;
+import com.github.unidbg.Symbol;
+import com.github.unidbg.TraceHook;
 import com.github.unidbg.arm.ARM;
 import com.github.unidbg.arm.backend.Backend;
 import com.github.unidbg.debugger.BreakPoint;
-import com.github.unidbg.debugger.DebugRunnable;
 import com.github.unidbg.memory.Memory;
 import com.github.unidbg.memory.MemoryMap;
+import com.github.unidbg.unwind.Frame;
+import com.github.unidbg.unwind.Unwinder;
 import com.github.unidbg.utils.Inspector;
+import com.github.zhkl0228.demumble.DemanglerFactory;
+import com.github.zhkl0228.demumble.GccDemangler;
 import keystone.Keystone;
 import keystone.KeystoneArchitecture;
 import keystone.KeystoneEncoded;
@@ -23,7 +28,6 @@ import unicorn.ArmConst;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,16 +35,14 @@ public class McpTools {
 
     private final Emulator<?> emulator;
     private final McpServer server;
-    private DebugRunnable<?> runnable;
     private final List<CustomTool> customTools = new ArrayList<>();
+    private TraceHook activeTraceCode;
+    private TraceHook activeTraceRead;
+    private TraceHook activeTraceWrite;
 
     public McpTools(Emulator<?> emulator, McpServer server) {
         this.emulator = emulator;
         this.server = server;
-    }
-
-    public void setRunnable(DebugRunnable<?> runnable) {
-        this.runnable = runnable;
     }
 
     public void addCustomTool(String name, String description, String... paramNames) {
@@ -49,6 +51,12 @@ public class McpTools {
 
     public JSONArray getToolSchemas() {
         JSONArray tools = new JSONArray();
+        tools.add(toolSchema("check_connection", "Check emulator status. Returns: architecture, backend type and capabilities, process name, debug idle (true=paused/ready, false=running), breakpoint count, pending events, and modules. " +
+                "Call this first to understand current state and backend limitations. " +
+                "Backend capabilities vary: " +
+                "Unicorn/Unicorn2: full support (unlimited breakpoints, code/read/write hooks, single-step, write hook reports size+value). " +
+                "Hypervisor (macOS): hardware breakpoints (limited count), 1 code hook at a time, write hook cannot report size/value, single-step supported. " +
+                "Dynarmic/KVM: breakpoints only, no code/read/write hooks, no single-step — trace_code/trace_read/trace_write/step_into/step_over will NOT work."));
         tools.add(toolSchema("read_memory", "Read memory at address and return hex dump",
                 param("address", "string", "Hex address, e.g. 0x40001000"),
                 param("size", "integer", "Number of bytes to read, default 0x70")));
@@ -68,8 +76,8 @@ public class McpTools {
                 param("name", "string", "Register name"),
                 param("value", "string", "Hex value to write")));
 
-        tools.add(toolSchema("disassemble", "Disassemble instructions at address",
-                param("address", "string", "Hex address"),
+        tools.add(toolSchema("disassemble", "Disassemble instructions at address. To disassemble at current PC, first use get_register to read PC value.",
+                param("address", "string", "Hex address to disassemble at"),
                 param("count", "integer", "Number of instructions to disassemble, default 10")));
         tools.add(toolSchema("assemble", "Assemble instruction text to machine code hex (does not write to memory)",
                 param("assembly", "string", "Assembly instruction text, e.g. 'mov x0, #1'"),
@@ -77,19 +85,51 @@ public class McpTools {
         tools.add(toolSchema("patch", "Assemble instruction and write to memory at address",
                 param("address", "string", "Hex address to patch"),
                 param("assembly", "string", "Assembly instruction text")));
-        tools.add(toolSchema("add_breakpoint", "Add a breakpoint at address",
-                param("address", "string", "Hex address")));
+        tools.add(toolSchema("add_breakpoint", "Add a breakpoint at address. Optionally set as temporary (auto-removed after first hit).",
+                param("address", "string", "Hex address"),
+                param("temporary", "boolean", "If true, breakpoint is removed automatically after first hit. Default false.")));
         tools.add(toolSchema("remove_breakpoint", "Remove breakpoint at address",
                 param("address", "string", "Hex address")));
-        tools.add(toolSchema("continue_execution", "Resume emulator execution. Returns immediately; breakpoint hits and completion are reported via async notifications."));
+        tools.add(toolSchema("list_breakpoints", "List all currently set breakpoints with address, module info and temporary status"));
+        tools.add(toolSchema("continue_execution", "Resume emulator execution. " +
+                "If paused at a breakpoint, continues from current PC. " +
+                "If emulation has completed, re-runs the emulation from the beginning. " +
+                "Returns immediately; use poll_events to receive execution_started, breakpoint_hit, or execution_completed events."));
+        tools.add(toolSchema("step_over", "Step over current instruction (does not enter function calls). " +
+                "Sets a temporary breakpoint at the next instruction and resumes. Use poll_events to wait for completion."));
+        tools.add(toolSchema("step_into", "Step into: execute specified number of instructions then stop. Use poll_events to wait for completion.",
+                param("count", "integer", "Number of instructions to execute. Default 1.")));
+        tools.add(toolSchema("poll_events", "Poll for runtime events. Event types: " +
+                "execution_started (emulation began), execution_completed (emulation finished), breakpoint_hit (breakpoint triggered with pc/module/offset), " +
+                "trace_code (instruction executed), trace_read (memory read), trace_write (memory write). " +
+                "Call this after continue_execution/step_over/step_into to wait for results. " +
+                "Returns all pending events, or waits up to timeout_ms for at least one event.",
+                param("timeout_ms", "integer", "Max milliseconds to wait for events. Default 10000 (10s). Set 0 for no wait.")));
 
-        tools.add(toolSchema("trace_read", "Start tracing memory reads in address range. Events are reported via async notifications.",
+        tools.add(toolSchema("trace_read", "Start tracing memory reads in address range. Each memory read triggers a trace_read event (with pc, address, size, hex, module, offset) collected via poll_events. Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
                 param("begin", "string", "Hex start address"),
-                param("end", "string", "Hex end address")));
-        tools.add(toolSchema("trace_write", "Start tracing memory writes in address range. Events are reported via async notifications.",
+                param("end", "string", "Hex end address"),
+                param("break_on", "string", "Optional. Hex address condition: when a read hits this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
+        tools.add(toolSchema("trace_write", "Start tracing memory writes in address range. Each memory write triggers a trace_write event (with pc, address, size, value, module, offset) collected via poll_events. Note: on Hypervisor backend, size and value may be 0 due to backend limitation; use disassemble on the pc to determine write size from the instruction (e.g. STR=4/8 bytes, STRB=1, STRH=2, STP=16), then set a breakpoint or step_into to pause after the write and use read_memory to inspect. Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
                 param("begin", "string", "Hex start address"),
-                param("end", "string", "Hex end address")));
-        tools.add(toolSchema("stop_trace", "Stop all memory read/write tracing"));
+                param("end", "string", "Hex end address"),
+                param("break_on", "string", "Optional. Hex address condition: when a write hits this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
+        tools.add(toolSchema("trace_code", "Start tracing instruction execution in address range. Each executed instruction triggers a trace_code event (with address, mnemonic, operands, size, module, offset) collected via poll_events. Useful for understanding execution flow and control transfer. Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
+                param("begin", "string", "Hex start address"),
+                param("end", "string", "Hex end address"),
+                param("break_on", "string", "Optional. Hex PC address condition: when execution reaches this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
+        tools.add(toolSchema("get_callstack", "Get the current call stack (backtrace). Returns each frame with PC address, module name, offset, and nearest symbol name if available. Only meaningful when the emulator is paused (breakpoint or single-step)."));
+        tools.add(toolSchema("find_symbol", "Find symbol by name in a module, or find the nearest symbol to an address. " +
+                "Provide module_name + symbol_name to look up a symbol's address. " +
+                "Provide address to find the nearest symbol at that address. " +
+                "Note: unidbg only has dynamic/exported symbols from ELF .dynsym; many symbols visible in IDA (from .symtab or DWARF) may not be found here. " +
+                "If a symbol is not found, use module base + offset from IDA/disassembler to calculate the address directly.",
+                param("module_name", "string", "Optional. Module name to search in, e.g. libnative.so"),
+                param("symbol_name", "string", "Optional. Symbol name to find, e.g. JNI_OnLoad, _Z3foov"),
+                param("address", "string", "Optional. Hex address to find nearest symbol for")));
+        tools.add(toolSchema("read_string", "Read a null-terminated C string (UTF-8) from memory at address. Useful for reading strings pointed to by registers or memory.",
+                param("address", "string", "Hex address to read string from"),
+                param("max_length", "integer", "Max bytes to read before giving up. Default 256.")));
 
         tools.add(toolSchema("list_modules", "List all loaded modules with name, base address and size"));
         tools.add(toolSchema("get_module_info", "Get detailed information about a loaded module",
@@ -100,19 +140,7 @@ public class McpTools {
             schema.put("name", ct.name);
             schema.put("description", "Re-run emulation: " + ct.description);
             if (ct.paramNames.length > 0) {
-                JSONObject inputSchema = new JSONObject(true);
-                inputSchema.put("type", "object");
-                JSONObject properties = new JSONObject(true);
-                JSONArray required = new JSONArray();
-                for (String pn : ct.paramNames) {
-                    JSONObject p = new JSONObject(true);
-                    p.put("type", "string");
-                    properties.put(pn, p);
-                    required.add(pn);
-                }
-                inputSchema.put("properties", properties);
-                inputSchema.put("required", required);
-                schema.put("inputSchema", inputSchema);
+                schema.put("inputSchema", buildInputSchema(ct.paramNames));
             }
             tools.add(schema);
         }
@@ -120,14 +148,21 @@ public class McpTools {
     }
 
     public JSONObject callTool(String name, JSONObject args) {
-        if (!emulator.getSyscallHandler().isRunning() || isExecutionTool(name)) {
+        if (isExecutionTool(name)) {
             return dispatchTool(name, args);
         }
-        return errorResult("Emulator is running. Tools can only be called when emulator is in debug idle state.");
+        if (!server.isDebugIdle()) {
+            return errorResult("Emulator is not in debug idle state. Tools can only be called when emulator is stopped at a breakpoint.");
+        }
+        return server.runOnDebuggerThread(() -> dispatchTool(name, args));
     }
 
     private boolean isExecutionTool(String name) {
         if ("continue_execution".equals(name)) return true;
+        if ("step_over".equals(name)) return true;
+        if ("step_into".equals(name)) return true;
+        if ("poll_events".equals(name)) return true;
+        if ("check_connection".equals(name)) return true;
         for (CustomTool ct : customTools) {
             if (ct.name.equals(name)) return true;
         }
@@ -136,6 +171,7 @@ public class McpTools {
 
     private JSONObject dispatchTool(String name, JSONObject args) {
         switch (name) {
+            case "check_connection": return checkConnection();
             case "read_memory": return readMemory(args);
             case "write_memory": return writeMemory(args);
             case "list_memory_map": return listMemoryMap();
@@ -148,10 +184,17 @@ public class McpTools {
             case "patch": return patch(args);
             case "add_breakpoint": return addBreakpoint(args);
             case "remove_breakpoint": return removeBreakpoint(args);
+            case "list_breakpoints": return listBreakpoints();
             case "continue_execution": return continueExecution();
+            case "step_over": return stepOver();
+            case "step_into": return stepInto(args);
+            case "poll_events": return pollEvents(args);
             case "trace_read": return traceRead(args);
             case "trace_write": return traceWrite(args);
-            case "stop_trace": return stopTrace();
+            case "trace_code": return traceCode(args);
+            case "get_callstack": return getCallstack();
+            case "find_symbol": return findSymbol(args);
+            case "read_string": return readString(args);
             case "list_modules": return listModules();
             case "get_module_info": return getModuleInfo(args);
             default:
@@ -162,6 +205,37 @@ public class McpTools {
                 }
                 return errorResult("Unknown tool: " + name);
         }
+    }
+
+    private JSONObject checkConnection() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Connected to unidbg emulator\n");
+        sb.append("Architecture: ").append(emulator.is64Bit() ? "ARM64" : "ARM32").append('\n');
+        String backendClass = emulator.getBackend().getClass().getSimpleName();
+        sb.append("Backend: ").append(backendClass).append('\n');
+        sb.append("Backend capabilities: ").append(getBackendCapabilities(backendClass)).append('\n');
+        sb.append("Process: ").append(emulator.getProcessName()).append('\n');
+        sb.append("Debug idle: ").append(server.isDebugIdle()).append('\n');
+        sb.append("Breakpoints: ").append(emulator.attach().getBreakPoints().size()).append('\n');
+        sb.append("Pending events: ").append(server.getPendingEventCount()).append('\n');
+        Collection<Module> modules = emulator.getMemory().getLoadedModules();
+        sb.append("Loaded modules: ").append(modules.size()).append('\n');
+        for (Module m : modules) {
+            sb.append("  ").append(m.name).append(" @ 0x").append(Long.toHexString(m.base)).append('\n');
+        }
+        return textResult(sb.toString());
+    }
+
+    private static String getBackendCapabilities(String backendClass) {
+        if (backendClass.contains("Unicorn")) {
+            return "FULL — unlimited breakpoints, code/read/write trace, single-step, write trace reports size+value";
+        } else if (backendClass.contains("Hypervisor")) {
+            return "PARTIAL — hardware breakpoints (limited count), 1 code trace at a time, read/write trace via watchpoints (limited count), " +
+                    "write trace cannot report size/value, single-step supported";
+        } else if (backendClass.contains("Dynarmic") || backendClass.contains("Kvm")) {
+            return "MINIMAL — breakpoints only, NO code/read/write trace, NO single-step (trace_code/trace_read/trace_write/step_into/step_over unavailable)";
+        }
+        return "unknown";
     }
 
     private JSONObject readMemory(JSONObject args) {
@@ -227,7 +301,7 @@ public class McpTools {
                         if (results.size() >= 100) break;
                     }
                 }
-                if (results.size() >= 100) break;
+                if (results.size() == 100) break;
             }
             if (results.isEmpty()) {
                 return textResult("Pattern not found");
@@ -341,19 +415,57 @@ public class McpTools {
 
     private JSONObject addBreakpoint(JSONObject args) {
         long address = parseAddress(args.getString("address"));
+        boolean temporary = args.containsKey("temporary") && args.getBooleanValue("temporary");
         try {
             BreakPoint bp = emulator.attach().addBreakPoint(address);
-            return textResult("Breakpoint added at 0x" + Long.toHexString(address));
+            if (temporary) {
+                bp.setTemporary(true);
+            }
+            String type = temporary ? "Temporary breakpoint" : "Breakpoint";
+            return textResult(type + " added at 0x" + Long.toHexString(address));
         } catch (Exception e) {
             return errorResult("Failed to add breakpoint: " + e.getMessage());
+        }
+    }
+
+    private JSONObject listBreakpoints() {
+        try {
+            Map<Long, BreakPoint> breakPoints = emulator.attach().getBreakPoints();
+            if (breakPoints.isEmpty()) {
+                return textResult("No breakpoints set.");
+            }
+            Memory memory = emulator.getMemory();
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("Total: %d breakpoint(s)%n", breakPoints.size()));
+            for (Map.Entry<Long, BreakPoint> entry : breakPoints.entrySet()) {
+                long addr = entry.getKey();
+                BreakPoint bp = entry.getValue();
+                Module module = memory.findModuleByAddress(addr);
+                String location;
+                if (module != null) {
+                    long offset = addr - module.base;
+                    location = String.format("%s+0x%x", module.name, offset);
+                } else {
+                    location = "unknown";
+                }
+                String temp = bp.isTemporary() ? " [temporary]" : "";
+                sb.append(String.format("0x%x  %s%s%n", addr, location, temp));
+            }
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to list breakpoints: " + e.getMessage());
         }
     }
 
     private JSONObject removeBreakpoint(JSONObject args) {
         long address = parseAddress(args.getString("address"));
         try {
-            emulator.getBackend().removeBreakPoint(address);
-            return textResult("Breakpoint removed at 0x" + Long.toHexString(address));
+            boolean removed = emulator.attach().removeBreakPoint(address);
+            if (removed) {
+                return textResult("Breakpoint removed at 0x" + Long.toHexString(address));
+            } else {
+                return errorResult("No breakpoint found at 0x" + Long.toHexString(address));
+            }
         } catch (Exception e) {
             return errorResult("Failed to remove breakpoint: " + e.getMessage());
         }
@@ -361,33 +473,249 @@ public class McpTools {
 
     private JSONObject continueExecution() {
         server.injectCommand("c");
-        return textResult("Execution resumed");
+        return textResult("Execution resumed. Use poll_events to wait for breakpoint_hit or execution_completed.");
+    }
+
+    private JSONObject stepOver() {
+        server.injectCommand("n");
+        return textResult("Step over. Use poll_events to wait for completion.");
+    }
+
+    private JSONObject stepInto(JSONObject args) {
+        int count = args.containsKey("count") ? args.getIntValue("count") : 1;
+        if (count <= 1) {
+            server.injectCommand("s");
+        } else {
+            server.injectCommand("s" + count);
+        }
+        return textResult("Step into (" + count + " instruction" + (count > 1 ? "s" : "") + "). Use poll_events to wait for completion.");
+    }
+
+    private JSONObject pollEvents(JSONObject args) {
+        long timeoutMs = args.containsKey("timeout_ms") ? args.getLongValue("timeout_ms") : 10000;
+        java.util.List<JSONObject> events = server.pollEvents(timeoutMs);
+        if (events.isEmpty()) {
+            return textResult("No events received within timeout.");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%d event(s):%n", events.size()));
+        for (JSONObject event : events) {
+            sb.append(event.toJSONString()).append('\n');
+        }
+        return textResult(sb.toString());
     }
 
     private JSONObject traceRead(JSONObject args) {
         long begin = parseAddress(args.getString("begin"));
         long end = parseAddress(args.getString("end"));
+        String breakOnStr = args.getString("break_on");
+        final long breakOn = breakOnStr != null ? parseAddress(breakOnStr) : -1;
         try {
-            emulator.traceRead(begin, end);
-            return textResult("Trace read started: 0x" + Long.toHexString(begin) + " - 0x" + Long.toHexString(end));
+            if (activeTraceRead != null) {
+                activeTraceRead.stopTrace();
+                activeTraceRead = null;
+            }
+            activeTraceRead = emulator.traceRead(begin, end, (emu, address, data, hex) -> {
+                JSONObject event = new JSONObject(true);
+                event.put("event", "trace_read");
+                event.put("pc", "0x" + Long.toHexString(emu.getBackend().reg_read(
+                        emu.is64Bit() ? Arm64Const.UC_ARM64_REG_PC : ArmConst.UC_ARM_REG_PC).longValue()));
+                event.put("address", "0x" + Long.toHexString(address));
+                event.put("size", data.length);
+                event.put("hex", hex);
+                putModuleInfo(event, emu, address);
+                server.queueEvent(event);
+                if (breakOn != -1 && address == breakOn) {
+                    emu.getBackend().setSingleStep(1);
+                }
+                return false;
+            });
+            StringBuilder msg = new StringBuilder("Trace read started: 0x" + Long.toHexString(begin) + " - 0x" + Long.toHexString(end));
+            if (breakOn != -1) {
+                msg.append(", will break on address 0x").append(Long.toHexString(breakOn));
+            }
+            msg.append(". Trace data will be collected as trace_read events, use poll_events to retrieve.");
+            return textResult(msg.toString());
         } catch (Exception e) {
-            return errorResult("Failed to start trace read: " + e.getMessage());
+            return errorResult("Failed to start trace read: " + e.getClass().getName() + ": " + e.getMessage());
         }
     }
 
     private JSONObject traceWrite(JSONObject args) {
         long begin = parseAddress(args.getString("begin"));
         long end = parseAddress(args.getString("end"));
+        String breakOnStr = args.getString("break_on");
+        final long breakOn = breakOnStr != null ? parseAddress(breakOnStr) : -1;
         try {
-            emulator.traceWrite(begin, end);
-            return textResult("Trace write started: 0x" + Long.toHexString(begin) + " - 0x" + Long.toHexString(end));
+            if (activeTraceWrite != null) {
+                activeTraceWrite.stopTrace();
+                activeTraceWrite = null;
+            }
+            activeTraceWrite = emulator.traceWrite(begin, end, (emu, address, size, value) -> {
+                JSONObject event = new JSONObject(true);
+                event.put("event", "trace_write");
+                event.put("pc", "0x" + Long.toHexString(emu.getBackend().reg_read(
+                        emu.is64Bit() ? Arm64Const.UC_ARM64_REG_PC : ArmConst.UC_ARM_REG_PC).longValue()));
+                event.put("address", "0x" + Long.toHexString(address));
+                event.put("size", size);
+                event.put("value", "0x" + Long.toHexString(value));
+                putModuleInfo(event, emu, address);
+                server.queueEvent(event);
+                if (breakOn != -1 && address == breakOn) {
+                    emu.getBackend().setSingleStep(1);
+                }
+                return false;
+            });
+            StringBuilder msg = new StringBuilder("Trace write started: 0x" + Long.toHexString(begin) + " - 0x" + Long.toHexString(end));
+            if (breakOn != -1) {
+                msg.append(", will break on address 0x").append(Long.toHexString(breakOn));
+            }
+            msg.append(". Trace data will be collected as trace_write events, use poll_events to retrieve.");
+            return textResult(msg.toString());
         } catch (Exception e) {
-            return errorResult("Failed to start trace write: " + e.getMessage());
+            return errorResult("Failed to start trace write: " + e.getClass().getName() + ": " + e.getMessage());
         }
     }
 
-    private JSONObject stopTrace() {
-        return textResult("Trace stopped");
+    private JSONObject traceCode(JSONObject args) {
+        long begin = parseAddress(args.getString("begin"));
+        long end = parseAddress(args.getString("end"));
+        String breakOnStr = args.getString("break_on");
+        final long breakOn = breakOnStr != null ? parseAddress(breakOnStr) : -1;
+        try {
+            if (activeTraceCode != null) {
+                activeTraceCode.stopTrace();
+                activeTraceCode = null;
+            }
+            activeTraceCode = emulator.traceCode(begin, end, (emu, address, insn) -> {
+                JSONObject event = new JSONObject(true);
+                event.put("event", "trace_code");
+                event.put("address", "0x" + Long.toHexString(address));
+                if (insn != null) {
+                    event.put("mnemonic", insn.getMnemonic());
+                    event.put("operands", insn.getOpStr());
+                    event.put("size", insn.getSize());
+                }
+                Module module = emu.getMemory().findModuleByAddress(address);
+                if (module != null) {
+                    event.put("module", module.name);
+                    event.put("offset", "0x" + Long.toHexString(address - module.base));
+                }
+                server.queueEvent(event);
+                if (breakOn != -1 && address == breakOn) {
+                    emu.attach().debug();
+                }
+            });
+            StringBuilder msg = new StringBuilder("Trace code started: 0x" + Long.toHexString(begin) + " - 0x" + Long.toHexString(end));
+            if (breakOn != -1) {
+                msg.append(", will break on PC 0x").append(Long.toHexString(breakOn));
+            }
+            msg.append(". Trace data will be collected as trace_code events, use poll_events to retrieve.");
+            return textResult(msg.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to start trace code: " + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+
+    private JSONObject getCallstack() {
+        try {
+            Unwinder unwinder = emulator.getUnwinder();
+            Memory memory = emulator.getMemory();
+            java.util.List<Frame> frames = unwinder.getFrames(50);
+            if (frames.isEmpty()) {
+                return textResult("No call stack frames available.");
+            }
+            StringBuilder sb = new StringBuilder();
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            for (int i = 0; i < frames.size(); i++) {
+                long pc = frames.get(i).ip.peer;
+                Module module = memory.findModuleByAddress(pc);
+                sb.append(String.format("#%-3d 0x%x", i, pc));
+                if (module != null) {
+                    sb.append(String.format("  %s+0x%x", module.name, pc - module.base));
+                    Symbol symbol = module.findClosestSymbolByAddress(pc, false);
+                    if (symbol != null && pc - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+                        sb.append(String.format("  (%s+0x%x)", demangler.demangle(symbol.getName()), pc - symbol.getAddress()));
+                    }
+                }
+                sb.append('\n');
+            }
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to get callstack: " + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+    private JSONObject findSymbol(JSONObject args) {
+        String moduleName = args.getString("module_name");
+        String symbolName = args.getString("symbol_name");
+        String addressStr = args.getString("address");
+        try {
+            if (addressStr != null && !addressStr.isEmpty()) {
+                long address = parseAddress(addressStr);
+                Module module = emulator.getMemory().findModuleByAddress(address);
+                if (module == null) {
+                    return errorResult("No module found at address 0x" + Long.toHexString(address));
+                }
+                Symbol symbol = module.findClosestSymbolByAddress(address, false);
+                if (symbol == null || address - symbol.getAddress() > Unwinder.SYMBOL_SIZE) {
+                    return textResult("No symbol found near 0x" + Long.toHexString(address) +
+                            " (in " + module.name + "+0x" + Long.toHexString(address - module.base) + ")");
+                }
+                GccDemangler demangler = DemanglerFactory.createDemangler();
+                String sb = "Address: 0x" + Long.toHexString(address) + '\n' +
+                        "Module: " + module.name + '\n' +
+                        "Nearest symbol: " + symbol.getName() + '\n' +
+                        "Demangled: " + demangler.demangle(symbol.getName()) + '\n' +
+                        "Symbol address: 0x" + Long.toHexString(symbol.getAddress()) + '\n' +
+                        "Offset from symbol: +0x" + Long.toHexString(address - symbol.getAddress()) + '\n';
+                return textResult(sb);
+            }
+            if (moduleName != null && symbolName != null) {
+                Module module = emulator.getMemory().findModule(moduleName);
+                if (module == null) {
+                    return errorResult("Module not found: " + moduleName);
+                }
+                Symbol symbol = module.findSymbolByName(symbolName, false);
+                if (symbol == null) {
+                    return errorResult("Symbol '" + symbolName + "' not found in " + moduleName);
+                }
+                GccDemangler demangler = DemanglerFactory.createDemangler();
+                String sb = "Symbol: " + symbol.getName() + '\n' +
+                        "Demangled: " + demangler.demangle(symbol.getName()) + '\n' +
+                        "Address: 0x" + Long.toHexString(symbol.getAddress()) + '\n' +
+                        "Module: " + moduleName + '\n' +
+                        "Offset: 0x" + Long.toHexString(symbol.getAddress() - module.base) + '\n';
+                return textResult(sb);
+            }
+            return errorResult("Provide either (module_name + symbol_name) or (address).");
+        } catch (Exception e) {
+            return errorResult("Find symbol failed: " + e.getClass().getName() + ": " + e.getMessage());
+        }
+    }
+
+    private JSONObject readString(JSONObject args) {
+        long address = parseAddress(args.getString("address"));
+        int maxLength = args.containsKey("max_length") ? args.getIntValue("max_length") : 256;
+        try {
+            byte[] data = emulator.getBackend().mem_read(address, maxLength);
+            int len = 0;
+            while (len < data.length && data[len] != 0) {
+                len++;
+            }
+            String str = new String(data, 0, len, java.nio.charset.StandardCharsets.UTF_8);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Address: 0x").append(Long.toHexString(address)).append('\n');
+            sb.append("Length: ").append(len).append(" bytes").append('\n');
+            sb.append("String: ").append(str).append('\n');
+            if (len == maxLength) {
+                sb.append("(truncated, no null terminator found within max_length)");
+            }
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to read string at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+        }
     }
 
     private JSONObject listModules() {
@@ -406,12 +734,11 @@ public class McpTools {
         if (module == null) {
             return errorResult("Module not found: " + moduleName);
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Name: ").append(module.name).append('\n');
-        sb.append("Base: 0x").append(Long.toHexString(module.base)).append('\n');
-        sb.append("Size: 0x").append(Long.toHexString(module.size)).append('\n');
-        sb.append("Path: ").append(module.getPath()).append('\n');
-        return textResult(sb.toString());
+        String sb = "Name: " + module.name + '\n' +
+                "Base: 0x" + Long.toHexString(module.base) + '\n' +
+                "Size: 0x" + Long.toHexString(module.size) + '\n' +
+                "Path: " + module.getPath() + '\n';
+        return textResult(sb);
     }
 
     private JSONObject executeCustomTool(CustomTool tool, JSONObject args) {
@@ -491,14 +818,8 @@ public class McpTools {
         return result;
     }
 
-    private static JSONObject errorResult(String message) {
-        JSONObject result = new JSONObject(true);
-        JSONArray content = new JSONArray();
-        JSONObject item = new JSONObject(true);
-        item.put("type", "text");
-        item.put("text", message);
-        content.add(item);
-        result.put("content", content);
+    static JSONObject errorResult(String message) {
+        JSONObject result = textResult(message);
         result.put("isError", true);
         return result;
     }
@@ -507,18 +828,42 @@ public class McpTools {
         JSONObject schema = new JSONObject(true);
         schema.put("name", name);
         schema.put("description", description);
+        JSONObject inputSchema = new JSONObject(true);
+        inputSchema.put("type", "object");
         if (params.length > 0) {
-            JSONObject inputSchema = new JSONObject(true);
-            inputSchema.put("type", "object");
             JSONObject properties = new JSONObject(true);
             for (JSONObject p : params) {
                 properties.put(p.getString("_name"), p);
                 p.remove("_name");
             }
             inputSchema.put("properties", properties);
-            schema.put("inputSchema", inputSchema);
         }
+        schema.put("inputSchema", inputSchema);
         return schema;
+    }
+
+    private static void putModuleInfo(JSONObject event, Emulator<?> emu, long address) {
+        Module module = emu.getMemory().findModuleByAddress(address);
+        if (module != null) {
+            event.put("module", module.name);
+            event.put("offset", "0x" + Long.toHexString(address - module.base));
+        }
+    }
+
+    private static JSONObject buildInputSchema(String... paramNames) {
+        JSONObject inputSchema = new JSONObject(true);
+        inputSchema.put("type", "object");
+        JSONObject properties = new JSONObject(true);
+        JSONArray required = new JSONArray();
+        for (String pn : paramNames) {
+            JSONObject p = new JSONObject(true);
+            p.put("type", "string");
+            properties.put(pn, p);
+            required.add(pn);
+        }
+        inputSchema.put("properties", properties);
+        inputSchema.put("required", required);
+        return inputSchema;
     }
 
     private static JSONObject param(String name, String type, String description) {

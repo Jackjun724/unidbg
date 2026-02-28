@@ -53,6 +53,7 @@ public class IpaLoaderTest implements EmulatorConfigurator {
             System.out.println("_TelegramCoreVersionString=" + pointer.getString(0) + "offset=" + (System.currentTimeMillis() - start1) + "ms");
             return null;
         });
+        emulator.close();
     }
 
     public static void main(String[] args) throws Exception {

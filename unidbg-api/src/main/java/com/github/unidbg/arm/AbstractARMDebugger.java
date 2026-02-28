@@ -20,6 +20,7 @@ import com.github.unidbg.debugger.DebugListener;
 import com.github.unidbg.debugger.DebugRunnable;
 import com.github.unidbg.debugger.Debugger;
 import com.github.unidbg.debugger.FunctionCallListener;
+import com.github.unidbg.mcp.McpServer;
 import com.github.unidbg.memory.MemRegion;
 import com.github.unidbg.memory.Memory;
 import com.github.unidbg.memory.MemoryMap;
@@ -30,6 +31,7 @@ import com.github.unidbg.unwind.Unwinder;
 import com.github.unidbg.utils.Inspector;
 import com.github.zhkl0228.demumble.DemanglerFactory;
 import com.github.zhkl0228.demumble.GccDemangler;
+import com.alibaba.fastjson.JSONObject;
 import com.sun.jna.Pointer;
 import keystone.Keystone;
 import keystone.KeystoneEncoded;
@@ -74,7 +76,14 @@ public abstract class AbstractARMDebugger implements Debugger {
 
     private final Map<Long, BreakPoint> breakMap = new LinkedHashMap<>();
 
+    @Override
+    public Map<Long, BreakPoint> getBreakPoints() {
+        return breakMap;
+    }
+
     protected final Emulator<?> emulator;
+    protected McpServer mcpServer;
+    protected volatile boolean scannerNeedsRefresh;
 
     protected AbstractARMDebugger(Emulator<?> emulator) {
         this.emulator = emulator;
@@ -185,13 +194,16 @@ public abstract class AbstractARMDebugger implements Debugger {
         }
         try {
             if (listener == null || listener.canDebug(emulator, new CodeHistory(address, size, ARM.isThumb(backend)))) {
+                notifyBreakpointHit(address);
                 cancelTrace();
                 debugging = true;
+                if (mcpServer != null) mcpServer.setDebugIdle(true);
                 loop(emulator, address, size, null);
             }
         } catch (Exception e) {
             log.warn("process loop failed", e);
         } finally {
+            if (mcpServer != null) mcpServer.setDebugIdle(false);
             debugging = false;
         }
     }
@@ -273,13 +285,16 @@ public abstract class AbstractARMDebugger implements Debugger {
         } else {
             address = backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue();
         }
+        notifyBreakpointHit(address);
         try {
             cancelTrace();
             debugging = true;
+            if (mcpServer != null) mcpServer.setDebugIdle(true);
             loop(emulator, address, 4, null);
         } catch (Exception e) {
             log.warn("debug failed", e);
         } finally {
+            if (mcpServer != null) mcpServer.setDebugIdle(false);
             debugging = false;
         }
     }
@@ -302,6 +317,7 @@ public abstract class AbstractARMDebugger implements Debugger {
         T ret;
         try {
             callbackRunning = true;
+            if (mcpServer != null) mcpServer.setDebugIdle(false);
             ret = runnable.runWithArgs(null);
         } finally {
             callbackRunning = false;
@@ -309,8 +325,10 @@ public abstract class AbstractARMDebugger implements Debugger {
         try {
             cancelTrace();
             debugging = true;
+            if (mcpServer != null) mcpServer.setDebugIdle(true);
             loop(emulator, -1, 0, runnable);
         } finally {
+            if (mcpServer != null) mcpServer.setDebugIdle(false);
             debugging = false;
         }
         return ret;
@@ -376,7 +394,7 @@ public abstract class AbstractARMDebugger implements Debugger {
                 long value = buffer.getLong();
                 sb.append(", value=0x").append(Long.toHexString(value));
             } else if (_length == 16) {
-                byte[] tmp = Arrays.copyOf(data, 16);
+                byte[] tmp = Arrays.copyOf(data, 0x10);
                 for (int i = 0; i < 8; i++) {
                     byte b = tmp[i];
                     tmp[i] = tmp[15 - i];
@@ -466,6 +484,16 @@ public abstract class AbstractARMDebugger implements Debugger {
             }
             return false;
         }
+        if (line.startsWith("mcp")) {
+            startMcpServer(line, runnable);
+            return false;
+        }
+        if ("_mcp".equals(line)) {
+            if (mcpServer != null) {
+                mcpServer.executePendingOperation();
+            }
+            return false;
+        }
         if (runnable == null || callbackRunning) {
             if ("c".equals(line)) { // continue
                 return true;
@@ -474,11 +502,14 @@ public abstract class AbstractARMDebugger implements Debugger {
             if ("c".equals(line)) {
                 try {
                     callbackRunning = true;
+                    if (mcpServer != null) mcpServer.setDebugIdle(false);
                     runnable.runWithArgs(null);
                     cancelTrace();
+                    notifyExecutionCompleted();
                     return false;
                 } finally {
                     callbackRunning = false;
+                    if (mcpServer != null) mcpServer.setDebugIdle(true);
                 }
             }
         }
@@ -932,13 +963,11 @@ public abstract class AbstractARMDebugger implements Debugger {
         boolean on = false;
         int maxLength = emulator.getMemory().getMaxLengthLibraryName().length();
         StringBuilder sb = new StringBuilder();
-        {
-            Module module = findModuleByAddress(emulator, address);
-            Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
-            if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-                GccDemangler demangler = DemanglerFactory.createDemangler();
-                sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
-            }
+        Module module = findModuleByAddress(emulator, address);
+        Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
+        if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
         }
         long nextAddr = address - size;
         for (CodeHistory history : Arrays.asList(
@@ -993,13 +1022,11 @@ public abstract class AbstractARMDebugger implements Debugger {
     @Override
     public final void disassembleBlock(Emulator<?> emulator, long address, boolean thumb) {
         StringBuilder sb = new StringBuilder();
-        {
-            Module module = findModuleByAddress(emulator, address);
-            Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
-            if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-                GccDemangler demangler = DemanglerFactory.createDemangler();
-                sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
-            }
+        Module module = findModuleByAddress(emulator, address);
+        Symbol symbol = module == null ? null : module.findClosestSymbolByAddress(address, false);
+        if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            sb.append(demangler.demangle(symbol.getName())).append(" + 0x").append(Long.toHexString(address - (symbol.getAddress() & ~1))).append("\n");
         }
         long nextAddr = address;
         UnidbgPointer pointer = UnidbgPointer.pointer(emulator, address);
@@ -1069,7 +1096,123 @@ public abstract class AbstractARMDebugger implements Debugger {
     }
 
     @Override
+    public void addMcpTool(String name, String description, String... paramNames) {
+        if (mcpServer != null) {
+            mcpServer.addCustomTool(name, description, paramNames);
+        } else {
+            pendingMcpTools.add(new PendingMcpTool(name, description, paramNames));
+        }
+    }
+
+    private final List<PendingMcpTool> pendingMcpTools = new ArrayList<>();
+
+    private static class PendingMcpTool {
+        final String name, description;
+        final String[] paramNames;
+        PendingMcpTool(String name, String description, String[] paramNames) {
+            this.name = name;
+            this.description = description;
+            this.paramNames = paramNames;
+        }
+    }
+
+    private void startMcpServer(String line, DebugRunnable<?> runnable) {
+        if (mcpServer != null) {
+            int p = mcpServer.getPort();
+            System.out.println("MCP server already running on port " + p);
+            printMcpConfig(p);
+            return;
+        }
+        int port = 9239;
+        String portStr = line.substring(3).trim();
+        if (!portStr.isEmpty()) {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        try {
+            mcpServer = new McpServer(emulator, port);
+            for (PendingMcpTool tool : pendingMcpTools) {
+                mcpServer.addCustomTool(tool.name, tool.description, tool.paramNames);
+            }
+            pendingMcpTools.clear();
+            mcpServer.start();
+            scannerNeedsRefresh = true;
+            mcpServer.setDebugIdle(true);
+            System.out.println("MCP server started on port " + port);
+            printMcpConfig(port);
+        } catch (IOException e) {
+            System.err.println("Failed to start MCP server: " + e.getMessage());
+        }
+    }
+
+    private void printMcpConfig(int port) {
+        System.out.println("Add to Cursor MCP settings:");
+        System.out.println("{");
+        System.out.println("  \"mcpServers\": {");
+        System.out.println("    \"unidbg\": {");
+        System.out.println("      \"url\": \"http://localhost:" + port + "/sse\"");
+        System.out.println("    }");
+        System.out.println("  }");
+        System.out.println("}");
+        System.out.println();
+        System.out.println("Register custom MCP tools for repeated emulation (call before attach().run()):");
+        System.out.println("  debugger.addMcpTool(\"tool_name\", \"description\", \"param1\", \"param2\", ...);");
+        System.out.println("Custom tools invoke DebugRunnable.runWithArgs(args), args[0] is the tool name.");
+        System.out.println();
+        System.out.println("Example:");
+        System.out.println("  Debugger debugger = emulator.attach();");
+        System.out.println("  debugger.addMcpTool(\"encrypt\", \"Run TTEncrypt\", \"input\");");
+        System.out.println("  debugger.run(args -> {");
+        System.out.println("      String toolName = args != null ? args[0] : null;");
+        System.out.println("      String input = args != null && args.length > 1 ? args[1] : \"default\";");
+        System.out.println("      // call emulation logic with input");
+        System.out.println("      return null;");
+        System.out.println("  });");
+    }
+
+    private void notifyBreakpointHit(long address) {
+        if (mcpServer == null) return;
+        JSONObject data = new JSONObject(true);
+        data.put("event", "breakpoint_hit");
+        data.put("pc", "0x" + Long.toHexString(address));
+        Module module = emulator.getMemory().findModuleByAddress(address);
+        if (module != null) {
+            data.put("module", module.name);
+            data.put("offset", "0x" + Long.toHexString(address - module.base));
+        }
+        mcpServer.queueEvent(data);
+        mcpServer.broadcastNotification("breakpoint_hit", data);
+    }
+
+    void notifyExecutionCompleted() {
+        if (mcpServer == null) return;
+        JSONObject data = new JSONObject(true);
+        data.put("event", "execution_completed");
+        mcpServer.queueEvent(data);
+        mcpServer.broadcastNotification("execution_completed", data);
+    }
+
+    public void notifyExecutionStarted(long address) {
+        if (mcpServer == null) return;
+        Module module = emulator.getMemory().findModuleByAddress(address);
+        if (module == null) return;
+        JSONObject data = new JSONObject(true);
+        data.put("event", "execution_started");
+        data.put("pc", "0x" + Long.toHexString(address));
+        data.put("module", module.name);
+        data.put("offset", "0x" + Long.toHexString(address - module.base));
+        mcpServer.queueEvent(data);
+        mcpServer.broadcastNotification("execution_started", data);
+    }
+
+    @Override
     public void close() {
+        if (mcpServer != null) {
+            mcpServer.stop();
+            mcpServer = null;
+        }
     }
 
 }

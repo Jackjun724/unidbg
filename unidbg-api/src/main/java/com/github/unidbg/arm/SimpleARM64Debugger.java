@@ -67,15 +67,18 @@ class SimpleARM64Debugger extends AbstractARMDebugger implements Debugger {
                 if (line.startsWith("run") && runnable != null) {
                     try {
                         callbackRunning = true;
+                        if (mcpServer != null) mcpServer.setDebugIdle(false);
                         String arg = line.substring(3).trim();
-                        if (arg.length() > 0) {
+                        if (!arg.isEmpty()) {
                             String[] args = arg.split("\\s+");
                             runnable.runWithArgs(args);
                         } else {
                             runnable.runWithArgs(null);
                         }
+                        notifyExecutionCompleted();
                     } finally {
                         callbackRunning = false;
+                        if (mcpServer != null) mcpServer.setDebugIdle(true);
                     }
                     continue;
                 }
@@ -285,6 +288,10 @@ class SimpleARM64Debugger extends AbstractARMDebugger implements Debugger {
                 if(handleCommon(backend, line, address, size, nextAddress, runnable)) {
                     break;
                 }
+                if (scannerNeedsRefresh) {
+                    scanner = new Scanner(System.in);
+                    scannerNeedsRefresh = false;
+                }
             } catch (RuntimeException | DecoderException e) {
                 e.printStackTrace(System.err);
             }
@@ -336,6 +343,7 @@ class SimpleARM64Debugger extends AbstractARMDebugger implements Debugger {
         System.out.println("run [arg]: run test");
         System.out.println("gc: Run System.gc()");
         System.out.println("threads: show thread list");
+        System.out.println("mcp [port]: start MCP server for AI tool integration (default port 9239)");
 
         if (emulator.getFamily() == Family.iOS && !emulator.isRunning()) {
             System.out.println("dump [class name]: dump objc class");

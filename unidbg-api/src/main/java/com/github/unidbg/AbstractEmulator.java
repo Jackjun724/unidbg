@@ -335,12 +335,19 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
     }
 
     protected final Number runMainForResult(MainTask task) {
+        notifyMcpExecutionStarted(task.getAddress());
         Memory memory = getMemory();
         long spBackup = memory.getStackPoint();
         try {
             return getThreadDispatcher().runMainForResult(task);
         } finally {
             memory.setStackPoint(spBackup);
+        }
+    }
+
+    private void notifyMcpExecutionStarted(long address) {
+        if (debugger instanceof com.github.unidbg.arm.AbstractARMDebugger) {
+            ((com.github.unidbg.arm.AbstractARMDebugger) debugger).notifyExecutionStarted(address);
         }
     }
 

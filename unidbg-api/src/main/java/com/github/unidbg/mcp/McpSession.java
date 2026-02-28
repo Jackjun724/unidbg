@@ -36,8 +36,8 @@ public class McpSession {
         this.closed = false;
     }
 
-    public void sendEndpointEvent(String messageEndpoint) {
-        sendSseEvent("endpoint", messageEndpoint + "?sessionId=" + sessionId);
+    public void sendEndpointEvent(String baseUrl) {
+        sendSseEvent("endpoint", baseUrl + "/message?sessionId=" + sessionId);
     }
 
     public void sendJsonRpcResponse(JSONObject response) {

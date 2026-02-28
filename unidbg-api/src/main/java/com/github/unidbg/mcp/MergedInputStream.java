@@ -2,6 +2,7 @@ package com.github.unidbg.mcp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Merges keyboard stdin and piped MCP command input.
@@ -27,7 +28,7 @@ public class MergedInputStream extends InputStream {
                 return keyboard.read();
             }
             try {
-                Thread.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return -1;
@@ -47,7 +48,7 @@ public class MergedInputStream extends InputStream {
                 return keyboard.read(b, off, Math.min(len, kbAvail));
             }
             try {
-                Thread.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return -1;

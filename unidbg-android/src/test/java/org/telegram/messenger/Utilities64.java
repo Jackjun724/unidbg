@@ -7,6 +7,7 @@ import com.github.unidbg.arm.backend.DynarmicFactory;
 import com.github.unidbg.arm.backend.HypervisorFactory;
 import com.github.unidbg.arm.backend.KvmFactory;
 import com.github.unidbg.arm.backend.Unicorn2Factory;
+import com.github.unidbg.debugger.DebugRunnable;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.DalvikModule;
@@ -26,7 +27,7 @@ import java.io.IOException;
 /**
  * mvn test -Dmaven.test.skip=false -Dtest=org.telegram.messenger.Utilities64
  */
-public class Utilities64 extends TestCase {
+public class Utilities64 extends TestCase implements DebugRunnable<Void> {
 
     private static LibraryResolver createLibraryResolver() {
         return new AndroidResolver(23);
@@ -86,6 +87,16 @@ public class Utilities64 extends TestCase {
         destroy();
     }
 
+    @Override
+    public Void runWithArgs(String[] args) {
+        aesCtrDecryptionByteArray();
+        return null;
+    }
+
+    private void runArgs() throws Exception {
+        emulator.attach().run(this);
+    }
+
     public static void main(String[] args) throws Exception {
         final Utilities64 test = new Utilities64();
 
@@ -96,6 +107,8 @@ public class Utilities64 extends TestCase {
         test.aesCbcEncryptionByteArray();
         test.aesCtrDecryptionByteArray();
         test.pbkdf2();
+
+        test.runArgs();
 
         test.destroy();
     }

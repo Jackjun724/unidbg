@@ -6,6 +6,7 @@ import com.github.unidbg.arm.backend.BlockHook;
 import com.github.unidbg.arm.backend.DebugHook;
 
 import java.io.Closeable;
+import java.util.Map;
 
 public interface Debugger extends Breaker, DebugHook, BlockHook, Closeable {
 
@@ -36,5 +37,11 @@ public interface Debugger extends Breaker, DebugHook, BlockHook, Closeable {
     boolean isDebugging();
 
     void disassembleBlock(Emulator<?> emulator, long address, boolean thumb);
+
+    void addMcpTool(String name, String description, String... paramNames);
+
+    boolean removeBreakPoint(long address);
+
+    Map<Long, BreakPoint> getBreakPoints();
 
 }

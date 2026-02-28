@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.unidbg.Emulator;
-import com.github.unidbg.debugger.DebugRunnable;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
@@ -12,38 +11,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class McpServer {
 
     private static final Logger log = LoggerFactory.getLogger(McpServer.class);
 
-    private final Emulator<?> emulator;
     private final int port;
     private final McpTools mcpTools;
     private final Map<String, McpSession> sessions = new ConcurrentHashMap<>();
     private HttpServer httpServer;
+    private ExecutorService executor;
     private PipedOutputStream commandPipe;
+    private InputStream originalIn;
+    private volatile boolean debugIdle;
+    private final BlockingQueue<JSONObject> eventQueue = new LinkedBlockingQueue<>();
 
     public McpServer(Emulator<?> emulator, int port) {
-        this.emulator = emulator;
         this.port = port;
         this.mcpTools = new McpTools(emulator, this);
     }
 
     public int getPort() {
         return port;
-    }
-
-    public void setRunnable(DebugRunnable<?> runnable) {
-        mcpTools.setRunnable(runnable);
     }
 
     public void addCustomTool(String name, String description, String... paramNames) {
@@ -54,25 +52,47 @@ public class McpServer {
         commandPipe = new PipedOutputStream();
         PipedInputStream pipedIn = new PipedInputStream(commandPipe, 4096);
 
-        OutputStream originalOut = System.out;
-        java.io.InputStream originalIn = System.in;
+        originalIn = System.in;
         System.setIn(new MergedInputStream(originalIn, pipedIn));
 
+        ThreadFactory daemonFactory = r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            t.setName("mcp-server");
+            return t;
+        };
+        executor = Executors.newFixedThreadPool(4, daemonFactory);
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-        httpServer.setExecutor(Executors.newFixedThreadPool(4));
+        httpServer.setExecutor(executor);
         httpServer.createContext("/sse", this::handleSse);
         httpServer.createContext("/message", this::handleMessage);
         httpServer.start();
     }
 
     public void stop() {
-        if (httpServer != null) {
-            httpServer.stop(0);
-        }
         for (McpSession session : sessions.values()) {
             session.close();
         }
         sessions.clear();
+        if (httpServer != null) {
+            httpServer.stop(0);
+            httpServer = null;
+        }
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
+        }
+        if (commandPipe != null) {
+            try {
+                commandPipe.close();
+            } catch (IOException ignored) {
+            }
+            commandPipe = null;
+        }
+        if (originalIn != null) {
+            System.setIn(originalIn);
+            originalIn = null;
+        }
     }
 
     public void injectCommand(String command) {
@@ -84,6 +104,80 @@ public class McpServer {
                 log.warn("Failed to inject command: {}", command, e);
             }
         }
+    }
+
+    private final Object operationLock = new Object();
+    private volatile Callable<JSONObject> pendingOperation;
+    private volatile JSONObject pendingResult;
+
+    /**
+     * Execute an operation on the debugger thread (required for backend operations like hardware breakpoints).
+     * Blocks the calling thread until the debugger thread completes the operation.
+     */
+    public JSONObject runOnDebuggerThread(Callable<JSONObject> operation) {
+        synchronized (operationLock) {
+            pendingOperation = operation;
+            pendingResult = null;
+            injectCommand("_mcp");
+            try {
+                long deadline = System.currentTimeMillis() + 5000;
+                while (pendingResult == null) {
+                    long remaining = deadline - System.currentTimeMillis();
+                    if (remaining <= 0) {
+                        pendingOperation = null;
+                        return McpTools.errorResult("Operation timed out waiting for debugger thread");
+                    }
+                    operationLock.wait(remaining);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                pendingOperation = null;
+                return McpTools.errorResult("Operation interrupted");
+            }
+            return pendingResult;
+        }
+    }
+
+    public void executePendingOperation() {
+        synchronized (operationLock) {
+            if (pendingOperation != null) {
+                try {
+                    pendingResult = pendingOperation.call();
+                } catch (Exception e) {
+                    pendingResult = McpTools.errorResult("Operation failed: " + e.getMessage());
+                }
+                pendingOperation = null;
+                operationLock.notifyAll();
+            }
+        }
+    }
+
+    public void queueEvent(JSONObject event) {
+        if (!eventQueue.offer(event)) {
+            throw new IllegalStateException();
+        }
+    }
+
+    public int getPendingEventCount() {
+        return eventQueue.size();
+    }
+
+    public List<JSONObject> pollEvents(long timeoutMs) {
+        List<JSONObject> events = new ArrayList<>();
+        eventQueue.drainTo(events);
+        if (!events.isEmpty() || timeoutMs <= 0) {
+            return events;
+        }
+        try {
+            JSONObject first = eventQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+            if (first != null) {
+                events.add(first);
+                eventQueue.drainTo(events);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return events;
     }
 
     public void broadcastNotification(String event, JSONObject data) {
@@ -99,32 +193,78 @@ public class McpServer {
         notification.put("params", params);
 
         for (McpSession session : sessions.values()) {
-            if (!session.isClosed()) {
-                session.sendNotification(notification);
+            if (session.isClosed()) {
+                continue;
             }
+            session.sendNotification(notification);
         }
     }
 
     private void handleSse(HttpExchange exchange) throws IOException {
-        if (!"GET".equals(exchange.getRequestMethod())) {
+        String method = exchange.getRequestMethod();
+        log.debug("[MCP] /sse {} from {} headers={}", method, exchange.getRemoteAddress(),
+                exchange.getRequestHeaders().entrySet());
+        if ("POST".equals(method)) {
+            handleStreamableHttp(exchange);
+            return;
+        }
+        if ("OPTIONS".equals(method)) {
+            log.debug("[MCP] /sse OPTIONS preflight");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Mcp-Session-Id");
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
+        if (!"GET".equals(method)) {
+            log.debug("[MCP] /sse rejected method: {}", method);
             sendErrorResponse(exchange, 405, "Method Not Allowed");
             return;
         }
 
         McpSession session = new McpSession();
         sessions.put(session.getSessionId(), session);
+        log.debug("[MCP] SSE session created: {}", session.getSessionId());
 
         session.attachSseStream(exchange);
-        session.sendEndpointEvent("/message");
+        session.sendEndpointEvent("http://localhost:" + port);
 
         while (!session.isClosed()) {
             try {
-                Thread.sleep(1000);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 break;
             }
         }
+        log.debug("[MCP] SSE session closed: {}", session.getSessionId());
         sessions.remove(session.getSessionId());
+    }
+
+    private void handleStreamableHttp(HttpExchange exchange) throws IOException {
+        String body = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+        log.debug("[MCP] /sse POST body: {}", body);
+        JSONObject request = JSON.parseObject(body);
+
+        String rpcMethod = request.getString("method");
+        Object id = request.get("id");
+
+        if (rpcMethod != null && rpcMethod.startsWith("notifications/")) {
+            log.debug("[MCP] notification: {}", rpcMethod);
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+            exchange.sendResponseHeaders(202, -1);
+            exchange.close();
+            return;
+        }
+
+        JSONObject response = buildJsonRpcResponse(id, rpcMethod, request.getJSONObject("params"));
+
+        byte[] responseBytes = response.toJSONString().getBytes(StandardCharsets.UTF_8);
+        log.debug("[MCP] /sse POST response ({}): {} bytes", rpcMethod, responseBytes.length);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.sendResponseHeaders(200, responseBytes.length);
+        exchange.getResponseBody().write(responseBytes);
+        exchange.close();
     }
 
     private void handleMessage(HttpExchange exchange) throws IOException {
@@ -172,12 +312,17 @@ public class McpServer {
             return;
         }
 
+        JSONObject response = buildJsonRpcResponse(id, method, request.getJSONObject("params"));
+
+        session.sendJsonRpcResponse(response);
+    }
+
+    private JSONObject buildJsonRpcResponse(Object id, String method, JSONObject params) {
         JSONObject response = new JSONObject();
         response.put("jsonrpc", "2.0");
         response.put("id", id);
-
         try {
-            JSONObject result = dispatch(method, request.getJSONObject("params"));
+            JSONObject result = dispatch(method, params);
             response.put("result", result);
         } catch (Exception e) {
             JSONObject error = new JSONObject();
@@ -185,8 +330,7 @@ public class McpServer {
             error.put("message", e.getMessage());
             response.put("error", error);
         }
-
-        session.sendJsonRpcResponse(response);
+        return response;
     }
 
     private JSONObject dispatch(String method, JSONObject params) {
@@ -248,7 +392,11 @@ public class McpServer {
         exchange.close();
     }
 
-    public boolean isDebugging() {
-        return emulator.is32Bit() || emulator.is64Bit();
+    public void setDebugIdle(boolean idle) {
+        this.debugIdle = idle;
+    }
+
+    public boolean isDebugIdle() {
+        return debugIdle;
     }
 }
