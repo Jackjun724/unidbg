@@ -931,6 +931,17 @@ public class McpTools {
         }
     }
 
+    private void appendModuleAndSymbol(StringBuilder sb, Memory memory, GccDemangler demangler, long address) {
+        Module module = memory.findModuleByAddress(address);
+        if (module != null) {
+            sb.append(String.format("  (%s+0x%x)", module.name, address - module.base));
+            Symbol symbol = module.findClosestSymbolByAddress(address, false);
+            if (symbol != null && address - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+                sb.append(String.format("  <%s>", demangler.demangle(symbol.getName())));
+            }
+        }
+    }
+
     private JSONObject readPointer(JSONObject args) {
         long address = parseAddress(args.getString("address"));
         int depth = args.containsKey("depth") ? args.getIntValue("depth") : 1;
@@ -946,27 +957,19 @@ public class McpTools {
         try {
             for (int level = 0; level <= depth; level++) {
                 sb.append(String.format("[%d] 0x%x", level, currentAddr));
-                Module module = memory.findModuleByAddress(currentAddr);
-                if (module != null) {
-                    sb.append(String.format("  (%s+0x%x)", module.name, currentAddr - module.base));
-                    Symbol symbol = module.findClosestSymbolByAddress(currentAddr, false);
-                    if (symbol != null && currentAddr - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-                        sb.append(String.format("  <%s>", demangler.demangle(symbol.getName())));
-                    }
-                }
+                appendModuleAndSymbol(sb, memory, demangler, currentAddr);
                 sb.append('\n');
 
                 if (level < depth) {
                     long readAddr = currentAddr + offset;
                     byte[] data = backend.mem_read(readAddr, ptrSize);
                     long ptrValue;
+                    ptrValue = 0;
                     if (is64) {
-                        ptrValue = 0;
                         for (int i = 7; i >= 0; i--) {
                             ptrValue = (ptrValue << 8) | (data[i] & 0xFFL);
                         }
                     } else {
-                        ptrValue = 0;
                         for (int i = 3; i >= 0; i--) {
                             ptrValue = (ptrValue << 8) | (data[i] & 0xFFL);
                         }
@@ -1005,7 +1008,7 @@ public class McpTools {
         }
 
         try {
-            byte[] data = emulator.getBackend().mem_read(address, elemSize * count);
+            byte[] data = emulator.getBackend().mem_read(address, (long) elemSize * count);
             java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(data).order(java.nio.ByteOrder.LITTLE_ENDIAN);
             Memory memory = emulator.getMemory();
             GccDemangler demangler = DemanglerFactory.createDemangler();
@@ -1029,14 +1032,7 @@ public class McpTools {
                         long ptrVal = emulator.is64Bit() ? buf.getLong(i * 8) : (buf.getInt(i * 4) & 0xFFFFFFFFL);
                         sb.append("0x").append(Long.toHexString(ptrVal));
                         if (ptrVal != 0) {
-                            Module module = memory.findModuleByAddress(ptrVal);
-                            if (module != null) {
-                                sb.append(String.format("  (%s+0x%x)", module.name, ptrVal - module.base));
-                                Symbol symbol = module.findClosestSymbolByAddress(ptrVal, false);
-                                if (symbol != null && ptrVal - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
-                                    sb.append(String.format("  <%s>", demangler.demangle(symbol.getName())));
-                                }
-                            }
+                            appendModuleAndSymbol(sb, memory, demangler, ptrVal);
                         }
                         break;
                     }
