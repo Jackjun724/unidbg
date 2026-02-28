@@ -104,7 +104,7 @@ public class Hypervisor implements Closeable {
     }
     private static native void disable_hw_breakpoint(long handle, int n);
 
-    public void install_watchpoint(int n, long dbgwvr, long dbgwcr) {
+    public void install_watchpoint(int n, long dbgwcr, long dbgwvr) {
         install_watchpoint(nativeHandle, n, dbgwcr, dbgwvr);
         if (log.isDebugEnabled()) {
             log.debug("install_watchpoint n={}, dbgwvr=0x{}, dbgwcr=0x{}", n, Long.toHexString(dbgwvr), Long.toHexString(dbgwcr));
@@ -127,12 +127,13 @@ public class Hypervisor implements Closeable {
             throw new UnsupportedOperationException();
         }
 
-        if (singleInstance != null) {
-            throw new IllegalStateException("Only one hypervisor VM instance per process allowed.");
+        synchronized (Hypervisor.class) {
+            if (singleInstance != null) {
+                throw new IllegalStateException("Only one hypervisor VM instance per process allowed.");
+            }
+            this.nativeHandle = nativeInitialize(true);
+            singleInstance = this;
         }
-
-        this.nativeHandle = nativeInitialize(true);
-        singleInstance = this;
     }
 
     public void context_save(long context) {
@@ -370,11 +371,19 @@ public class Hypervisor implements Closeable {
         }
     }
 
+    private boolean closed;
+
     @Override
     public void close() {
-        nativeDestroy(nativeHandle);
+        synchronized (Hypervisor.class) {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            nativeDestroy(nativeHandle);
 
-        singleInstance = null;
+            singleInstance = null;
+        }
     }
 
 }

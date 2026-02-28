@@ -23,11 +23,7 @@ public class HypervisorFactory extends BackendFactory {
     @Override
     protected Backend newBackendInternal(Emulator<?> emulator, boolean is64Bit) {
         Hypervisor hypervisor = new Hypervisor(is64Bit);
-        if (is64Bit) {
-            return new HypervisorBackend64(emulator, hypervisor);
-        } else {
-            throw new UnsupportedOperationException();
-        }
+        return new HypervisorBackend64(emulator, hypervisor);
     }
 
 }

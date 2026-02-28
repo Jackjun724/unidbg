@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 class HypervisorWatchpoint implements BreakRestorer {
 
     private static final Logger log = LoggerFactory.getLogger(HypervisorWatchpoint.class);
+    private static final MemorySizeDetector MEMORY_SIZE_DETECTOR = new SimpleMemorySizeDetector();
 
     private final Object callback;
     private final long begin;
@@ -88,12 +89,11 @@ class HypervisorWatchpoint implements BreakRestorer {
     }
 
     final boolean onHit(Backend backend, long address, boolean isWrite, Disassembler disassembler, byte[] code, long pc) {
-        MemorySizeDetector memorySizeDetector = new SimpleMemorySizeDetector();
-        if (address >= begin && address <= end) {
+        if (address >= begin && address < end) {
             if (isWrite) {
                 ((WriteHook) callback).hook(backend, address, 0, 0, user_data);
             } else {
-                int size = memorySizeDetector.detectReadSize(disassembler, code, pc);
+                int size = MEMORY_SIZE_DETECTOR.detectReadSize(disassembler, code, pc);
                 ((ReadHook) callback).hook(backend, address, size, user_data);
             }
             return true;
@@ -104,6 +104,6 @@ class HypervisorWatchpoint implements BreakRestorer {
 
     @Override
     public final void install(Hypervisor hypervisor) {
-        hypervisor.install_watchpoint(n, dbgwvr, dbgwcr);
+        hypervisor.install_watchpoint(n, dbgwcr, dbgwvr);
     }
 }

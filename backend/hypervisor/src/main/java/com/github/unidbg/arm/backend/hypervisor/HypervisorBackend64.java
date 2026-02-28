@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import unicorn.Arm64Const;
 
 import java.util.*;
+import java.util.Objects;
 
 public class HypervisorBackend64 extends HypervisorBackend {
 
@@ -70,7 +71,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
     }
 
     private final HypervisorBreakPoint[] breakpoints;
-    private final Stack<ExceptionVisitor> visitorStack = new Stack<>();
+    private final Deque<ExceptionVisitor> visitorStack = new ArrayDeque<>();
 
     private int singleStep;
 
@@ -311,8 +312,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 if (repeatWatchpoint) {
                     break;
                 }
-                Pointer pc = UnidbgPointer.pointer(emulator, elr);
-                assert pc != null;
+                Pointer pc = Objects.requireNonNull(UnidbgPointer.pointer(emulator, elr));
                 byte[] code = pc.getByteArray(0, 4);
                 if (watchpoint.onHit(this, address, write, createDisassembler(), code, elr)) {
                     hypervisor.disable_watchpoint(n);
@@ -432,8 +432,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 long foundAddress = 0;
                 StringBuilder builder = new StringBuilder();
                 for (long pc : exclusiveRegionAddressList) {
-                    Pointer ptr = UnidbgPointer.pointer(emulator, pc);
-                    assert ptr != null;
+                    Pointer ptr = Objects.requireNonNull(UnidbgPointer.pointer(emulator, pc));
                     byte[] code = ptr.getByteArray(0, 4);
                     Instruction instruction = createDisassembler().disasm(code, pc, 1)[0];
                     switch (instruction.getMnemonic()) {
@@ -547,10 +546,8 @@ public class HypervisorBackend64 extends HypervisorBackend {
     }
 
     private boolean handleCommRead(long vaddr, long elr, int accessSize) {
-        Pointer pointer = UnidbgPointer.pointer(emulator, vaddr);
-        assert pointer != null;
-        Pointer pc = UnidbgPointer.pointer(emulator, elr);
-        assert pc != null;
+        Pointer pointer = Objects.requireNonNull(UnidbgPointer.pointer(emulator, vaddr));
+        Pointer pc = Objects.requireNonNull(UnidbgPointer.pointer(emulator, elr));
         byte[] code = pc.getByteArray(0, 4);
         Instruction insn = createDisassembler().disasm(code, elr, 1)[0];
         if (log.isDebugEnabled()) {
@@ -598,7 +595,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 return true;
             }
             default:
-                throw new UnsupportedOperationException("vaddr=0x" + Long.toHexString(vaddr) + ", offset=0x" + Long.toHexString(offset));
+                throw new UnsupportedOperationException("vaddr=" + pointer + ", offset=0x" + Long.toHexString(offset));
         }
     }
 
@@ -679,7 +676,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 case Arm64Const.UC_ARM64_REG_W28:
                 case Arm64Const.UC_ARM64_REG_W29:
                 case Arm64Const.UC_ARM64_REG_W30:
-                    hypervisor.reg_write64(regId - Arm64Const.UC_ARM64_REG_W0, value.longValue());
+                    hypervisor.reg_write64(regId - Arm64Const.UC_ARM64_REG_W0, value.longValue() & 0xFFFFFFFFL);
                     break;
                 case Arm64Const.UC_ARM64_REG_SP:
                     hypervisor.reg_set_sp64(value.longValue());

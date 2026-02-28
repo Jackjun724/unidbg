@@ -14,6 +14,7 @@ import unicorn.UnicornConst;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Objects;
 
 public abstract class HypervisorBackend extends FastBackend implements Backend, HypervisorCallback {
 
@@ -48,8 +49,7 @@ public abstract class HypervisorBackend extends FastBackend implements Backend, 
             }
             buffer.putInt(0xd4201100); // brk #0x88
         }
-        UnidbgPointer ptr = UnidbgPointer.pointer(emulator, Hypervisor.REG_VBAR_EL1);
-        assert ptr != null;
+        UnidbgPointer ptr = Objects.requireNonNull(UnidbgPointer.pointer(emulator, Hypervisor.REG_VBAR_EL1));
         ptr.write(buffer.array());
     }
 
@@ -85,6 +85,9 @@ public abstract class HypervisorBackend extends FastBackend implements Backend, 
 
     @Override
     public byte[] mem_read(long address, long size) throws BackendException {
+        if (size < 0 || size > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("invalid size: " + size);
+        }
         try {
             return hypervisor.mem_read(address, (int) size);
         } catch (HypervisorException e) {
@@ -184,6 +187,9 @@ public abstract class HypervisorBackend extends FastBackend implements Backend, 
         if (pc == until) {
             emu_stop();
             return;
+        }
+        if (interruptHookNotifier == null) {
+            throw new IllegalStateException("bindInterruptHook bindInterruptHook is null, bindings not initialized before SVC at pc=0x" + Long.toHexString(pc));
         }
         interruptHookNotifier.notifyCallSVC(this, ARMEmulator.EXCP_SWI, swi);
     }
