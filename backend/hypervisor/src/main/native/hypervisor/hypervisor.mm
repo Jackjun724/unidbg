@@ -749,6 +749,11 @@ JNIEXPORT jint JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
       fprintf(stderr, "mem_map warning[%s->%s:%d]: addr=%p, page_table=%p, idx=%llu, num_page_table_entries=%zu\n", __FILE__, __func__, __LINE__, (void*)addr, hypervisor->page_table, idx, hypervisor->num_page_table_entries);
     }
     khiter_t k = kh_put(memory, memory, vaddr, &ret);
+    if(ret < 0) {
+      fprintf(stderr, "kh_put failed: vaddr=%p\n", (void*)vaddr);
+      abort();
+      return 0;
+    }
     auto page = (t_memory_page) calloc(1, sizeof(struct memory_page));
     if(page == nullptr) {
       fprintf(stderr, "calloc page failed: size=%lu\n", sizeof(struct memory_page));
@@ -783,7 +788,6 @@ JNIEXPORT jint JNICALL Java_com_github_unidbg_arm_backend_hypervisor_Hypervisor_
 
   auto hypervisor = (t_hypervisor) handle;
   khash_t(memory) *memory = hypervisor->memory;
-  int ret;
   for(uint64_t vaddr = address; vaddr < address + size; vaddr += HVF_PAGE_SIZE) {
     khiter_t k = kh_get(memory, memory, vaddr);
     if(k == kh_end(memory)) {
