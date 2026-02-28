@@ -134,6 +134,119 @@ public abstract class AbstractARMDebugger implements Debugger {
 
     protected abstract Keystone createKeystone(boolean isThumb);
 
+    protected abstract int resolveRegister(String command, String[] nameOut);
+
+    protected abstract int resolveWriteRegister(String command);
+
+    protected abstract void showWriteRegs(int reg);
+
+    protected abstract void showWriteHelp();
+
+    final boolean handleWriteCommand(Backend backend, String line) {
+        if (!line.startsWith("w")) {
+            return false;
+        }
+        String command;
+        String[] tokens = line.split("\\s+");
+        if (tokens.length < 2) {
+            showWriteHelp();
+            return true;
+        }
+        long value;
+        try {
+            command = tokens[0];
+            String str = tokens[1];
+            value = Utils.parseNumber(str);
+        } catch (NumberFormatException e) {
+            e.printStackTrace(System.err);
+            return true;
+        }
+
+        int reg = resolveWriteRegister(command);
+        if (reg != -1) {
+            backend.reg_write(reg, value);
+            showWriteRegs(reg);
+            return true;
+        }
+
+        if (command.startsWith("wb0x") || command.startsWith("ws0x") || command.startsWith("wi0x") || command.startsWith("wl0x")) {
+            String hex = command.substring(4).trim();
+            if (hex.endsWith("L")) {
+                hex = hex.substring(0, hex.length() - 1);
+            }
+            long addr = Long.parseLong(hex, 16);
+            Pointer pointer = UnidbgPointer.pointer(emulator, addr);
+            if (pointer != null) {
+                if (command.startsWith("wb")) {
+                    pointer.setByte(0, (byte) value);
+                } else if (command.startsWith("ws")) {
+                    pointer.setShort(0, (short) value);
+                } else if (command.startsWith("wi")) {
+                    pointer.setInt(0, (int) value);
+                } else if (command.startsWith("wl")) {
+                    pointer.setLong(0, value);
+                }
+                dumpMemory(pointer, 16, pointer.toString(), null);
+            } else {
+                System.out.println(addr + " is null");
+            }
+            return true;
+        }
+        return false;
+    }
+
+    final boolean handleMemoryCommand(String line) {
+        if (!line.startsWith("m")) {
+            return false;
+        }
+        String command = line;
+        String[] tokens = line.split("\\s+");
+        int length = 0x70;
+        try {
+            if (tokens.length >= 2) {
+                command = tokens[0];
+                String str = tokens[1];
+                length = (int) Utils.parseNumber(str);
+            }
+        } catch(NumberFormatException ignored) {}
+        StringType stringType = null;
+        if (command.endsWith("s")) {
+            stringType = StringType.nullTerminated;
+            command = command.substring(0, command.length() - 1);
+        } else if (command.endsWith("std")) {
+            stringType = StringType.std_string;
+            command = command.substring(0, command.length() - 3);
+        }
+
+        if (command.startsWith("m0x")) {
+            String hex = command.substring(3).trim();
+            if (hex.endsWith("L")) {
+                hex = hex.substring(0, hex.length() - 1);
+            }
+            long addr = Long.parseLong(hex, 16);
+            Pointer pointer = UnidbgPointer.pointer(emulator, addr);
+            if (pointer != null) {
+                dumpMemory(pointer, length, pointer.toString(), stringType);
+            } else {
+                System.out.println(addr + " is null");
+            }
+            return true;
+        }
+
+        String[] nameOut = new String[1];
+        int reg = resolveRegister(command, nameOut);
+        if (reg != -1) {
+            Pointer pointer = UnidbgPointer.register(emulator, reg);
+            if (pointer != null) {
+                dumpMemory(pointer, length, nameOut[0] + "=" + pointer, stringType);
+            } else {
+                System.out.println(nameOut[0] + " is null");
+            }
+            return true;
+        }
+        return false;
+    }
+
     public final boolean removeBreakPoint(long address) {
         address &= (~1);
 
@@ -483,19 +596,103 @@ public abstract class AbstractARMDebugger implements Debugger {
     }
 
     final boolean handleCommon(Backend backend, String line, long address, int size, long nextAddress, DebugRunnable<?> runnable) throws Exception {
-        if ("exit".equals(line) || "quit".equals(line) || "q".equals(line)) { // continue
-            return true;
-        }
-        if ("gc".equals(line)) {
-            System.out.println("Run System.gc();");
-            System.gc();
+        if ("help".equals(line)) {
+            showHelp(address);
             return false;
         }
-        if ("threads".equals(line)) {
-            for (Task task : emulator.getThreadDispatcher().getTaskList()) {
-                System.out.println(task.getId() + ": " + task);
+        if (handleMemoryCommand(line)) {
+            return false;
+        }
+        if ("where".equals(line)) {
+            new Exception("here").printStackTrace(System.out);
+            return false;
+        }
+        if (line.startsWith("wx0x")) {
+            String[] tokens = line.split("\\s+");
+            String hex = tokens[0].substring(4).trim();
+            if (hex.endsWith("L")) {
+                hex = hex.substring(0, hex.length() - 1);
+            }
+            long addr = Long.parseLong(hex, 16);
+            Pointer pointer = UnidbgPointer.pointer(emulator, addr);
+            if (pointer != null && tokens.length > 1) {
+                byte[] data = Hex.decodeHex(tokens[1].toCharArray());
+                pointer.write(0, data, 0, data.length);
+                dumpMemory(pointer, data.length, pointer.toString(), null);
+            } else {
+                System.out.println(addr + " is null");
             }
             return false;
+        }
+        if (emulator.isRunning() && "bt".equals(line)) {
+            try {
+                emulator.getUnwinder().unwind();
+            } catch (Throwable e) {
+                e.printStackTrace(System.err);
+            }
+            return false;
+        }
+        if (handleBreakpointCommand(line, address)) {
+            return false;
+        }
+        switch (line) {
+            case "blr": {
+                long addr = emulator.is32Bit()
+                        ? backend.reg_read(ArmConst.UC_ARM_REG_LR).intValue() & 0xffffffffL
+                        : backend.reg_read(Arm64Const.UC_ARM64_REG_LR).longValue();
+                addAndPrintBreakPoint(addr);
+                return false;
+            }
+            case "r": {
+                long addr = emulator.is32Bit()
+                        ? backend.reg_read(ArmConst.UC_ARM_REG_PC).intValue() & 0xffffffffL
+                        : backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue();
+                if (removeBreakPoint(addr)) {
+                    Module module = findModuleByAddress(emulator, addr);
+                    System.out.println("Remove breakpoint: 0x" + Long.toHexString(addr) + (module == null ? "" : (" in " + module.name + " [0x" + Long.toHexString(addr - module.base) + "]")));
+                }
+                return false;
+            }
+            case "b": {
+                long addr = emulator.is32Bit()
+                        ? backend.reg_read(ArmConst.UC_ARM_REG_PC).intValue() & 0xffffffffL
+                        : backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue();
+                addAndPrintBreakPoint(addr);
+                return false;
+            }
+        }
+        if (line.startsWith("run") && runnable != null) {
+            try {
+                callbackRunning = true;
+                if (mcpServer != null) mcpServer.setDebugIdle(false);
+                String arg = line.substring(3).trim();
+                if (!arg.isEmpty()) {
+                    String[] args = arg.split("\\s+");
+                    runnable.runWithArgs(args);
+                } else {
+                    runnable.runWithArgs(null);
+                }
+                notifyExecutionCompleted();
+            } finally {
+                callbackRunning = false;
+                if (mcpServer != null) mcpServer.setDebugIdle(true);
+            }
+            return false;
+        }
+        switch (line) {
+            case "exit":
+            case "quit":
+            case "q":  // continue
+                return true;
+            case "gc":
+                System.out.println("Run System.gc();");
+                System.gc();
+                return false;
+            case "threads":
+                for (Task task : emulator.getThreadDispatcher().getTaskList()) {
+                    System.out.println(task.getId() + ": " + task);
+                }
+                return false;
         }
         if (line.startsWith("mcp")) {
             startMcpServer(line);
@@ -866,7 +1063,94 @@ public abstract class AbstractARMDebugger implements Debugger {
     protected void dumpClass(String className) {
     }
 
-    void showHelp(long address) {}
+    final boolean handleBreakpointCommand(String line, long currentAddress) {
+        if (!line.startsWith("b0x")) {
+            return false;
+        }
+        try {
+            if (line.endsWith("L")) {
+                line = line.substring(0, line.length() - 1);
+            }
+            long addr = Long.parseLong(line.substring(3), 16) & (emulator.is32Bit() ? 0xffffffffL : 0xfffffffffffffffeL);
+            Module module = null;
+            if (addr < Memory.MMAP_BASE && (module = findModuleByAddress(emulator, currentAddress)) != null) {
+                addr += module.base;
+            }
+            addBreakPoint(addr);
+            if (module == null) {
+                module = findModuleByAddress(emulator, addr);
+            }
+            System.out.println("Add breakpoint: 0x" + Long.toHexString(addr) + (module == null ? "" : (" in " + module.name + " [0x" + Long.toHexString(addr - module.base) + "]")));
+            return true;
+        } catch (NumberFormatException ignored) {
+        }
+        return false;
+    }
+
+    private void addAndPrintBreakPoint(long addr) {
+        addBreakPoint(addr);
+        Module module = findModuleByAddress(emulator, addr);
+        System.out.println("Add breakpoint: 0x" + Long.toHexString(addr) + (module == null ? "" : (" in " + module.name + " [0x" + Long.toHexString(addr - module.base) + "]")));
+    }
+
+    void showHelp(long address) {
+        System.out.println("c: continue");
+        System.out.println("n: step over");
+        if (emulator.isRunning()) {
+            System.out.println("bt: back trace");
+        }
+        System.out.println();
+        System.out.println("st hex: search stack");
+        System.out.println("shw hex: search writable heap");
+        System.out.println("shr hex: search readable heap");
+        System.out.println("shx hex: search executable heap");
+        System.out.println();
+        System.out.println("nb: break at next block");
+        System.out.println("s|si: step into");
+        System.out.println("s[decimal]: execute specified amount instruction");
+    }
+
+    final void showCommonHelp(long address) {
+        System.out.println("wx(address) <hex>: write bytes to memory at specified address, address must start with 0x");
+        System.out.println();
+        System.out.println("b(address): add temporarily breakpoint, address must start with 0x, can be module offset");
+        System.out.println("b: add breakpoint of register PC");
+        System.out.println("r: remove breakpoint of register PC");
+        System.out.println("blr: add temporarily breakpoint of register LR");
+        System.out.println();
+        System.out.println("p (assembly): patch assembly at PC address");
+        System.out.println("where: show java stack trace");
+        System.out.println();
+        System.out.println("trace [begin end]: Set trace instructions");
+        System.out.println("traceRead [begin end]: Set trace memory read");
+        System.out.println("traceWrite [begin end]: Set trace memory write");
+        System.out.println("vm: view loaded modules");
+        System.out.println("vbs: view breakpoints");
+        System.out.println("d|dis: show disassemble");
+        System.out.println("d(0x): show disassemble at specify address");
+        System.out.println("stop: stop emulation");
+        System.out.println("run [arg]: run test");
+        System.out.println("gc: Run System.gc()");
+        System.out.println("threads: show thread list");
+        System.out.println("mcp [port]: start MCP server for AI tool integration (default port 9239)");
+
+        if (emulator.getFamily() == Family.iOS && !emulator.isRunning()) {
+            System.out.println("dump [class name]: dump objc class");
+            System.out.println("search [keywords]: search objc classes");
+            if (emulator.is64Bit()) {
+                System.out.println("gpb [class name]: dump GPB protobuf msg def");
+            }
+        }
+
+        Module module = emulator.getMemory().findModuleByAddress(address);
+        if (module != null) {
+            if (emulator.is32Bit()) {
+                System.out.printf("cc size: convert asm from 0x%x - 0x%x + size bytes to c function%n", address, address);
+            } else {
+                System.out.printf("cc (size): convert asm from (0x%x) to (0x%x + size) bytes to c function%n", address, address);
+            }
+        }
+    }
 
     private void appendSymbolInfo(StringBuilder sb, Emulator<?> emulator, long address) {
         Module module = findModuleByAddress(emulator, address);
