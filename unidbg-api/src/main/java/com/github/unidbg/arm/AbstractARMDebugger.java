@@ -211,12 +211,15 @@ public abstract class AbstractARMDebugger implements Debugger {
             }
         } catch(NumberFormatException ignored) {}
         StringType stringType = null;
-        if (command.endsWith("s")) {
-            stringType = StringType.nullTerminated;
-            command = command.substring(0, command.length() - 1);
+        if (command.endsWith("objc")) {
+            stringType = StringType.objc_object;
+            command = command.substring(0, command.length() - 4);
         } else if (command.endsWith("std")) {
             stringType = StringType.std_string;
             command = command.substring(0, command.length() - 3);
+        } else if (command.endsWith("s")) {
+            stringType = StringType.nullTerminated;
+            command = command.substring(0, command.length() - 1);
         }
 
         if (command.startsWith("m0x")) {
@@ -420,7 +423,8 @@ public abstract class AbstractARMDebugger implements Debugger {
 
     protected enum StringType {
         nullTerminated,
-        std_string
+        std_string,
+        objc_object
     }
 
     final void dumpMemory(Pointer pointer, int _length, String label, StringType stringType) {
@@ -455,6 +459,20 @@ public abstract class AbstractARMDebugger implements Debugger {
                 long size = string.getDataSize();
                 byte[] data = string.getData(emulator);
                 Inspector.inspect(data, size >= 1024 ? (label + ", hex=" + Hex.encodeHexString(data) + ", std=" + new String(data, StandardCharsets.UTF_8)) : label);
+            } else if (stringType == StringType.objc_object) {
+                long addr = ((UnidbgPointer) pointer).peer;
+                try {
+                    String className = emulator.getObjcClassName(addr);
+                    if (className != null) {
+                        System.out.println(label + " -> ObjC class: " + className);
+                    } else {
+                        System.out.println(label + " -> ObjC class name not resolved");
+                    }
+                } catch (UnsupportedOperationException e) {
+                    System.out.println(label + " -> " + e.getMessage());
+                } catch (Exception e) {
+                    System.out.println(label + " -> failed to read ObjC class: " + e);
+                }
             } else {
                 throw new UnsupportedOperationException("stringType=" + stringType);
             }

@@ -130,6 +130,8 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 
 | Tool | Description |
 |------|-------------|
+| `inspect_objc_msg` | Inspect objc_msgSend call: show receiver class name and selector, e.g. `-[NSString length]` |
+| `get_objc_class_name` | Get ObjC class name of an object at a given address (pure memory parsing, no state change) |
 | `dump_objc_class` | Dump ObjC class definition (properties, methods, protocols, ivars) |
 | `dump_gpb_protobuf` | Dump GPB protobuf message schema as .proto format (64-bit only) |
 

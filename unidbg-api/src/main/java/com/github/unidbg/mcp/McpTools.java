@@ -274,6 +274,14 @@ public class McpTools {
         tools.add(toolSchema("list_allocations", "List all memory blocks allocated via allocate_memory that have not been freed yet."));
 
         if (emulator.getFamily() == Family.iOS) {
+            tools.add(toolSchema("inspect_objc_msg", "Inspect the current objc_msgSend call when stopped at its first instruction. " +
+                            "Reads X0 (receiver) and X1 (selector) to display the ObjC message being sent, e.g. '-[NSString length]'. " +
+                            "Uses pure memory parsing (isa -> class_ro_t -> name), does NOT call ObjC runtime functions, " +
+                            "so emulator state is not modified. Works at any breakpoint, not just objc_msgSend."));
+            tools.add(toolSchema("get_objc_class_name", "Get the Objective-C class name of an object at the given address. " +
+                            "Uses pure memory parsing (isa -> class_ro_t -> name), does NOT call ObjC runtime functions, " +
+                            "so emulator state is not modified.",
+                    param("address", "string", "Hex address of the ObjC object")));
             tools.add(toolSchema("dump_objc_class", "Dump an Objective-C class definition including properties, instance methods, class methods, protocols, and ivars. " +
                             "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
                             "LIMITATIONS:\n" +
@@ -381,6 +389,8 @@ public class McpTools {
             case "allocate_memory": return allocateMemory(args);
             case "free_memory": return freeMemory(args);
             case "list_allocations": return listAllocations();
+            case "inspect_objc_msg": return inspectObjcMsg();
+            case "get_objc_class_name": return getObjcClassName(args);
             case "dump_objc_class": return dumpObjcClass(args);
             case "dump_gpb_protobuf": return dumpGpbProtobuf(args);
             default:
@@ -1791,6 +1801,112 @@ public class McpTools {
             sb.append(String.format("  0x%x  size=%d (0x%x)  type=%s%n", addr, alloc.size, alloc.size, type));
         }
         return textResult(sb.toString());
+    }
+
+    private JSONObject getObjcClassName(JSONObject args) {
+        if (emulator.getFamily() != Family.iOS) {
+            return errorResult("get_objc_class_name is only available on iOS emulators.");
+        }
+        long address = parseAddress(args.getString("address"));
+        if (address == 0) {
+            return errorResult("Address is null (0x0).");
+        }
+        try {
+            String className = emulator.getObjcClassName(address);
+            if (className != null) {
+                return textResult("0x" + Long.toHexString(address) + " -> " + className);
+            } else {
+                return errorResult("Failed to resolve ObjC class name at 0x" + Long.toHexString(address));
+            }
+        } catch (Exception e) {
+            return errorResult("Failed to read ObjC class at 0x" + Long.toHexString(address) + ": " + exMsg(e));
+        }
+    }
+
+    private JSONObject inspectObjcMsg() {
+        if (emulator.getFamily() != Family.iOS) {
+            return errorResult("inspect_objc_msg is only available on iOS emulators.");
+        }
+        if (!emulator.is64Bit()) {
+            return errorResult("inspect_objc_msg currently only supports ARM64.");
+        }
+        try {
+            Backend backend = emulator.getBackend();
+            long x0 = backend.reg_read(Arm64Const.UC_ARM64_REG_X0).longValue();
+            long x1 = backend.reg_read(Arm64Const.UC_ARM64_REG_X1).longValue();
+
+            StringBuilder sb = new StringBuilder();
+            String className = null;
+            if (x0 != 0) {
+                try {
+                    className = emulator.getObjcClassName(x0);
+                } catch (Exception ignored) {
+                }
+            }
+
+            String selector = null;
+            if (x1 != 0) {
+                try {
+                    byte[] selData = backend.mem_read(x1, 256);
+                    int len = 0;
+                    while (len < selData.length && selData[len] != 0) len++;
+                    selector = new String(selData, 0, len, java.nio.charset.StandardCharsets.UTF_8);
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (className != null && selector != null) {
+                sb.append(String.format("-[%s %s]%n", className, selector));
+            }
+
+            sb.append(String.format("X0 (receiver): 0x%x", x0));
+            if (className != null) {
+                sb.append("  class: ").append(className);
+            } else if (x0 == 0) {
+                sb.append("  (nil)");
+            } else {
+                sb.append("  (class name not resolved)");
+            }
+            sb.append('\n');
+
+            sb.append(String.format("X1 (selector): 0x%x", x1));
+            if (selector != null) {
+                sb.append("  \"").append(selector).append('"');
+            } else if (x1 == 0) {
+                sb.append("  (nil)");
+            }
+            sb.append('\n');
+
+            for (int i = 2; i <= 7; i++) {
+                long val = backend.reg_read(Arm64Const.UC_ARM64_REG_X0 + i).longValue();
+                if (val != 0) {
+                    sb.append(String.format("X%d (arg%d):     0x%x", i, i - 2, val));
+                    Module module = emulator.getMemory().findModuleByAddress(val);
+                    if (module != null) {
+                        sb.append("  (").append(module.name).append("+0x").append(Long.toHexString(val - module.base)).append(')');
+                    } else if (val > 0x1000) {
+                        try {
+                            byte[] probe = backend.mem_read(val, 64);
+                            int sLen = 0;
+                            boolean printable = true;
+                            while (sLen < probe.length && probe[sLen] != 0) {
+                                if (probe[sLen] < 0x20 || probe[sLen] > 0x7e) { printable = false; break; }
+                                sLen++;
+                            }
+                            if (printable && sLen > 0) {
+                                sb.append("  \"").append(new String(probe, 0, sLen, java.nio.charset.StandardCharsets.UTF_8)).append('"');
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    sb.append('\n');
+                }
+            }
+
+            return textResult(sb.toString());
+        } catch (Exception e) {
+            return errorResult("Failed to inspect objc_msgSend: " + exMsg(e));
+        }
     }
 
     private JSONObject dumpObjcClass(JSONObject args) {

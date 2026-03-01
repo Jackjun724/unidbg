@@ -134,6 +134,15 @@ public interface Emulator<T extends NewFileIO> extends Closeable, ArmDisassemble
     <V> V get(String key);
 
     /**
+     * Get Objective-C class name for the object at the given address.
+     * Reads isa pointer, applies ISA_MASK, and parses class_ro_t to get the name.
+     * Only available on iOS emulators.
+     */
+    default String getObjcClassName(long address) {
+        throw new UnsupportedOperationException("ObjC introspection only available on iOS emulators");
+    }
+
+    /**
      * Dump Objective-C class definition (properties, methods, protocols, ivars).
      * Only available on iOS emulators with ObjC runtime loaded.
      */
