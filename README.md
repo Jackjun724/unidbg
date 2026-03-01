@@ -105,7 +105,7 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 |------|-------------|
 | `add_breakpoint` / `add_breakpoint_by_symbol` / `add_breakpoint_by_offset` | Add breakpoints by address, symbol, or module+offset |
 | `remove_breakpoint` / `list_breakpoints` | Remove or list breakpoints (with disassembly) |
-| `continue_execution` / `run_until` | Resume execution or run to target address |
+| `continue_execution` | Resume execution. Use poll_events to wait for breakpoint_hit or execution_completed |
 | `step_over` / `step_into` / `step_out` | Step over, into (N instructions), or out of function |
 | `next_block` | Break at next basic block (Unicorn only) |
 | `step_until_mnemonic` | Break at next instruction matching mnemonic, e.g. `bl`, `ret` (Unicorn only) |

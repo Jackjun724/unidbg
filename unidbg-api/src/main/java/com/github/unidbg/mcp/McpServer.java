@@ -414,7 +414,7 @@ public class McpServer {
                 "with different parameters. After execution completes, the process stays alive and MCP remains active " +
                 "— you can set new breakpoints/traces and call custom tools again. Repeatable.\n\n" +
                 "## Execution Workflow\n" +
-                "Execution tools (continue_execution, step_over, step_into, step_out, run_until, next_block, step_until_mnemonic) " +
+                "Execution tools (continue_execution, step_over, step_into, step_out, next_block, step_until_mnemonic) " +
                 "return immediately. Always call poll_events after to wait for breakpoint_hit or execution_completed.\n" +
                 "In custom tools mode, set breakpoints and traces BEFORE calling a custom tool, then poll_events to collect results.\n\n" +
                 "## Tracing\n" +

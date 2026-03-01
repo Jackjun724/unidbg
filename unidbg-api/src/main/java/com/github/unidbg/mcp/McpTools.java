@@ -133,12 +133,6 @@ public class McpTools {
                 param("module_name", "string", "Module name, e.g. libnative.so"),
                 param("offset", "string", "Hex offset from module base, e.g. 0x1234"),
                 param("temporary", "boolean", "If true, breakpoint is removed automatically after first hit. Default false.")));
-        tools.add(toolSchema("run_until", "Run emulator until it reaches a specific address, then stop. " +
-                        "Internally sets a temporary breakpoint, continues execution, and waits for the breakpoint to be hit. " +
-                        "Returns when the target address is reached, execution completes, or timeout expires. " +
-                        "Much more efficient than repeated continue_execution + poll_events cycles.",
-                param("address", "string", "Hex target address to run to"),
-                param("timeout_ms", "integer", "Optional. Max milliseconds to wait. Default 30000 (30s). Set 0 for no timeout (wait indefinitely).")));
         tools.add(toolSchema("continue_execution", "Resume emulator execution. " +
                 "If paused at a breakpoint, continues from current PC. " +
                 "If emulation has completed, re-runs the emulation from the beginning. " +
@@ -310,7 +304,6 @@ public class McpTools {
 
     private boolean isExecutionTool(String name) {
         if ("continue_execution".equals(name)) return true;
-        if ("run_until".equals(name)) return true;
         if ("step_over".equals(name)) return true;
         if ("step_into".equals(name)) return true;
         if ("step_out".equals(name)) return true;
@@ -344,7 +337,6 @@ public class McpTools {
             case "remove_breakpoint": return removeBreakpoint(args);
             case "list_breakpoints": return listBreakpoints();
             case "continue_execution": return continueExecution();
-            case "run_until": return runUntil(args);
             case "step_over": return stepOver();
             case "step_into": return stepInto(args);
             case "step_out": return stepOut();
@@ -824,85 +816,6 @@ public class McpTools {
         return textResult("Execution resumed. Use poll_events to wait for breakpoint_hit or execution_completed.");
     }
 
-    private JSONObject runUntil(JSONObject args) {
-        long address = parseAddress(args.getString("address"));
-        long timeoutMs = args.containsKey("timeout_ms") ? args.getLongValue("timeout_ms") : 30000;
-
-        if (!server.isDebugIdle()) {
-            return errorResult("Emulator is not in debug idle state.");
-        }
-
-        try {
-            server.runOnDebuggerThread(() -> {
-                BreakPoint bp = emulator.attach().addBreakPoint(address);
-                bp.setTemporary(true);
-                return null;
-            });
-        } catch (Exception e) {
-            return errorResult("Failed to set temporary breakpoint: " + e.getMessage());
-        }
-
-        server.pollEvents(0);
-        server.injectCommand("c");
-
-        long deadline = timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : Long.MAX_VALUE;
-        List<JSONObject> allEvents = new ArrayList<>();
-        boolean reached = false;
-        boolean completed = false;
-
-        while (System.currentTimeMillis() < deadline) {
-            long remaining = timeoutMs > 0 ? Math.max(1, deadline - System.currentTimeMillis()) : 5000;
-            long pollTime = Math.min(remaining, 5000);
-            List<JSONObject> events = server.pollEvents(pollTime);
-            allEvents.addAll(events);
-
-            for (JSONObject event : events) {
-                String eventType = event.getString("event");
-                if ("breakpoint_hit".equals(eventType)) {
-                    String pc = event.getString("pc");
-                    if (pc != null && parseAddress(pc) == address) {
-                        reached = true;
-                    }
-                } else if ("execution_completed".equals(eventType)) {
-                    completed = true;
-                }
-            }
-            if (reached || completed) break;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        if (reached) {
-            sb.append("Reached target address 0x").append(Long.toHexString(address)).append('\n');
-            try {
-                JSONObject regs = server.runOnDebuggerThread(this::getRegisters);
-                String regsText = regs.getJSONArray("content").getJSONObject(0).getString("text");
-                sb.append(regsText);
-            } catch (Exception ignored) {
-            }
-        } else if (completed) {
-            sb.append("Execution completed before reaching 0x").append(Long.toHexString(address)).append('\n');
-        } else {
-            try {
-                server.runOnDebuggerThread(() -> {
-                    emulator.attach().removeBreakPoint(address);
-                    return null;
-                });
-            } catch (Exception ignored) {
-            }
-            sb.append("Timeout after ").append(timeoutMs).append("ms. Target 0x").append(Long.toHexString(address)).append(" not reached.\n");
-        }
-        if (!allEvents.isEmpty()) {
-            sb.append("\nEvents during execution: ").append(allEvents.size()).append('\n');
-            int show = Math.min(allEvents.size(), 20);
-            for (int i = 0; i < show; i++) {
-                sb.append(allEvents.get(i).toJSONString()).append('\n');
-            }
-            if (allEvents.size() > show) {
-                sb.append("... and ").append(allEvents.size() - show).append(" more events\n");
-            }
-        }
-        return textResult(sb.toString());
-    }
 
     private JSONObject stepOver() {
         server.injectCommand("n");
