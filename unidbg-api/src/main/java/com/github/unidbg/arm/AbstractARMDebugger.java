@@ -1316,7 +1316,7 @@ public abstract class AbstractARMDebugger implements Debugger {
         if (mcpServer != null) {
             int p = mcpServer.getPort();
             System.out.println("MCP server already running on port " + p);
-            printMcpConfig(p);
+            printMcpConfig(p, mcpServerIndex);
             return;
         }
         int port = 9239;
@@ -1327,45 +1327,45 @@ public abstract class AbstractARMDebugger implements Debugger {
             } catch (NumberFormatException ignored) {
             }
         }
-        try {
-            mcpServer = new McpServer(emulator, port);
-            for (PendingMcpTool tool : pendingMcpTools) {
-                mcpServer.addCustomTool(tool.name, tool.description, tool.paramNames);
+        int maxRetries = 10;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                mcpServer = new McpServer(emulator, port);
+                for (PendingMcpTool tool : pendingMcpTools) {
+                    mcpServer.addCustomTool(tool.name, tool.description, tool.paramNames);
+                }
+                pendingMcpTools.clear();
+                mcpServer.start();
+                scannerNeedsRefresh = true;
+                mcpServer.setDebugIdle(true);
+                mcpServerIndex = i;
+                System.out.println("MCP server started on port " + port);
+                printMcpConfig(port, i);
+                return;
+            } catch (IOException e) {
+                mcpServer = null;
+                if (i < maxRetries - 1) {
+                    System.out.println("Port " + port + " is in use, trying " + (port + 1) + "...");
+                    port++;
+                } else {
+                    System.err.println("Failed to start MCP server: " + e.getMessage());
+                }
             }
-            pendingMcpTools.clear();
-            mcpServer.start();
-            scannerNeedsRefresh = true;
-            mcpServer.setDebugIdle(true);
-            System.out.println("MCP server started on port " + port);
-            printMcpConfig(port);
-        } catch (IOException e) {
-            System.err.println("Failed to start MCP server: " + e.getMessage());
         }
     }
 
-    private void printMcpConfig(int port) {
+    private int mcpServerIndex;
+
+    private void printMcpConfig(int port, int index) {
+        String serverName = index == 0 ? "unidbg-mcp-server" : "unidbg-mcp-server-" + index;
         System.out.println("Add to Cursor MCP settings:");
         System.out.println("{");
         System.out.println("  \"mcpServers\": {");
-        System.out.println("    \"unidbg\": {");
+        System.out.println("    \"" + serverName + "\": {");
         System.out.println("      \"url\": \"http://localhost:" + port + "/sse\"");
         System.out.println("    }");
         System.out.println("  }");
         System.out.println("}");
-        System.out.println();
-        System.out.println("Register custom MCP tools for repeated emulation (call before attach().run()):");
-        System.out.println("  debugger.addMcpTool(\"tool_name\", \"description\", \"param1\", \"param2\", ...);");
-        System.out.println("Custom tools invoke DebugRunnable.runWithArgs(args), args[0] is the tool name.");
-        System.out.println();
-        System.out.println("Example:");
-        System.out.println("  Debugger debugger = emulator.attach();");
-        System.out.println("  debugger.addMcpTool(\"encrypt\", \"Run TTEncrypt\", \"input\");");
-        System.out.println("  debugger.run(args -> {");
-        System.out.println("      String toolName = args != null ? args[0] : null;");
-        System.out.println("      String input = args != null && args.length > 1 ? args[1] : \"default\";");
-        System.out.println("      // call emulation logic with input");
-        System.out.println("      return null;");
-        System.out.println("  });");
     }
 
     private void notifyBreakpointHit(long address) {

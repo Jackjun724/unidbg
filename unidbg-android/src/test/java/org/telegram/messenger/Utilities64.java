@@ -7,8 +7,8 @@ import com.github.unidbg.arm.backend.DynarmicFactory;
 import com.github.unidbg.arm.backend.HypervisorFactory;
 import com.github.unidbg.arm.backend.KvmFactory;
 import com.github.unidbg.arm.backend.Unicorn2Factory;
-import com.github.unidbg.debugger.DebugRunnable;
-import com.github.unidbg.debugger.Debugger;
+import com.github.unidbg.debugger.McpTool;
+import com.github.unidbg.debugger.McpToolkit;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.DalvikModule;
@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * mvn test -Dmaven.test.skip=false -Dtest=org.telegram.messenger.Utilities64
  */
-public class Utilities64 extends TestCase implements DebugRunnable<Void> {
+public class Utilities64 extends TestCase {
 
     private static LibraryResolver createLibraryResolver() {
         return new AndroidResolver(23);
@@ -88,33 +88,37 @@ public class Utilities64 extends TestCase implements DebugRunnable<Void> {
         destroy();
     }
 
-    @Override
-    public Void runWithArgs(String[] args) {
-        String toolName = args != null ? args[0] : null;
-        if ("aesCbc".equals(toolName)) {
-            byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
-            aesCbcEncryptionByteArray(input);
-        } else if ("aesCtr".equals(toolName)) {
-            byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
-            aesCtrDecryptionByteArray(input);
-        } else if ("pbkdf2".equals(toolName)) {
-            String password = args.length > 1 ? args[1] : "123456";
-            int iterations = args.length > 2 ? Integer.parseInt(args[2]) : 100000;
-            pbkdf2(password.getBytes(), iterations);
-        } else {
-            aesCbcEncryptionByteArray(new byte[16]);
-            aesCtrDecryptionByteArray(new byte[16]);
-            pbkdf2("123456".getBytes(), 100000);
-        }
-        return null;
-    }
-
     private void runArgs() throws Exception {
-        Debugger debugger = emulator.attach();
-        debugger.addMcpTool("aesCbc", "Run AES-CBC encryption on input data", "input");
-        debugger.addMcpTool("aesCtr", "Run AES-CTR decryption on input data", "input");
-        debugger.addMcpTool("pbkdf2", "Run PBKDF2 key derivation", "password", "iterations");
-        debugger.run(this);
+        McpToolkit toolkit = new McpToolkit();
+        toolkit.addTool(new McpTool() {
+            @Override public String name() { return "aesCbc"; }
+            @Override public String description() { return "Run AES-CBC encryption on input data"; }
+            @Override public String[] paramNames() { return new String[]{"input"}; }
+            @Override public void execute(String[] params) {
+                byte[] input = params.length > 0 ? params[0].getBytes() : new byte[16];
+                aesCbcEncryptionByteArray(input);
+            }
+        });
+        toolkit.addTool(new McpTool() {
+            @Override public String name() { return "aesCtr"; }
+            @Override public String description() { return "Run AES-CTR decryption on input data"; }
+            @Override public String[] paramNames() { return new String[]{"input"}; }
+            @Override public void execute(String[] params) {
+                byte[] input = params.length > 0 ? params[0].getBytes() : new byte[16];
+                aesCtrDecryptionByteArray(input);
+            }
+        });
+        toolkit.addTool(new McpTool() {
+            @Override public String name() { return "pbkdf2"; }
+            @Override public String description() { return "Run PBKDF2 key derivation"; }
+            @Override public String[] paramNames() { return new String[]{"password", "iterations"}; }
+            @Override public void execute(String[] params) {
+                String password = params.length > 0 ? params[0] : "123456";
+                int iterations = params.length > 1 ? Integer.parseInt(params[1]) : 100000;
+                pbkdf2(password.getBytes(), iterations);
+            }
+        });
+        toolkit.run(emulator.attach());
     }
 
     public static void main(String[] args) throws Exception {

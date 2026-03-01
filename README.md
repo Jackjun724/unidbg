@@ -7,6 +7,7 @@ This is an educational project to learn more about the ELF/MachO file format and
 Use it at your own risk !
 
 ## Features
+- Support [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) for AI-assisted debugging with Cursor and other AI tools.
 - Emulation of the JNI Invocation API so JNI_OnLoad can be called.
 - Support JavaVM, JNIEnv.
 - Emulation of syscalls instruction.
@@ -19,7 +20,6 @@ Use it at your own risk !
 - Support [dynarmic](https://github.com/MerryMage/dynarmic) fast backend.
 - Support Apple M1 hypervisor, the fastest ARM64 backend.
 - Support Linux KVM backend with Raspberry Pi B4.
-- Support [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) for AI-assisted debugging with Cursor and other AI tools.
 
 ## MCP Debugger (AI Integration)
 
@@ -37,12 +37,20 @@ debugger.addBreakPoint(address);
 // run your emulation logic — debugger pauses when breakpoint is hit
 ```
 
-**Mode 2: Custom Tools (Repeatable)** — Register custom tools and implement `DebugRunnable` to let AI re-run target functions with different parameters. The native library is loaded once; after each execution the process stays alive and MCP remains active for the next run.
+**Mode 2: Custom Tools (Repeatable)** — Use `McpToolkit` to register custom tools and let AI re-run target functions with different parameters. The native library is loaded once; after each execution the process stays alive and MCP remains active for the next run.
 
 ```java
-Debugger debugger = emulator.attach();
-debugger.addMcpTool("encrypt", "Run encryption", "input");
-debugger.run(this); // implements DebugRunnable
+McpToolkit toolkit = new McpToolkit();
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "encrypt"; }
+    @Override public String description() { return "Run encryption"; }
+    @Override public String[] paramNames() { return new String[]{"input"}; }
+    @Override public void execute(String[] params) {
+        String input = params.length > 0 ? params[0] : "default";
+        // call encryption with input
+    }
+});
+toolkit.run(emulator.attach());
 ```
 
 When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the console. Then add to Cursor MCP settings:
@@ -50,7 +58,7 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 ```json
 {
   "mcpServers": {
-    "unidbg": {
+    "unidbg-mcp-server": {
       "url": "http://localhost:9239/sse"
     }
   }
@@ -126,7 +134,7 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 
 ### Custom MCP Tools
 
-Register custom tools to let AI repeatedly trigger emulation with different parameters. Each custom tool call re-runs `runWithArgs` — by this point the native library is fully loaded (JNI_OnLoad / entry point already executed), so the code inside `runWithArgs` is the target function logic to analyze. AI can set breakpoints and traces before triggering a custom tool, then inspect execution results across different inputs without restarting the process.
+Use `McpToolkit` to register custom tools, each implementing the `McpTool` interface. This replaces manual if-else dispatch with clean, self-contained tool classes. By this point the native library is fully loaded (JNI_OnLoad / entry point already executed), so the code inside each tool's `execute()` is the target function logic to analyze. AI can set breakpoints and traces before triggering a custom tool, then inspect execution results across different inputs without restarting the process.
 
 **Android Example** — See [Utilities64.java](https://github.com/zhkl0228/unidbg/blob/master/unidbg-android/src/test/java/org/telegram/messenger/Utilities64.java) for an Android JNI example with custom MCP tools:
 
@@ -135,30 +143,36 @@ DalvikModule dm = vm.loadLibrary(new File("libtmessages.29.so"), true);
 dm.callJNI_OnLoad(emulator);
 cUtilities = vm.resolveClass("org/telegram/messenger/Utilities");
 
-Debugger debugger = emulator.attach();
-debugger.addMcpTool("aesCbc", "Run AES-CBC encryption on input data", "input");
-debugger.addMcpTool("aesCtr", "Run AES-CTR decryption on input data", "input");
-debugger.addMcpTool("pbkdf2", "Run PBKDF2 key derivation", "password", "iterations");
-debugger.run(this);
-```
-
-```java
-@Override
-public Void runWithArgs(String[] args) {
-    String toolName = args != null ? args[0] : null;
-    if ("aesCbc".equals(toolName)) {
-        byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
+McpToolkit toolkit = new McpToolkit();
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "aesCbc"; }
+    @Override public String description() { return "Run AES-CBC encryption on input data"; }
+    @Override public String[] paramNames() { return new String[]{"input"}; }
+    @Override public void execute(String[] params) {
+        byte[] input = params.length > 0 ? params[0].getBytes() : new byte[16];
         aesCbcEncryptionByteArray(input);
-    } else if ("aesCtr".equals(toolName)) {
-        byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
+    }
+});
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "aesCtr"; }
+    @Override public String description() { return "Run AES-CTR decryption on input data"; }
+    @Override public String[] paramNames() { return new String[]{"input"}; }
+    @Override public void execute(String[] params) {
+        byte[] input = params.length > 0 ? params[0].getBytes() : new byte[16];
         aesCtrDecryptionByteArray(input);
-    } else if ("pbkdf2".equals(toolName)) {
-        String password = args.length > 1 ? args[1] : "123456";
-        int iterations = args.length > 2 ? Integer.parseInt(args[2]) : 100000;
+    }
+});
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "pbkdf2"; }
+    @Override public String description() { return "Run PBKDF2 key derivation"; }
+    @Override public String[] paramNames() { return new String[]{"password", "iterations"}; }
+    @Override public void execute(String[] params) {
+        String password = params.length > 0 ? params[0] : "123456";
+        int iterations = params.length > 1 ? Integer.parseInt(params[1]) : 100000;
         pbkdf2(password.getBytes(), iterations);
     }
-    return null;
-}
+});
+toolkit.run(emulator.attach());
 ```
 
 **iOS Example** — See [IpaLoaderTest.java](https://github.com/zhkl0228/unidbg/blob/master/unidbg-ios/src/test/java/com/github/unidbg/ios/IpaLoaderTest.java) for an iOS IPA loading example with custom MCP tools:
@@ -170,21 +184,21 @@ emulator = loader.getEmulator();
 loader.callEntry();
 module = loader.getExecutable();
 
-Debugger debugger = emulator.attach();
-debugger.addMcpTool("dumpClass", "Dump an ObjC class definition by name", "className");
-debugger.addMcpTool("readVersion", "Read the TelegramCoreVersionString from the executable");
-debugger.run(this);
-```
-
-```java
-@Override
-public Void runWithArgs(String[] args) {
-    String toolName = args != null ? args[0] : null;
-    if ("dumpClass".equals(toolName)) {
-        String className = args.length > 1 ? args[1] : "AppDelegate";
+McpToolkit toolkit = new McpToolkit();
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "dumpClass"; }
+    @Override public String description() { return "Dump an ObjC class definition by name"; }
+    @Override public String[] paramNames() { return new String[]{"className"}; }
+    @Override public void execute(String[] params) {
+        String className = params.length > 0 ? params[0] : "AppDelegate";
         IClassDumper classDumper = ClassDumper.getInstance(emulator);
         System.out.println("dumpClass(" + className + "):\n" + classDumper.dumpClass(className));
-    } else if ("readVersion".equals(toolName)) {
+    }
+});
+toolkit.addTool(new McpTool() {
+    @Override public String name() { return "readVersion"; }
+    @Override public String description() { return "Read the TelegramCoreVersionString from the executable"; }
+    @Override public void execute(String[] params) {
         Symbol sym = module.findSymbolByName("_TelegramCoreVersionString");
         if (sym != null) {
             Pointer pointer = UnidbgPointer.pointer(emulator, sym.getAddress());
@@ -193,11 +207,13 @@ public Void runWithArgs(String[] args) {
             }
         }
     }
-    return null;
-}
+});
+toolkit.run(emulator.attach());
 ```
 
 Once the MCP server is started, AI can call these tools via MCP to run emulations with custom parameters, set breakpoints, trace execution, and inspect results — all without restarting the process.
+
+> **Low-level API**: You can also use `Debugger.addMcpTool()` + `Debugger.run(DebugRunnable)` directly for full control. `McpToolkit` is a higher-level wrapper that eliminates if-else dispatch.
 
 ## Examples
 
