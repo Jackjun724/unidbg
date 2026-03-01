@@ -347,37 +347,14 @@ public class HypervisorBackend64 extends HypervisorBackend {
             if (exclusiveMonitorEscaper != null) {
                 notifyInterruptHook(ARMEmulator.EXCP_BKPT, status);
             } else {
-                exclusiveMonitorEscaper = new ExclusiveMonitorEscaper(new WatchpointExclusiveMonitorEscaper(hitWp));
+                exclusiveMonitorEscaper = new WatchpointEscaper(hitWp);
+                step();
             }
         } else {
             hitWp.onHit(this, address, write, createDisassembler(), code, elr);
             hypervisor.disable_watchpoint(hitWp.n);
             visitorStack.push(ExceptionVisitor.breakRestorerVisitor(hitWp));
             step();
-        }
-    }
-
-    private class WatchpointExclusiveMonitorEscaper implements ExclusiveMonitorCallback {
-        private final HypervisorWatchpoint wp;
-        private int stepCount;
-        private static final int MAX_ESCAPE_STEPS = 200;
-        WatchpointExclusiveMonitorEscaper(HypervisorWatchpoint wp) {
-            this.wp = wp;
-            hypervisor.disable_watchpoint(wp.n);
-        }
-        @Override
-        public void notifyCallback(long address) {
-        }
-        @Override
-        public boolean shouldAbandonEscape() {
-            return ++stepCount > MAX_ESCAPE_STEPS;
-        }
-        @Override
-        public void onEscapeSuccess() {
-            wp.install(hypervisor);
-            lastWatchpointAddress = -1;
-            lastWatchpointDataAddress = -1;
-            exclusiveMonitorEscaper = null;
         }
     }
 
@@ -394,12 +371,6 @@ public class HypervisorBackend64 extends HypervisorBackend {
         }
     }
 
-    private interface ExclusiveMonitorCallback {
-        void notifyCallback(long address);
-        void onEscapeSuccess();
-        default boolean shouldAbandonEscape() { return false; }
-    }
-
     /**
      * The local exclusive monitor gets cleared on every exception return, that is, on execution of the ERET instruction.
      * <p>
@@ -411,12 +382,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
      * Changing exception level also clears the exclusive monitor, so taking
      * single-step exception between a LDAXR/STXR pair means the loop has to be retried.
      */
-    private class ExclusiveMonitorEscaper {
-        private final ExclusiveMonitorCallback callback;
-        ExclusiveMonitorEscaper(ExclusiveMonitorCallback callback) {
-            this.callback = callback;
-            step();
-        }
+    private abstract class ExclusiveMonitorEscaper {
         private long loadExclusiveAddress = -1;
         private int loadExclusiveCount;
         private final Set<Long> exclusiveRegionAddressList = new LinkedHashSet<>();
@@ -437,11 +403,11 @@ public class HypervisorBackend64 extends HypervisorBackend {
                     return;
                 }
             }
-            if (callback.shouldAbandonEscape()) {
-                callback.onEscapeSuccess();
+            if (shouldAbandonEscape()) {
+                onEscapeSuccess();
                 return;
             }
-            callback.notifyCallback(address);
+            notifyCallback(address);
             hypervisor.reg_set_spsr_el1(spsr | Hypervisor.PSTATE$SS);
         }
         private void updateExclusiveDetection(int asm, long address) {
@@ -457,7 +423,7 @@ public class HypervisorBackend64 extends HypervisorBackend {
                     resetRegionInfo();
                 }
             }
-            if (loadExclusiveCount >= 2 && !exclusiveRegionAddressList.contains(address)) {
+            if (loadExclusiveCount >= 2) {
                 exclusiveRegionAddressList.add(address);
             }
         }
@@ -496,15 +462,15 @@ public class HypervisorBackend64 extends HypervisorBackend {
                         @Override
                         public boolean onException(Hypervisor hypervisor, int ec, long address) {
                             if (ec == EC_BREAKPOINT) {
-                                callback.notifyCallback(address);
+                                notifyCallback(address);
                             }
                             breakpoints[n] = null;
                             hypervisor.disable_hw_breakpoint(n);
-                            callback.onEscapeSuccess();
+                            onEscapeSuccess();
                             return true;
                         }
                     });
-                    callback.notifyCallback(address);
+                    notifyCallback(address);
                     HypervisorBreakPoint bp = new HypervisorBreakPoint(n, breakAddress, null);
                     bp.install(hypervisor);
                     breakpoints[n] = bp;
@@ -517,25 +483,28 @@ public class HypervisorBackend64 extends HypervisorBackend {
             resetRegionInfo();
             return false;
         }
+        abstract void notifyCallback(long address);
+        abstract void onEscapeSuccess();
+        boolean shouldAbandonEscape() { return false; }
     }
 
-    private class CodeHookNotifier implements UnHook, ExclusiveMonitorCallback {
+    private class CodeHookEscaper extends ExclusiveMonitorEscaper implements UnHook {
         private final CodeHook callback;
         private final long begin;
         private final long end;
         private final Object user;
-        public CodeHookNotifier(CodeHook callback, long begin, long end, Object user) {
+        CodeHookEscaper(CodeHook callback, long begin, long end, Object user) {
             this.callback = callback;
             this.begin = begin;
             this.end = end;
             this.user = user;
         }
         @Override
-        public void onEscapeSuccess() {
+        void onEscapeSuccess() {
             step();
         }
         @Override
-        public void notifyCallback(long address) {
+        void notifyCallback(long address) {
             if (begin >= end ||
                     (address >= begin && address < end)) {
                 callback.hook(HypervisorBackend64.this, address, 4, user);
@@ -548,6 +517,30 @@ public class HypervisorBackend64 extends HypervisorBackend {
         }
     }
 
+    private class WatchpointEscaper extends ExclusiveMonitorEscaper {
+        private final HypervisorWatchpoint wp;
+        private int stepCount;
+        private static final int MAX_ESCAPE_STEPS = 200;
+        WatchpointEscaper(HypervisorWatchpoint wp) {
+            this.wp = wp;
+            hypervisor.disable_watchpoint(wp.n);
+        }
+        @Override
+        void notifyCallback(long address) {
+        }
+        @Override
+        boolean shouldAbandonEscape() {
+            return ++stepCount > MAX_ESCAPE_STEPS;
+        }
+        @Override
+        void onEscapeSuccess() {
+            wp.install(hypervisor);
+            lastWatchpointAddress = -1;
+            lastWatchpointDataAddress = -1;
+            exclusiveMonitorEscaper = null;
+        }
+    }
+
     private ExclusiveMonitorEscaper exclusiveMonitorEscaper;
 
     @Override
@@ -555,9 +548,10 @@ public class HypervisorBackend64 extends HypervisorBackend {
         if (exclusiveMonitorEscaper != null) {
             throw new IllegalStateException();
         }
-        CodeHookNotifier codeHookNotifier = new CodeHookNotifier(callback, begin, end, user_data);
-        this.exclusiveMonitorEscaper = new ExclusiveMonitorEscaper(codeHookNotifier);
-        callback.onAttach(codeHookNotifier);
+        CodeHookEscaper escaper = new CodeHookEscaper(callback, begin, end, user_data);
+        this.exclusiveMonitorEscaper = escaper;
+        step();
+        callback.onAttach(escaper);
     }
 
     private void onSoftwareStep(long esr, long address, long spsr) {
