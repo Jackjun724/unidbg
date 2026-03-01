@@ -402,8 +402,9 @@ public class HypervisorBackend64 extends HypervisorBackend {
                 onEscapeSuccess();
                 return;
             }
-            notifyCallback(address);
-            hypervisor.reg_set_spsr_el1(spsr | Hypervisor.PSTATE$SS);
+            if (notifyCallback(address)) {
+                hypervisor.reg_set_spsr_el1(spsr | Hypervisor.PSTATE$SS);
+            }
         }
         private void updateExclusiveDetection(int asm, long address) {
             if (isLoadExclusiveCode(asm)) {
@@ -485,7 +486,10 @@ public class HypervisorBackend64 extends HypervisorBackend {
             resetRegionInfo();
             return false;
         }
-        abstract void notifyCallback(long address);
+        /**
+         * @return true to continue single-stepping, false to fast-forward (skip PSTATE.SS)
+         */
+        abstract boolean notifyCallback(long address);
         abstract void onEscapeSuccess();
         boolean shouldAbandonEscape() { return false; }
     }
@@ -495,25 +499,64 @@ public class HypervisorBackend64 extends HypervisorBackend {
         private final long begin;
         private final long end;
         private final Object user;
+        private int reentrySlot = -1;
         CodeHookEscaper(CodeHook callback, long begin, long end, Object user) {
             this.callback = callback;
             this.begin = begin;
             this.end = end;
             this.user = user;
         }
+        private boolean isInRange(long address) {
+            return begin >= end || (address >= begin && address < end);
+        }
         @Override
         void onEscapeSuccess() {
             step();
         }
         @Override
-        void notifyCallback(long address) {
-            if (begin >= end ||
-                    (address >= begin && address < end)) {
+        boolean notifyCallback(long address) {
+            if (isInRange(address)) {
                 callback.hook(HypervisorBackend64.this, address, 4, user);
+                return true;
             }
+            return !tryFastForward();
+        }
+        private boolean tryFastForward() {
+            if (begin >= end) {
+                return false;
+            }
+            long lr = reg_read(Arm64Const.UC_ARM64_REG_LR).longValue();
+            long target = (lr >= begin && lr < end) ? lr : begin;
+            for (int i = 0; i < breakpoints.length; i++) {
+                if (breakpoints[i] == null) {
+                    final int n = i;
+                    reentrySlot = n;
+                    visitorStack.push(new ExceptionVisitor() {
+                        @Override
+                        public boolean onException(Hypervisor hypervisor, int ec, long address) {
+                            breakpoints[n] = null;
+                            hypervisor.disable_hw_breakpoint(n);
+                            reentrySlot = -1;
+                            step();
+                            return ec == EC_BREAKPOINT;
+                        }
+                    });
+                    HypervisorBreakPoint bp = new HypervisorBreakPoint(n, target, null);
+                    bp.install(hypervisor);
+                    breakpoints[n] = bp;
+                    hypervisor.enable_single_step(false);
+                    return true;
+                }
+            }
+            return false;
         }
         @Override
         public void unhook() {
+            if (reentrySlot >= 0) {
+                breakpoints[reentrySlot] = null;
+                hypervisor.disable_hw_breakpoint(reentrySlot);
+                reentrySlot = -1;
+            }
             exclusiveMonitorEscaper = null;
             hypervisor.enable_single_step(false);
         }
@@ -528,7 +571,8 @@ public class HypervisorBackend64 extends HypervisorBackend {
             hypervisor.disable_watchpoint(wp.n);
         }
         @Override
-        void notifyCallback(long address) {
+        boolean notifyCallback(long address) {
+            return true;
         }
         @Override
         boolean shouldAbandonEscape() {
