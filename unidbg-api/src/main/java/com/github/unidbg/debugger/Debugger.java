@@ -33,6 +33,8 @@ public interface Debugger extends Breaker, DebugHook, BlockHook {
 
     <T> T run(DebugRunnable<T> runnable) throws Exception;
 
+    boolean hasRunnable();
+
     boolean isDebugging();
 
     void disassembleBlock(Emulator<?> emulator, long address, boolean thumb);

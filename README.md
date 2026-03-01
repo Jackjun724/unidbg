@@ -109,7 +109,6 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 | `step_over` / `step_into` / `step_out` | Step over, into (N instructions), or out of function |
 | `next_block` | Break at next basic block (Unicorn only) |
 | `step_until_mnemonic` | Break at next instruction matching mnemonic, e.g. `bl`, `ret` (Unicorn only) |
-| `stop_emulation` | Force stop emulation (safety mechanism) |
 | `poll_events` | Poll for breakpoint_hit, execution_completed, trace events |
 
 **Tracing**

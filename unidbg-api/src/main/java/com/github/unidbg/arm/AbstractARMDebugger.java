@@ -395,12 +395,19 @@ public abstract class AbstractARMDebugger implements Debugger {
     protected abstract void loop(Emulator<?> emulator, long address, int size, DebugRunnable<?> runnable) throws Exception;
 
     protected boolean callbackRunning;
+    private volatile DebugRunnable<?> currentRunnable;
+
+    @Override
+    public boolean hasRunnable() {
+        return currentRunnable != null;
+    }
 
     @Override
     public <T> T run(DebugRunnable<T> runnable) throws Exception {
         if (runnable == null) {
             throw new NullPointerException();
         }
+        currentRunnable = runnable;
         T ret;
         try {
             callbackRunning = true;

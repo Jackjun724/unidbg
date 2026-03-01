@@ -73,7 +73,9 @@ public class McpTools {
 
     public JSONArray getToolSchemas() {
         JSONArray tools = new JSONArray();
-        tools.add(toolSchema("check_connection", "Check emulator status. Returns: architecture, backend type and capabilities, process name, debug idle (true=paused/ready, false=running), " +
+        tools.add(toolSchema("check_connection", "Check emulator status. Returns: architecture, backend type and capabilities, process name, " +
+                "mode (breakpoint_debug or custom_tools — custom_tools means DebugRunnable is set via run(), custom tool calls and repeatable execution available), " +
+                "debug idle (true=paused/ready, false=running), " +
                 "isRunning (true=emulation in progress, cannot call call_function), breakpoint count, pending events, and modules. " +
                 "Call this first to understand current state and backend limitations. " +
                 "Backend capabilities vary: " +
@@ -145,8 +147,6 @@ public class McpTools {
                 param("count", "integer", "Number of instructions to execute. Default 1.")));
         tools.add(toolSchema("step_out", "Step out of current function. Reads the LR (link register), sets a temporary breakpoint at that address, " +
                 "and continues execution. Equivalent to 'run until function returns'. Use poll_events to wait for the breakpoint_hit event."));
-        tools.add(toolSchema("stop_emulation", "Force stop the emulator immediately. Use when emulation is stuck in an infinite loop or " +
-                "running too long. This is a safety mechanism — the emulator will stop and return to debug idle state."));
         tools.add(toolSchema("next_block", "Resume execution and break at the start of the next basic block. " +
                 "A basic block is a straight-line sequence of instructions with no branches except at the end. " +
                 "This is useful for quickly skipping the rest of the current block. " +
@@ -334,7 +334,6 @@ public class McpTools {
         if ("step_over".equals(name)) return true;
         if ("step_into".equals(name)) return true;
         if ("step_out".equals(name)) return true;
-        if ("stop_emulation".equals(name)) return true;
         if ("next_block".equals(name)) return true;
         if ("step_until_mnemonic".equals(name)) return true;
         if ("poll_events".equals(name)) return true;
@@ -367,7 +366,6 @@ public class McpTools {
             case "step_over": return stepOver();
             case "step_into": return stepInto(args);
             case "step_out": return stepOut();
-            case "stop_emulation": return stopEmulation();
             case "next_block": return nextBlock();
             case "step_until_mnemonic": return stepUntilMnemonic(args);
             case "poll_events": return pollEvents(args);
@@ -415,9 +413,12 @@ public class McpTools {
         sb.append("Process: ").append(emulator.getProcessName()).append('\n');
         sb.append("PID: ").append(emulator.getPid()).append('\n');
         sb.append("Page size: 0x").append(Long.toHexString(emulator.getPageAlign())).append('\n');
+        Debugger debugger = emulator.attach();
+        boolean hasRunnable = debugger.hasRunnable();
+        sb.append("Mode: ").append(hasRunnable ? "custom_tools (DebugRunnable set)" : "breakpoint_debug").append('\n');
         sb.append("Debug idle: ").append(server.isDebugIdle()).append('\n');
         sb.append("Is running: ").append(emulator.isRunning()).append('\n');
-        sb.append("Breakpoints: ").append(emulator.attach().getBreakPoints().size()).append('\n');
+        sb.append("Breakpoints: ").append(debugger.getBreakPoints().size()).append('\n');
         sb.append("Pending events: ").append(server.getPendingEventCount()).append('\n');
         Collection<Module> modules = emulator.getMemory().getLoadedModules();
         sb.append("Loaded modules: ").append(modules.size()).append('\n');
@@ -958,15 +959,6 @@ public class McpTools {
             return textResult(text + "\nExecution resumed. Use poll_events to wait for breakpoint_hit when function returns.");
         } catch (Exception e) {
             return errorResult("Step out failed: " + exMsg(e));
-        }
-    }
-
-    private JSONObject stopEmulation() {
-        try {
-            emulator.getBackend().emu_stop();
-            return textResult("Emulation stop requested. The emulator will halt at the next opportunity.");
-        } catch (Exception e) {
-            return errorResult("Failed to stop emulation: " + exMsg(e));
         }
     }
 
@@ -1776,7 +1768,7 @@ public class McpTools {
         if (!alloc.runtime && emulator.isRunning()) {
             return errorResult("Cannot free malloc-allocated memory at 0x" + Long.toHexString(address) +
                     " while emulator is running. malloc blocks require isRunning=false to call libc free()." +
-                    " Wait until emulator stops or use stop_emulation first.");
+                    " Wait until emulator stops first.");
         }
         try {
             alloc.block.free();

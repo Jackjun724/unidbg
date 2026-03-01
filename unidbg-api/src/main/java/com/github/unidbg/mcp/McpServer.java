@@ -433,8 +433,7 @@ public class McpServer {
                 "## Tips\n" +
                 "- Use add_breakpoint_by_symbol or add_breakpoint_by_offset instead of manual find_symbol + add_breakpoint.\n" +
                 "- Use read_string / read_std_string / read_typed / read_pointer for structured data instead of raw read_memory.\n" +
-                "- Use list_exports with filter to discover functions in a module.\n" +
-                "- Use stop_emulation as safety mechanism if emulation appears stuck.";
+                "- Use list_exports with filter to discover functions in a module.";
     }
 
     private JSONObject handleToolsList() {
