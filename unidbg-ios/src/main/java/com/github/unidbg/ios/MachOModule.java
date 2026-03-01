@@ -871,6 +871,17 @@ public class MachOModule extends Module implements com.github.unidbg.ios.MachO {
     }
 
     @Override
+    public java.util.Collection<com.github.unidbg.Symbol> getExportedSymbols() {
+        java.util.List<com.github.unidbg.Symbol> result = new java.util.ArrayList<>(symbolMap.values());
+        for (java.util.Map.Entry<String, ExportSymbol> entry : exportSymbols.entrySet()) {
+            if (!symbolMap.containsKey(entry.getKey())) {
+                result.add(entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    @Override
     public String toString() {
         return path;
     }

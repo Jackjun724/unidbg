@@ -75,7 +75,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             return;
         }
         if (intno == ARMEmulator.EXCP_UDEF) {
-            createBreaker(emulator).debug();
+            createBreaker(emulator).debug("Undefined instruction (EXCP_UDEF) at " + pc);
             return;
         }
 
@@ -409,7 +409,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
 
         log.warn("handleInterrupt intno={}, NR={}, svcNumber=0x{}, PC={}, LR={}, syscall={}", intno, NR, Integer.toHexString(swi), pc, UnidbgPointer.register(emulator, Arm64Const.UC_ARM64_REG_LR), syscall, exception);
         if (log.isDebugEnabled()) {
-            emulator.attach().debug();
+            emulator.attach().debug("Unhandled syscall NR=" + NR + " (" + syscall + ") at " + pc);
         }
         if (exception instanceof RuntimeException) {
             throw (RuntimeException) exception;
@@ -551,7 +551,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
         log.info("pthread_clone child_stack={}, thread_id={}, fn={}, arg={}, flags={}", child_stack, threadId, fn, arg, list);
         Logger log = LoggerFactory.getLogger(AbstractEmulator.class);
         if (log.isDebugEnabled()) {
-            emulator.attach().debug();
+            emulator.attach().debug("pthread_clone thread_id=" + threadId + ", fn=" + fn);
         }
         return threadId;
     }
@@ -1119,7 +1119,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             System.out.println("exit with code: " + status);
         }
         if (LoggerFactory.getLogger(AbstractEmulator.class).isDebugEnabled()) {
-            createBreaker(emulator).debug();
+            createBreaker(emulator).debug("exit_group status=" + status);
         }
         emulator.getBackend().emu_stop();
     }
@@ -1240,7 +1240,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
                 return 0;
         }
         if (log.isDebugEnabled()) {
-            emulator.attach().debug();
+            emulator.attach().debug("Unsupported clock_gettime clk_id=" + clk_id);
         }
         throw new UnsupportedOperationException("clk_id=" + clk_id);
     }
@@ -1333,7 +1333,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             if (warning) {
                 log.warn(msg);
                 if (log.isTraceEnabled()) {
-                    emulator.attach().debug();
+                    emulator.attach().debug("mmap warning");
                 }
             } else {
                 log.debug(msg);
@@ -1397,7 +1397,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
 
             log.warn("fstatat64 dirfd={}, pathname={}, statbuf={}, flags={}", dirfd, path, statbuf, flags);
             if (log.isDebugEnabled()) {
-                emulator.attach().debug();
+                emulator.attach().debug("fstatat64 path=" + path);
             }
             emulator.getMemory().setErrno(UnixEmulator.EACCES);
             return -1;
@@ -1435,7 +1435,7 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
             int fd = open(emulator, pathname, oflags);
             if (fd == -1) {
                 if (log.isTraceEnabled()) {
-                    emulator.attach().debug();
+                    emulator.attach().debug("openat failed: " + pathname);
                 }
                 if (verbose) {
                     log.info("openat AT_FDCWD dirfd={}, pathname={}, oflags=0x{}, mode={}", dirfd, pathname, Integer.toHexString(oflags), Integer.toHexString(mode));

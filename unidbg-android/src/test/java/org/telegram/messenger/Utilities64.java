@@ -8,6 +8,7 @@ import com.github.unidbg.arm.backend.HypervisorFactory;
 import com.github.unidbg.arm.backend.KvmFactory;
 import com.github.unidbg.arm.backend.Unicorn2Factory;
 import com.github.unidbg.debugger.DebugRunnable;
+import com.github.unidbg.debugger.Debugger;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.DalvikModule;
@@ -89,12 +90,31 @@ public class Utilities64 extends TestCase implements DebugRunnable<Void> {
 
     @Override
     public Void runWithArgs(String[] args) {
-        aesCtrDecryptionByteArray();
+        String toolName = args != null ? args[0] : null;
+        if ("aesCbc".equals(toolName)) {
+            byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
+            aesCbcEncryptionByteArray(input);
+        } else if ("aesCtr".equals(toolName)) {
+            byte[] input = args.length > 1 ? args[1].getBytes() : new byte[16];
+            aesCtrDecryptionByteArray(input);
+        } else if ("pbkdf2".equals(toolName)) {
+            String password = args.length > 1 ? args[1] : "123456";
+            int iterations = args.length > 2 ? Integer.parseInt(args[2]) : 100000;
+            pbkdf2(password.getBytes(), iterations);
+        } else {
+            aesCbcEncryptionByteArray(new byte[16]);
+            aesCtrDecryptionByteArray(new byte[16]);
+            pbkdf2("123456".getBytes(), 100000);
+        }
         return null;
     }
 
     private void runArgs() throws Exception {
-        emulator.attach().run(this);
+        Debugger debugger = emulator.attach();
+        debugger.addMcpTool("aesCbc", "Run AES-CBC encryption on input data", "input");
+        debugger.addMcpTool("aesCtr", "Run AES-CTR decryption on input data", "input");
+        debugger.addMcpTool("pbkdf2", "Run PBKDF2 key derivation", "password", "iterations");
+        debugger.run(this);
     }
 
     public static void main(String[] args) throws Exception {
@@ -114,8 +134,12 @@ public class Utilities64 extends TestCase implements DebugRunnable<Void> {
     }
 
     private void aesCbcEncryptionByteArray() {
+        aesCbcEncryptionByteArray(new byte[16]);
+    }
+
+    private void aesCbcEncryptionByteArray(byte[] input) {
         long start = System.currentTimeMillis();
-        ByteArray data = new ByteArray(vm, new byte[16]);
+        ByteArray data = new ByteArray(vm, input);
         byte[] key = new byte[32];
         byte[] iv = new byte[16];
         cUtilities.callStaticJniMethod(emulator, "aesCbcEncryptionByteArray([B[B[BIIII)V", data,
@@ -126,8 +150,12 @@ public class Utilities64 extends TestCase implements DebugRunnable<Void> {
     }
 
     private void aesCtrDecryptionByteArray() {
+        aesCtrDecryptionByteArray(new byte[16]);
+    }
+
+    private void aesCtrDecryptionByteArray(byte[] input) {
         long start = System.currentTimeMillis();
-        ByteArray data = new ByteArray(vm, new byte[16]);
+        ByteArray data = new ByteArray(vm, input);
         byte[] key = new byte[32];
         byte[] iv = new byte[16];
         cUtilities.callStaticJniMethod(emulator, "aesCtrDecryptionByteArray([B[B[BIII)V", data,
@@ -138,16 +166,17 @@ public class Utilities64 extends TestCase implements DebugRunnable<Void> {
     }
 
     private void pbkdf2() {
-        byte[] password = "123456".getBytes();
+        pbkdf2("123456".getBytes(), 100000);
+    }
+
+    private void pbkdf2(byte[] password, int iterations) {
         byte[] salt = new byte[8];
         ByteArray dst = new ByteArray(vm, new byte[64]);
-        for (int i = 0; i < 3; i++) {
-            long start = System.currentTimeMillis();
-            cUtilities.callStaticJniMethod(emulator, "pbkdf2([B[B[BI)V", password,
-                    salt,
-                    dst, 100000);
-            Inspector.inspect(dst.getValue(), String.format("[%s]pbkdf2 offset=%sms, backend=%s", Thread.currentThread().getName(), System.currentTimeMillis() - start, emulator.getBackend()));
-        }
+        long start = System.currentTimeMillis();
+        cUtilities.callStaticJniMethod(emulator, "pbkdf2([B[B[BI)V", password,
+                salt,
+                dst, iterations);
+        Inspector.inspect(dst.getValue(), String.format("[%s]pbkdf2 offset=%sms, backend=%s", Thread.currentThread().getName(), System.currentTimeMillis() - start, emulator.getBackend()));
     }
 
 }

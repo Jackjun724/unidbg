@@ -685,7 +685,7 @@ public class Dyld64 extends Dyld {
                     }
                     log.info("dlopen failed: {}", path);
                     if (log.isDebugEnabled()) {
-                        emulator.attach().debug();
+                        emulator.attach().debug("dlopen failed: " + path);
                     }
                 }
                 return 0;
@@ -1064,8 +1064,9 @@ public class Dyld64 extends Dyld {
                             long reason_code = context.getLongArg(1);
                             Pointer reason_string = context.getPointerArg(2);
                             long reason_flags = context.getLongArg(3);
-                            System.err.println("abort_with_reason namespace=" + reason_namespace + ", code=" + reason_code + ", string=" + reason_string.getString(0) + ", flags=0x" + Long.toHexString(reason_flags));
-                            emulator.attach().debug();
+                            String msg = "abort_with_reason namespace=" + reason_namespace + ", code=" + reason_code + ", string=" + reason_string.getString(0) + ", flags=0x" + Long.toHexString(reason_flags);
+                            System.err.println(msg);
+                            emulator.attach().debug(msg);
                             return 0;
                         }
                     }).peer;
@@ -1365,7 +1366,7 @@ public class Dyld64 extends Dyld {
                         @Override
                         public long handle(Emulator<?> emulator) {
                             System.err.println("abort");
-                            emulator.attach().debug();
+                            emulator.attach().debug("abort() called");
                             emulator.getBackend().reg_write(Arm64Const.UC_ARM64_REG_LR, emulator.getReturnAddress());
                             return 0;
                         }

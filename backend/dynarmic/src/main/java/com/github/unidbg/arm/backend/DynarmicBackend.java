@@ -41,7 +41,7 @@ public abstract class DynarmicBackend extends FastBackend implements Backend, Dy
             return;
         }
         try {
-            emulator.attach().debug();
+            emulator.attach().debug("Dynarmic exception=" + exception);
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }

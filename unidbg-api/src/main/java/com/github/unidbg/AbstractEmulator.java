@@ -377,7 +377,7 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
                     backend.emu_stop();
                     Debugger debugger = attach();
                     if (!debugger.isDebugging()) {
-                        debugger.debug();
+                        debugger.debug("Shutdown hook triggered");
                     }
                 });
                 Runtime.getRuntime().addShutdownHook(exitHook);
@@ -414,7 +414,7 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
         boolean enterDebug = log.isDebugEnabled();
         if (enterDebug || !log.isWarnEnabled()) {
             e.printStackTrace(System.out);
-            attach().debug();
+            attach().debug("Emulation exception: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getName()));
         } else {
             String msg = e.getMessage();
             if (msg == null) {

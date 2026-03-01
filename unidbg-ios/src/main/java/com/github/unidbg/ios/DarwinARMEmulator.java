@@ -99,6 +99,12 @@ public class DarwinARMEmulator extends AbstractARMEmulator<DarwinFileIO> {
     }
 
     @Override
+    public String dumpObjcClass(String className) {
+        IClassDumper classDumper = ClassDumper.getInstance(this);
+        return classDumper.dumpClass(className);
+    }
+
+    @Override
     protected void searchClass(String keywords) {
         IClassDumper classDumper = ClassDumper.getInstance(this);
         classDumper.searchClass(keywords);

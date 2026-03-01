@@ -843,7 +843,7 @@ public class AndroidElfLoader extends AbstractLoader<AndroidFileIO> implements M
             throw new IllegalStateException(e);
         }
 
-        emulator.attach().debug();
+        emulator.attach().debug("mmap2 failed: start=0x" + Long.toHexString(start) + ", length=" + length + ", prot=0x" + Integer.toHexString(prot) + ", flags=0x" + Integer.toHexString(flags) + ", fd=" + fd + ", offset=" + offset);
         throw new AbstractMethodError("mmap2 start=0x" + Long.toHexString(start) + ", length=" + length + ", prot=0x" + Integer.toHexString(prot) + ", flags=0x" + Integer.toHexString(flags) + ", fd=" + fd + ", offset=" + offset);
     }
 

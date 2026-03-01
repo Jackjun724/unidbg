@@ -386,7 +386,55 @@ public class McpServer {
         result.put("capabilities", capabilities);
 
         result.put("protocolVersion", "2024-11-05");
+        result.put("instructions", buildInstructions());
         return result;
+    }
+
+    private String buildInstructions() {
+        return "unidbg MCP — ARM emulator debugger for Android/iOS native libraries.\n\n" +
+                "## Getting Started\n" +
+                "1. Call check_connection FIRST to learn: Family (Android32/Android64/iOS), architecture (ARM32/ARM64), " +
+                "backend type and capabilities, isRunning state, and loaded modules.\n" +
+                "2. Backend capabilities vary significantly — check_connection tells you what works:\n" +
+                "   - Unicorn/Unicorn2: FULL (all tools work)\n" +
+                "   - Hypervisor: PARTIAL (limited breakpoints/trace, no next_block/step_until_mnemonic)\n" +
+                "   - Dynarmic/KVM: MINIMAL (breakpoints only, no trace/step)\n\n" +
+                "## State Model\n" +
+                "- debug_idle=true: emulator is paused, ready for tool calls\n" +
+                "- debug_idle=false: emulator is running, only execution tools and poll_events work\n" +
+                "- isRunning=true: emulation in progress, cannot call call_function/dump_objc_class/dump_gpb_protobuf/allocate_memory(malloc)\n" +
+                "- isRunning=false: emulation stopped, all tools available\n\n" +
+                "## Two Operating Modes\n" +
+                "1. Breakpoint debug mode: emulator hit a breakpoint and paused. All debugging tools are available " +
+                "(registers, memory, disassembly, stepping, tracing, breakpoints, etc). " +
+                "After resuming, if another breakpoint is hit the debugger pauses again. " +
+                "Once execution completes without hitting a breakpoint, the process exits and MCP shuts down.\n" +
+                "2. Custom tools mode (with DebugRunnable): native library already loaded, target functions ready. " +
+                "All debugging tools are equally available. Additionally, custom tools can re-execute target functions " +
+                "with different parameters. After execution completes, the process stays alive and MCP remains active " +
+                "— you can set new breakpoints/traces and call custom tools again. Repeatable.\n\n" +
+                "## Execution Workflow\n" +
+                "Execution tools (continue_execution, step_over, step_into, step_out, run_until, next_block, step_until_mnemonic) " +
+                "return immediately. Always call poll_events after to wait for breakpoint_hit or execution_completed.\n" +
+                "In custom tools mode, set breakpoints and traces BEFORE calling a custom tool, then poll_events to collect results.\n\n" +
+                "## Tracing\n" +
+                "Set up trace_code/trace_read/trace_write BEFORE execution. " +
+                "trace_code events include regs_read (values before execution) and prev_write (values written by previous instruction) " +
+                "— follow data flow without extra register reads.\n\n" +
+                "## Memory & Symbols\n" +
+                "- find_symbol only searches .dynsym (ELF) / export trie (Mach-O). " +
+                "For stripped symbols, calculate address = module_base + IDA_offset.\n" +
+                "- allocate_memory uses malloc (heap) when stopped, mmap when running. Use free_memory to release. " +
+                "list_allocations shows type (malloc/mmap) which affects when free is safe.\n\n" +
+                "## iOS-Only Tools (Family=iOS)\n" +
+                "dump_objc_class: dump ObjC class definition (properties, methods, ivars). Requires isRunning=false.\n" +
+                "dump_gpb_protobuf: dump GPB protobuf message schema as .proto. 64-bit only, requires isRunning=false.\n" +
+                "Both call ObjC runtime internally and WILL modify registers/stack.\n\n" +
+                "## Tips\n" +
+                "- Use add_breakpoint_by_symbol or add_breakpoint_by_offset instead of manual find_symbol + add_breakpoint.\n" +
+                "- Use read_string / read_std_string / read_typed / read_pointer for structured data instead of raw read_memory.\n" +
+                "- Use list_exports with filter to discover functions in a module.\n" +
+                "- Use stop_emulation as safety mechanism if emulation appears stuck.";
     }
 
     private JSONObject handleToolsList() {

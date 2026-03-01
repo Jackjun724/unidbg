@@ -277,6 +277,26 @@ public class LinuxModule extends Module {
     }
 
     @Override
+    public java.util.Collection<Symbol> getExportedSymbols() {
+        try {
+            net.fornwall.jelf.ElfSection section = elfFile.getDynamicSymbolTableSection();
+            if (section == null) {
+                return java.util.Collections.emptyList();
+            }
+            List<Symbol> result = new ArrayList<>();
+            for (int i = 0; i < section.getNumberOfSymbols(); i++) {
+                ElfSymbol elfSym = section.getELFSymbol(i);
+                if (elfSym != null && !elfSym.isUndef() && elfSym.getName() != null && !elfSym.getName().isEmpty()) {
+                    result.add(new LinuxSymbol(this, elfSym));
+                }
+            }
+            return result;
+        } catch (IOException e) {
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    @Override
     public String toString() {
         return "LinuxModule{" +
                 "base=0x" + Long.toHexString(base) +

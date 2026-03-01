@@ -1801,7 +1801,7 @@ public class MachOLoader extends AbstractLoader<DarwinFileIO> implements Memory,
                 fakeImage = this.modules.get("IOKit");
             }
             if (fakeImage == null) {
-                emulator.attach().debug();
+                emulator.attach().debug("Symbol resolution failed: targetImage=" + targetImage + ", symbolName=" + symbolName);
                 throw new IllegalStateException(String.format("targetImage=%s, symbolName=%s", targetImage, symbolName));
             } else {
                 targetImage = fakeImage;

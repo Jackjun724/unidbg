@@ -360,7 +360,7 @@ public abstract class AbstractARMDebugger implements Debugger {
     }
 
     @Override
-    public void debug() {
+    public void debug(String reason) {
         Backend backend = emulator.getBackend();
         long address;
         if (emulator.is32Bit()) {
@@ -368,7 +368,7 @@ public abstract class AbstractARMDebugger implements Debugger {
         } else {
             address = backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue();
         }
-        notifyBreakpointHit(address);
+        notifyBreakpointHit(address, reason);
         try {
             cancelTrace();
             debugging = true;
@@ -1369,10 +1369,17 @@ public abstract class AbstractARMDebugger implements Debugger {
     }
 
     private void notifyBreakpointHit(long address) {
+        notifyBreakpointHit(address, null);
+    }
+
+    private void notifyBreakpointHit(long address, String reason) {
         if (mcpServer == null) return;
         JSONObject data = new JSONObject(true);
         data.put("event", "breakpoint_hit");
         data.put("pc", "0x" + Long.toHexString(address));
+        if (reason != null) {
+            data.put("reason", reason);
+        }
         Module module = emulator.getMemory().findModuleByAddress(address);
         if (module != null) {
             data.put("module", module.name);
