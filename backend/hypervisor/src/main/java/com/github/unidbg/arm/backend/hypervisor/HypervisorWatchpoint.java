@@ -1,6 +1,10 @@
 package com.github.unidbg.arm.backend.hypervisor;
 
+import capstone.Arm64_const;
 import capstone.api.Disassembler;
+import capstone.api.Instruction;
+import capstone.api.arm64.OpInfo;
+import capstone.api.arm64.Operand;
 import com.github.unidbg.arm.backend.Backend;
 import com.github.unidbg.arm.backend.ReadHook;
 import com.github.unidbg.arm.backend.WriteHook;
@@ -88,18 +92,46 @@ class HypervisorWatchpoint implements BreakRestorer {
         return address >= dbgwvr && address < (dbgwvr + bytes);
     }
 
-    final boolean onHit(Backend backend, long address, boolean isWrite, Disassembler disassembler, byte[] code, long pc) {
+    final void onHit(Backend backend, long address, boolean isWrite, Disassembler disassembler, byte[] code, long pc) {
         if (address >= begin && address < end) {
+            Instruction insn = disassembler.disasm(code, pc, 1)[0];
             if (isWrite) {
-                ((WriteHook) callback).hook(backend, address, 0, 0, user_data);
+                int size = MEMORY_SIZE_DETECTOR.detectWriteSize(insn);
+                long value = extractWriteValue(insn, backend, size);
+                ((WriteHook) callback).hook(backend, address, size, value, user_data);
             } else {
-                int size = MEMORY_SIZE_DETECTOR.detectReadSize(disassembler, code, pc);
+                int size = MEMORY_SIZE_DETECTOR.detectReadSize(insn);
                 ((ReadHook) callback).hook(backend, address, size, user_data);
             }
-            return true;
-        } else {
-            return false;
         }
+    }
+
+    private static long extractWriteValue(Instruction insn, Backend backend, int size) {
+        int valueOpIndex;
+        switch (insn.getMnemonic()) {
+            case "stxr":
+            case "stlxr":
+            case "stxp":
+            case "stlxp":
+                valueOpIndex = 1;
+                break;
+            default:
+                valueOpIndex = 0;
+                break;
+        }
+        OpInfo opInfo = (OpInfo) insn.getOperands();
+        Operand[] ops = opInfo.getOperands();
+        if (ops.length > valueOpIndex && ops[valueOpIndex].getType() == Arm64_const.ARM64_OP_REG) {
+            int unicornReg = insn.mapToUnicornReg(ops[valueOpIndex].getValue().getReg());
+            long value = backend.reg_read(unicornReg).longValue();
+            switch (size) {
+                case 1: return value & 0xFFL;
+                case 2: return value & 0xFFFFL;
+                case 4: return value & 0xFFFFFFFFL;
+                default: return value;
+            }
+        }
+        return 0;
     }
 
     @Override
