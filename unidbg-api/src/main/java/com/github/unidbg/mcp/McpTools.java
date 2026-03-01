@@ -83,9 +83,9 @@ public class McpTools {
         tools.add(toolSchema("read_memory", "Read memory at address and return hex dump",
                 param("address", "string", "Hex address, e.g. 0x40001000"),
                 param("size", "integer", "Number of bytes to read, default 0x70")));
-        tools.add(toolSchema("write_memory", "Write hex bytes to memory at address",
-                param("address", "string", "Hex address"),
-                param("hex_bytes", "string", "Hex encoded bytes to write")));
+        tools.add(toolSchema("write_memory", "Write bytes to memory at the given address. Data is provided as a hex-encoded string.",
+                param("address", "string", "Hex address, e.g. \"0x12c5f000\""),
+                param("hex_bytes", "string", "Hex-encoded bytes to write, e.g. \"48656c6c6f\" writes 5 bytes [0x48,0x65,0x6c,0x6c,0x6f]. Also accepts parameter names: data, hex_data, bytes.")));
         tools.add(toolSchema("list_memory_map", "List all memory mapped regions with base, size and permissions"));
         tools.add(toolSchema("search_memory", "Search for byte pattern or text string in memory. " +
                         "Supports: (1) hex byte pattern with optional ?? wildcards (e.g. '48656c6c6f', 'ff??00??ab'), " +
@@ -110,7 +110,9 @@ public class McpTools {
                 param("name", "string", "Register name"),
                 param("value", "string", "Hex value to write")));
 
-        tools.add(toolSchema("disassemble", "Disassemble instructions at address. To disassemble at current PC, first use get_register to read PC value.",
+        tools.add(toolSchema("disassemble", "Disassemble instructions at address. To disassemble at current PC, first use get_register to read PC value. " +
+                        "Branch targets (bl, b, cbz, etc.) are automatically annotated with the nearest symbol name when available, " +
+                        "e.g. 'bl #0x12a38770  ; memset'.",
                 param("address", "string", "Hex address to disassemble at"),
                 param("count", "integer", "Number of instructions to disassemble, default 10")));
         tools.add(toolSchema("assemble", "Assemble instruction text to machine code hex (does not write to memory)",
@@ -217,14 +219,27 @@ public class McpTools {
                         "The function executes synchronously and may fail with any exception (crash, invalid memory, etc). " +
                         "You can set up trace_code/trace_read/trace_write BEFORE calling this tool — " +
                         "traces will be active during the function execution, and trace events can be retrieved via poll_events after call_function returns. " +
-                        "Arguments are passed via args array. Each element is a string with a type prefix: " +
-                        "'0x1234' or '1234' for integer/hex values, " +
-                        "'s:hello world' for C string (auto-allocated in memory, pointer passed), " +
-                        "'b:48656c6c6f' for byte array (auto-allocated, pointer passed), " +
-                        "'null' for null pointer. " +
-                        "Return value is the function's return (X0 on ARM64, R0 on ARM32).",
+                        "Arguments are passed via args array. Each element MUST be a string (not a number). Types:\n" +
+                        "  - Hex integer: \"0x1234\" or \"1234\" (BOTH are parsed as hexadecimal. \"128\" = 0x128 = 296 decimal, NOT 128 decimal. For decimal 128, use \"0x80\")\n" +
+                        "  - C string: \"s:hello world\" (auto-allocated in memory, pointer passed as arg)\n" +
+                        "  - Byte array: \"b:48656c6c6f\" (hex-encoded bytes, auto-allocated, pointer passed)\n" +
+                        "  - Null pointer: \"null\"\n" +
+                        "Examples: calloc(1, 256) = args: [\"0x1\", \"0x100\"], memset(ptr, 0, 64) = args: [\"0x12c5f000\", \"0x0\", \"0x40\"], puts(msg) = args: [\"s:hello\"]. " +
+                        "Return value is the function's return (X0 on ARM64, R0 on ARM32). " +
+                        "If the return value looks like a pointer, the tool automatically shows module+symbol info, " +
+                        "attempts to read it as a C string, and shows a hex dump preview.",
                 param("address", "string", "Hex address of the function to call"),
-                param("args", "array", "Optional. Array of argument strings with type prefix. E.g. [\"0x1\", \"s:hello\", \"null\"]")));
+                argsParam("Optional. Array of argument strings. MUST be strings, not numbers. E.g. [\"0x1\", \"0x100\", \"s:hello\", \"null\"]"),
+                param("preview_size", "integer", "Optional. Number of bytes to hex-dump at the return address when it looks like a pointer. Default 64. Set 0 to disable preview.")));
+
+        tools.add(toolSchema("call_symbol", "Call a named exported function by module and symbol name. " +
+                        "Resolves the symbol address automatically, saving a separate find_symbol + call_function workflow. " +
+                        "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
+                        "Arguments follow the same format as call_function.",
+                param("module_name", "string", "Module name containing the symbol, e.g. 'libc.so'"),
+                param("symbol_name", "string", "Exported symbol name, e.g. 'malloc', 'memset'. For ELF: prefix with '_' is optional."),
+                argsParam("Optional. Array of argument strings, same format as call_function. E.g. [\"0x100\"] for malloc(256)."),
+                param("preview_size", "integer", "Optional. Number of bytes to hex-dump at the return address. Default 64. Set 0 to disable.")));
 
         tools.add(toolSchema("list_modules", "List all loaded modules with name, base address and size. Optionally filter by name.",
                 param("filter", "string", "Optional. Filter modules by name (case-insensitive substring match). E.g. 'libc' matches 'libc.so', 'libcrypto.so', etc.")));
@@ -238,14 +253,18 @@ public class McpTools {
         tools.add(toolSchema("get_threads", "List all threads/tasks in the emulator with their IDs and status."));
         tools.add(toolSchema("allocate_memory", "Allocate a block of readable+writable memory in the emulator. " +
                         "Returns the base address of the allocated region. Useful for preparing complex data structures " +
-                        "or buffers before calling call_function. Use write_memory to fill the allocated memory. " +
-                        "Use free_memory to release when done. " +
+                        "or buffers before calling call_function. Use free_memory to release when done.\n" +
+                        "Optionally, pass 'data' (hex-encoded bytes) to fill the allocated memory immediately, " +
+                        "saving a separate write_memory call. If 'data' is provided without 'size', " +
+                        "the size is inferred from the data length.\n" +
                         "Allocation strategy depends on emulator state:\n" +
                         "- When isRunning=true: MUST use runtime=true (mmap). Cannot call libc malloc while emulator is executing.\n" +
                         "- When isRunning=false (default): uses runtime=false (libc malloc), which allocates from the heap " +
                         "like a normal program would. You can also pass runtime=true to force mmap.\n" +
                         "mmap allocates page-aligned memory (wastes space for small allocations); malloc is more efficient for small buffers.",
-                param("size", "integer", "Number of bytes to allocate"),
+                param("size", "integer", "Number of bytes to allocate. If omitted and 'data' is provided, inferred from data length."),
+                param("data", "string", "Optional. Hex-encoded bytes to write into the allocated memory, e.g. \"48656c6c6f\" for \"Hello\". " +
+                        "If provided, the data is written starting at the base address immediately after allocation."),
                 param("runtime", "boolean", "Optional. true=use mmap (page-aligned, always safe), false=use libc malloc (heap, more efficient, requires isRunning=false). " +
                         "Default: true when isRunning, false when stopped.")));
         tools.add(toolSchema("free_memory", "Free a previously allocated memory block. Only blocks allocated via allocate_memory can be freed. " +
@@ -354,6 +373,7 @@ public class McpTools {
             case "read_pointer": return readPointer(args);
             case "read_typed": return readTyped(args);
             case "call_function": return callFunction(args);
+            case "call_symbol": return callSymbol(args);
             case "list_modules": return listModules(args);
             case "get_module_info": return getModuleInfo(args);
             case "list_exports": return listExports(args);
@@ -383,6 +403,8 @@ public class McpTools {
         sb.append("Backend: ").append(backendClass).append('\n');
         sb.append("Backend capabilities: ").append(getBackendCapabilities(backendClass)).append('\n');
         sb.append("Process: ").append(emulator.getProcessName()).append('\n');
+        sb.append("PID: ").append(emulator.getPid()).append('\n');
+        sb.append("Page size: 0x").append(Long.toHexString(emulator.getPageAlign())).append('\n');
         sb.append("Debug idle: ").append(server.isDebugIdle()).append('\n');
         sb.append("Is running: ").append(emulator.isRunning()).append('\n');
         sb.append("Breakpoints: ").append(emulator.attach().getBreakPoints().size()).append('\n');
@@ -418,21 +440,28 @@ public class McpTools {
             String dump = Inspector.inspectString(data, "0x" + Long.toHexString(address));
             return textResult(dump);
         } catch (Exception e) {
-            return errorResult("Failed to read memory at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+            return errorResult("Failed to read memory at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
     private JSONObject writeMemory(JSONObject args) {
         long address = parseAddress(args.getString("address"));
         String hexBytes = args.getString("hex_bytes");
+        if (hexBytes == null) hexBytes = args.getString("data");
+        if (hexBytes == null) hexBytes = args.getString("hex_data");
+        if (hexBytes == null) hexBytes = args.getString("bytes");
+        if (hexBytes == null) {
+            return errorResult("Missing required parameter. Use 'hex_bytes' (hex encoded string, e.g. \"48656c6c6f\"). " +
+                    "Also accepts aliases: 'data', 'hex_data', 'bytes'.");
+        }
         try {
             byte[] data = Hex.decodeHex(hexBytes.toCharArray());
             emulator.getBackend().mem_write(address, data);
             return textResult("Written " + data.length + " bytes to 0x" + Long.toHexString(address));
         } catch (DecoderException e) {
-            return errorResult("Invalid hex: " + hexBytes);
+            return errorResult("Invalid hex string: \"" + hexBytes + "\". Expected hex-encoded bytes, e.g. \"48656c6c6f\" for \"Hello\".");
         } catch (Exception e) {
-            return errorResult("Failed to write memory: " + e.getMessage());
+            return errorResult("Failed to write memory at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
@@ -610,7 +639,11 @@ public class McpTools {
     }
 
     private JSONObject getRegister(JSONObject args) {
-        String name = args.getString("name").toUpperCase();
+        String raw = args.getString("name");
+        if (raw == null || raw.isEmpty()) {
+            return errorResult("Missing required parameter 'name'. Specify a register name, e.g. X0, SP, PC.");
+        }
+        String name = raw.toUpperCase();
         try {
             int regId = resolveRegister(name);
             Backend backend = emulator.getBackend();
@@ -625,19 +658,23 @@ public class McpTools {
                 return textResult(name + " = 0x" + Long.toHexString(val));
             }
         } catch (Exception e) {
-            return errorResult("Failed to read register " + name + ": " + e.getMessage());
+            return errorResult("Failed to read register " + name + ": " + exMsg(e));
         }
     }
 
     private JSONObject setRegister(JSONObject args) {
-        String name = args.getString("name").toUpperCase();
+        String raw = args.getString("name");
+        if (raw == null || raw.isEmpty()) {
+            return errorResult("Missing required parameter 'name'. Specify a register name, e.g. X0, SP, PC.");
+        }
+        String name = raw.toUpperCase();
         long value = parseAddress(args.getString("value"));
         try {
             int regId = resolveRegister(name);
             emulator.getBackend().reg_write(regId, value);
             return textResult(name + " set to 0x" + Long.toHexString(value));
         } catch (Exception e) {
-            return errorResult("Failed to set register " + name + ": " + e.getMessage());
+            return errorResult("Failed to set register " + name + ": " + exMsg(e));
         }
     }
 
@@ -649,16 +686,71 @@ public class McpTools {
             byte[] code = emulator.getBackend().mem_read(address, size);
             boolean thumb = emulator.is32Bit() && ARM.isThumb(emulator.getBackend());
             Instruction[] insns = emulator.disassemble(address, code, thumb, count);
+            Memory memory = emulator.getMemory();
+            GccDemangler demangler = DemanglerFactory.createDemangler();
             StringBuilder sb = new StringBuilder();
             for (Instruction insn : insns) {
-                sb.append(String.format("0x%x: %s %s%n", insn.getAddress(), insn.getMnemonic(), insn.getOpStr()));
+                sb.append(String.format("0x%x: %s %s", insn.getAddress(), insn.getMnemonic(), insn.getOpStr()));
+                String annotation = resolveInsnTargetSymbol(insn, memory, demangler);
+                if (annotation != null) {
+                    sb.append("  ; ").append(annotation);
+                }
+                sb.append('\n');
             }
             if (insns.length == 0) {
                 sb.append("No instructions at 0x").append(Long.toHexString(address));
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Disassemble failed: " + e.getMessage());
+            return errorResult("Disassemble failed: " + exMsg(e));
+        }
+    }
+
+    private static final java.util.regex.Pattern IMM_ADDR_PATTERN = java.util.regex.Pattern.compile("#0x([0-9a-fA-F]+)");
+
+    private String resolveInsnTargetSymbol(Instruction insn, Memory memory, GccDemangler demangler) {
+        String mnemonic = insn.getMnemonic().toLowerCase();
+        if (!isBranchMnemonic(mnemonic)) {
+            return null;
+        }
+        java.util.regex.Matcher m = IMM_ADDR_PATTERN.matcher(insn.getOpStr());
+        long target = -1;
+        while (m.find()) {
+            try {
+                target = Long.parseUnsignedLong(m.group(1), 16);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (target <= 0) {
+            return null;
+        }
+        Module module = memory.findModuleByAddress(target);
+        if (module == null) {
+            return null;
+        }
+        Symbol symbol = module.findClosestSymbolByAddress(target, false);
+        if (symbol != null && target - symbol.getAddress() <= Unwinder.SYMBOL_SIZE) {
+            String name = demangler.demangle(symbol.getName());
+            long offset = target - symbol.getAddress();
+            if (offset == 0) {
+                return name;
+            }
+            return name + "+0x" + Long.toHexString(offset);
+        }
+        return module.name + "+0x" + Long.toHexString(target - module.base);
+    }
+
+    private static boolean isBranchMnemonic(String mnemonic) {
+        switch (mnemonic) {
+            case "b": case "bl": case "br": case "blr":
+            case "cbz": case "cbnz": case "tbz": case "tbnz":
+            case "bx": case "blx":
+                return true;
+            default:
+                if (mnemonic.startsWith("b.")) return true;
+                if (mnemonic.startsWith("bl") && mnemonic.length() <= 5) return true;
+                return mnemonic.startsWith("b") && mnemonic.length() <= 4
+                        && !mnemonic.startsWith("bic") && !mnemonic.startsWith("bfi") && !mnemonic.startsWith("bfc");
         }
     }
 
@@ -669,7 +761,7 @@ public class McpTools {
             byte[] code = encoded.getMachineCode();
             return textResult("Machine code: " + Hex.encodeHexString(code) + " (" + code.length + " bytes)");
         } catch (Exception e) {
-            return errorResult("Assemble failed: " + e.getMessage());
+            return errorResult("Assemble failed: " + exMsg(e));
         }
     }
 
@@ -683,7 +775,7 @@ public class McpTools {
             return textResult("Patched " + code.length + " bytes at 0x" + Long.toHexString(address) +
                     ": " + Hex.encodeHexString(code));
         } catch (Exception e) {
-            return errorResult("Patch failed: " + e.getMessage());
+            return errorResult("Patch failed: " + exMsg(e));
         }
     }
 
@@ -698,7 +790,7 @@ public class McpTools {
             String type = temporary ? "Temporary breakpoint" : "Breakpoint";
             return textResult(type + " added at 0x" + Long.toHexString(address));
         } catch (Exception e) {
-            return errorResult("Failed to add breakpoint: " + e.getMessage());
+            return errorResult("Failed to add breakpoint: " + exMsg(e));
         }
     }
 
@@ -730,7 +822,7 @@ public class McpTools {
             return textResult(typeStr + " added at " + symbolName + " (0x" + Long.toHexString(addr) +
                     ", " + moduleName + "+0x" + Long.toHexString(addr - module.base) + ")");
         } catch (Exception e) {
-            return errorResult("Failed to add breakpoint by symbol: " + e.getMessage());
+            return errorResult("Failed to add breakpoint by symbol: " + exMsg(e));
         }
     }
 
@@ -752,7 +844,7 @@ public class McpTools {
             return textResult(typeStr + " added at " + moduleName + "+0x" + Long.toHexString(offset) +
                     " (0x" + Long.toHexString(addr) + ")");
         } catch (Exception e) {
-            return errorResult("Failed to add breakpoint by offset: " + e.getMessage());
+            return errorResult("Failed to add breakpoint by offset: " + exMsg(e));
         }
     }
 
@@ -793,7 +885,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to list breakpoints: " + e.getMessage());
+            return errorResult("Failed to list breakpoints: " + exMsg(e));
         }
     }
 
@@ -807,7 +899,7 @@ public class McpTools {
                 return errorResult("No breakpoint found at 0x" + Long.toHexString(address));
             }
         } catch (Exception e) {
-            return errorResult("Failed to remove breakpoint: " + e.getMessage());
+            return errorResult("Failed to remove breakpoint: " + exMsg(e));
         }
     }
 
@@ -855,7 +947,7 @@ public class McpTools {
             String text = result.getJSONArray("content").getJSONObject(0).getString("text");
             return textResult(text + "\nExecution resumed. Use poll_events to wait for breakpoint_hit when function returns.");
         } catch (Exception e) {
-            return errorResult("Step out failed: " + e.getMessage());
+            return errorResult("Step out failed: " + exMsg(e));
         }
     }
 
@@ -864,7 +956,7 @@ public class McpTools {
             emulator.getBackend().emu_stop();
             return textResult("Emulation stop requested. The emulator will halt at the next opportunity.");
         } catch (Exception e) {
-            return errorResult("Failed to stop emulation: " + e.getMessage());
+            return errorResult("Failed to stop emulation: " + exMsg(e));
         }
     }
 
@@ -944,7 +1036,7 @@ public class McpTools {
             msg.append(". Trace data will be collected as trace_read events, use poll_events to retrieve.");
             return textResult(msg.toString());
         } catch (Exception e) {
-            return errorResult("Failed to start trace read: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Failed to start trace read: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -980,7 +1072,7 @@ public class McpTools {
             msg.append(". Trace data will be collected as trace_write events, use poll_events to retrieve.");
             return textResult(msg.toString());
         } catch (Exception e) {
-            return errorResult("Failed to start trace write: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Failed to start trace write: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -1101,7 +1193,7 @@ public class McpTools {
             msg.append(". Trace data will be collected as trace_code events, use poll_events to retrieve.");
             return textResult(msg.toString());
         } catch (Exception e) {
-            return errorResult("Failed to start trace code: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Failed to start trace code: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -1131,7 +1223,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to get callstack: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Failed to get callstack: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -1179,7 +1271,7 @@ public class McpTools {
             }
             return errorResult("Provide either (module_name + symbol_name) or (address).");
         } catch (Exception e) {
-            return errorResult("Find symbol failed: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Find symbol failed: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -1202,7 +1294,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to read string at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+            return errorResult("Failed to read string at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
@@ -1230,7 +1322,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to read std::string at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+            return errorResult("Failed to read std::string at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
@@ -1290,14 +1382,18 @@ public class McpTools {
                 }
             }
         } catch (Exception e) {
-            sb.append(String.format("    (read failed at 0x%x: %s)%n", currentAddr, e.getMessage()));
+            sb.append(String.format("    (read failed at 0x%x: %s)%n", currentAddr, exMsg(e)));
         }
         return textResult(sb.toString());
     }
 
     private JSONObject readTyped(JSONObject args) {
         long address = parseAddress(args.getString("address"));
-        String type = args.getString("type").toLowerCase();
+        String rawType = args.getString("type");
+        if (rawType == null || rawType.isEmpty()) {
+            return errorResult("Missing required parameter 'type'. Supported: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer");
+        }
+        String type = rawType.toLowerCase();
         int count = args.containsKey("count") ? args.getIntValue("count") : 1;
 
         int elemSize;
@@ -1344,7 +1440,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to read typed data at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+            return errorResult("Failed to read typed data at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
@@ -1352,8 +1448,39 @@ public class McpTools {
         if (emulator.isRunning()) {
             return errorResult("Cannot call function while emulator is running.");
         }
-
         long address = parseAddress(args.getString("address"));
+        return doCallFunction(address, null, args);
+    }
+
+    private JSONObject callSymbol(JSONObject args) {
+        if (emulator.isRunning()) {
+            return errorResult("Cannot call function while emulator is running.");
+        }
+        String moduleName = args.getString("module_name");
+        String symbolName = args.getString("symbol_name");
+        if (moduleName == null || moduleName.isEmpty()) {
+            return errorResult("Missing required parameter 'module_name'.");
+        }
+        if (symbolName == null || symbolName.isEmpty()) {
+            return errorResult("Missing required parameter 'symbol_name'.");
+        }
+        Module module = emulator.getMemory().findModule(moduleName);
+        if (module == null) {
+            return errorResult("Module not found: " + moduleName);
+        }
+        Symbol symbol = module.findSymbolByName(symbolName, false);
+        if (symbol == null) {
+            symbol = module.findSymbolByName("_" + symbolName, false);
+        }
+        if (symbol == null) {
+            return errorResult("Symbol '" + symbolName + "' not found in " + moduleName +
+                    ". Use list_exports to see available symbols.");
+        }
+        String label = moduleName + "!" + symbolName;
+        return doCallFunction(symbol.getAddress(), label, args);
+    }
+
+    private JSONObject doCallFunction(long address, String label, JSONObject args) {
         JSONArray argsArray = args.getJSONArray("args");
         Object[] funcArgs;
         if (argsArray == null || argsArray.isEmpty()) {
@@ -1365,16 +1492,21 @@ public class McpTools {
                 try {
                     funcArgs[i] = parseCallArg(argStr);
                 } catch (Exception e) {
-                    return errorResult("Invalid argument[" + i + "] '" + argStr + "': " + e.getMessage());
+                    return errorResult("Invalid argument[" + i + "] '" + argStr + "': " + exMsg(e));
                 }
             }
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Calling 0x").append(Long.toHexString(address));
-        Module module = emulator.getMemory().findModuleByAddress(address);
-        if (module != null) {
-            sb.append(" (").append(module.name).append("+0x").append(Long.toHexString(address - module.base)).append(')');
+        sb.append("Calling ");
+        if (label != null) {
+            sb.append(label).append(" (0x").append(Long.toHexString(address)).append(')');
+        } else {
+            sb.append("0x").append(Long.toHexString(address));
+            Module module = emulator.getMemory().findModuleByAddress(address);
+            if (module != null) {
+                sb.append(" (").append(module.name).append("+0x").append(Long.toHexString(address - module.base)).append(')');
+            }
         }
         sb.append(" with ").append(funcArgs.length).append(" arg(s)\n");
         for (int i = 0; i < funcArgs.length; i++) {
@@ -1390,39 +1522,51 @@ public class McpTools {
             }
         }
 
+        int previewSize = args.containsKey("preview_size") ? args.getIntValue("preview_size") : 64;
+
         try {
             Number result = Module.emulateFunction(emulator, address, funcArgs);
             long retVal = result.longValue();
             sb.append("\nResult: 0x").append(Long.toHexString(retVal));
             sb.append(" (").append(retVal).append(")\n");
-            Module retModule = emulator.getMemory().findModuleByAddress(retVal);
+
+            Memory memory = emulator.getMemory();
+            GccDemangler demangler = DemanglerFactory.createDemangler();
+            Module retModule = memory.findModuleByAddress(retVal);
             if (retModule != null) {
-                sb.append("  -> ").append(retModule.name).append("+0x").append(Long.toHexString(retVal - retModule.base)).append('\n');
+                sb.append("  Module: ").append(retModule.name).append("+0x").append(Long.toHexString(retVal - retModule.base));
+                Symbol sym = retModule.findClosestSymbolByAddress(retVal, false);
+                if (sym != null && retVal - sym.getAddress() <= Unwinder.SYMBOL_SIZE) {
+                    sb.append("  <").append(demangler.demangle(sym.getName())).append('>');
+                }
+                sb.append('\n');
             }
-            if (retVal > 0x1000 && retVal < 0xFFFFFFFFL) {
+
+            if (retVal > 0x1000 && previewSize > 0) {
                 try {
-                    byte[] strData = emulator.getBackend().mem_read(retVal, 64);
-                    int len = 0;
+                    byte[] previewData = emulator.getBackend().mem_read(retVal, previewSize);
+                    int strLen = 0;
                     boolean printable = true;
-                    while (len < strData.length && strData[len] != 0) {
-                        if (strData[len] < 0x20 || strData[len] > 0x7e) {
+                    while (strLen < previewData.length && previewData[strLen] != 0) {
+                        if (previewData[strLen] < 0x20 || previewData[strLen] > 0x7e) {
                             printable = false;
                             break;
                         }
-                        len++;
+                        strLen++;
                     }
-                    if (printable && len > 0) {
-                        sb.append("  -> string: \"").append(new String(strData, 0, len, java.nio.charset.StandardCharsets.UTF_8)).append("\"\n");
+                    if (printable && strLen > 0) {
+                        sb.append("  String: \"").append(new String(previewData, 0, strLen, java.nio.charset.StandardCharsets.UTF_8)).append("\"\n");
                     }
+                    sb.append("  Hex preview (").append(previewSize).append(" bytes): ").append(Hex.encodeHexString(previewData)).append('\n');
                 } catch (Exception ignored) {
                 }
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            sb.append("\nCall FAILED: ").append(e.getClass().getName()).append(": ").append(e.getMessage()).append('\n');
+            sb.append("\nCall FAILED: ").append(e.getClass().getName()).append(": ").append(exMsg(e)).append('\n');
             Throwable cause = e.getCause();
             if (cause != null) {
-                sb.append("Caused by: ").append(cause.getClass().getName()).append(": ").append(cause.getMessage()).append('\n');
+                sb.append("Caused by: ").append(cause.getClass().getName()).append(": ").append(cause.getMessage() != null ? cause.getMessage() : cause.getClass().getName()).append('\n');
             }
             return errorResult(sb.toString());
         }
@@ -1537,7 +1681,7 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to list exports: " + e.getClass().getName() + ": " + e.getMessage());
+            return errorResult("Failed to list exports: " + e.getClass().getName() + ": " + exMsg(e));
         }
     }
 
@@ -1554,14 +1698,29 @@ public class McpTools {
             }
             return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to get threads: " + e.getMessage());
+            return errorResult("Failed to get threads: " + exMsg(e));
         }
     }
 
     private JSONObject allocateMemory(JSONObject args) {
-        int size = args.getIntValue("size");
+        String hexData = args.getString("data");
+        byte[] initData = null;
+        if (hexData != null && !hexData.isEmpty()) {
+            try {
+                initData = Hex.decodeHex(hexData.toCharArray());
+            } catch (DecoderException e) {
+                return errorResult("Invalid 'data' hex string: \"" + hexData + "\". Expected hex-encoded bytes, e.g. \"48656c6c6f\" for \"Hello\".");
+            }
+        }
+        int size = args.containsKey("size") ? args.getIntValue("size") : 0;
+        if (size <= 0 && initData != null) {
+            size = initData.length;
+        }
         if (size <= 0) {
-            return errorResult("Size must be positive, got: " + size);
+            return errorResult("Size must be positive. Provide 'size' or 'data' (hex-encoded bytes to infer size from).");
+        }
+        if (initData != null && initData.length > size) {
+            return errorResult("Data length (" + initData.length + " bytes) exceeds allocation size (" + size + " bytes).");
         }
         boolean isRunning = emulator.isRunning();
         Boolean runtimeParam = args.containsKey("runtime") ? args.getBoolean("runtime") : null;
@@ -1579,14 +1738,21 @@ public class McpTools {
             MemoryBlock block = emulator.getMemory().malloc(size, runtime);
             UnidbgPointer pointer = block.getPointer();
             allocatedBlocks.put(pointer.peer, new Allocation(block, runtime, size));
+            if (initData != null) {
+                pointer.write(0, initData, 0, initData.length);
+            }
             String method = runtime ? "mmap (page-aligned, free anytime)" : "malloc (heap, free requires isRunning=false)";
-            return textResult("Allocated " + size + " bytes (0x" + Integer.toHexString(size) +
-                    ") at 0x" + Long.toHexString(pointer.peer) +
-                    " via " + method +
-                    "\nUse write_memory to fill the allocated region." +
-                    "\nUse free_memory to release when done.");
+            StringBuilder sb = new StringBuilder();
+            sb.append("Allocated ").append(size).append(" bytes (0x").append(Integer.toHexString(size))
+                    .append(") at 0x").append(Long.toHexString(pointer.peer))
+                    .append(" via ").append(method);
+            if (initData != null) {
+                sb.append("\nWritten ").append(initData.length).append(" bytes of initial data.");
+            }
+            sb.append("\nUse free_memory to release when done.");
+            return textResult(sb.toString());
         } catch (Exception e) {
-            return errorResult("Failed to allocate memory: " + e.getMessage());
+            return errorResult("Failed to allocate memory: " + exMsg(e));
         }
     }
 
@@ -1608,7 +1774,7 @@ public class McpTools {
             String method = alloc.runtime ? "munmap" : "libc free";
             return textResult("Freed memory at 0x" + Long.toHexString(address) + " via " + method + ".");
         } catch (Exception e) {
-            return errorResult("Failed to free memory at 0x" + Long.toHexString(address) + ": " + e.getMessage());
+            return errorResult("Failed to free memory at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
     }
 
@@ -1648,10 +1814,10 @@ public class McpTools {
             return textResult("ObjC class dump for " + className + ":\n\n" + classDef +
                     "\n\nNote: Registers and stack may have been modified by the ObjC runtime calls used to extract this definition.");
         } catch (UnsupportedOperationException e) {
-            return errorResult("ObjC class dump not supported: " + e.getMessage());
+            return errorResult("ObjC class dump not supported: " + exMsg(e));
         } catch (Exception e) {
             return errorResult("Failed to dump ObjC class '" + className + "': " +
-                    e.getClass().getSimpleName() + ": " + e.getMessage());
+                    e.getClass().getSimpleName() + ": " + exMsg(e));
         }
     }
 
@@ -1676,12 +1842,12 @@ public class McpTools {
                     "\n\nNote: This is the message SCHEMA (field definitions), not actual data. " +
                     "Registers and stack may have been modified by the ObjC runtime calls used to extract this definition.");
         } catch (UnsupportedOperationException e) {
-            return errorResult("GPB protobuf dump not supported: " + e.getMessage() +
+            return errorResult("GPB protobuf dump not supported: " + exMsg(e) +
                     ". Ensure the Google Protobuf Objective-C runtime (GPB) library is loaded and the class '" +
                     className + "' is a GPBMessage subclass that responds to 'descriptor'.");
         } catch (Exception e) {
             return errorResult("Failed to dump GPB protobuf for '" + className + "': " +
-                    e.getClass().getSimpleName() + ": " + e.getMessage());
+                    e.getClass().getSimpleName() + ": " + exMsg(e));
         }
     }
 
@@ -1791,6 +1957,14 @@ public class McpTools {
         return result;
     }
 
+    private static String exMsg(Exception e) {
+        String msg = e.getMessage();
+        if (msg == null || msg.isEmpty()) {
+            return e.getClass().getName();
+        }
+        return msg;
+    }
+
     private static JSONObject toolSchema(String name, String description, JSONObject... params) {
         JSONObject schema = new JSONObject(true);
         schema.put("name", name);
@@ -1839,6 +2013,17 @@ public class McpTools {
         JSONObject p = new JSONObject(true);
         p.put("_name", name);
         p.put("type", type);
+        p.put("description", description);
+        return p;
+    }
+
+    private static JSONObject argsParam(String description) {
+        JSONObject p = new JSONObject(true);
+        p.put("_name", "args");
+        p.put("type", "array");
+        JSONObject items = new JSONObject(true);
+        items.put("type", "string");
+        p.put("items", items);
         p.put("description", description);
         return p;
     }

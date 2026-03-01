@@ -5,10 +5,9 @@ import com.github.unidbg.Module;
 import com.github.unidbg.arm.backend.BlockHook;
 import com.github.unidbg.arm.backend.DebugHook;
 
-import java.io.Closeable;
 import java.util.Map;
 
-public interface Debugger extends Breaker, DebugHook, BlockHook, Closeable {
+public interface Debugger extends Breaker, DebugHook, BlockHook {
 
     BreakPoint addBreakPoint(Module module, String symbol);
     BreakPoint addBreakPoint(Module module, String symbol, BreakPointCallback callback);
@@ -43,5 +42,7 @@ public interface Debugger extends Breaker, DebugHook, BlockHook, Closeable {
     boolean removeBreakPoint(long address);
 
     Map<Long, BreakPoint> getBreakPoints();
+
+    void close();
 
 }

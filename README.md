@@ -82,7 +82,7 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 | Tool | Description |
 |------|-------------|
 | `get_registers` / `get_register` / `set_register` | Read/write CPU registers |
-| `disassemble` | Disassemble instructions at address |
+| `disassemble` | Disassemble instructions at address (branch targets auto-annotated with symbol names) |
 | `assemble` | Assemble instruction text to machine code |
 | `get_callstack` | Get current call stack (backtrace) |
 
@@ -96,7 +96,7 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 | `read_typed` | Read memory as typed values (int8–int64, float, double, pointer) |
 | `search_memory` | Search memory for byte patterns with scope/permission filters |
 | `list_memory_map` | List all memory mappings with permissions |
-| `allocate_memory` / `free_memory` / `list_allocations` | Allocate (malloc/mmap), free, and track memory blocks |
+| `allocate_memory` / `free_memory` / `list_allocations` | Allocate (malloc/mmap) with optional initial data, free, and track memory blocks |
 | `patch` | Write assembled instructions to memory |
 
 **Breakpoints & Execution**
@@ -123,7 +123,8 @@ When the debugger breaks, type `mcp` (or `mcp 9239` to specify port) in the cons
 
 | Tool | Description |
 |------|-------------|
-| `call_function` | Call native function with typed arguments (hex, string, bytes, null) |
+| `call_function` | Call native function by address with typed arguments (hex, string, bytes, null). Returns value with symbol resolution and memory preview |
+| `call_symbol` | Call exported function by module + symbol name, e.g. `libc.so` + `malloc` |
 
 **iOS Only** (available when Family=iOS)
 
