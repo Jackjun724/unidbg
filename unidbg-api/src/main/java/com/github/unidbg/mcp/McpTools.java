@@ -21,7 +21,6 @@ import com.github.unidbg.pointer.UnidbgPointer;
 import com.github.unidbg.thread.Task;
 import com.github.unidbg.unwind.Frame;
 import com.github.unidbg.unwind.Unwinder;
-import com.github.unidbg.utils.Inspector;
 import com.github.zhkl0228.demumble.DemanglerFactory;
 import com.github.zhkl0228.demumble.GccDemangler;
 import keystone.Keystone;
@@ -73,37 +72,23 @@ public class McpTools {
 
     public JSONArray getToolSchemas() {
         JSONArray tools = new JSONArray();
-        tools.add(toolSchema("check_connection", "Check emulator status. Returns: architecture, backend type and capabilities, process name, " +
-                "mode (breakpoint_debug or custom_tools — custom_tools means DebugRunnable is set via run(), custom tool calls and repeatable execution available), " +
-                "debug idle (true=paused/ready, false=running), " +
-                "isRunning (true=emulation in progress, cannot call call_function), breakpoint count, pending events, and modules. " +
-                "Call this first to understand current state and backend limitations. " +
-                "Backend capabilities vary: " +
-                "Unicorn/Unicorn2: full support (unlimited breakpoints, code/read/write hooks, single-step, write hook reports size+value). " +
-                "Hypervisor (macOS): hardware breakpoints (limited count), 1 code hook at a time, write hook cannot report size/value, single-step supported. " +
-                "Dynarmic/KVM: breakpoints only, no code/read/write hooks, no single-step — trace_code/trace_read/trace_write/step_into/step_over will NOT work."));
+        tools.add(toolSchema("check_connection", "Check emulator status: architecture, backend, mode, state, modules. Call first."));
         tools.add(toolSchema("read_memory", "Read memory at address and return hex dump",
                 param("address", "string", "Hex address, e.g. 0x40001000"),
                 param("size", "integer", "Number of bytes to read, default 0x70")));
-        tools.add(toolSchema("write_memory", "Write bytes to memory at the given address. Data is provided as a hex-encoded string.",
-                param("address", "string", "Hex address, e.g. \"0x12c5f000\""),
-                param("hex_bytes", "string", "Hex-encoded bytes to write, e.g. \"48656c6c6f\" writes 5 bytes [0x48,0x65,0x6c,0x6c,0x6f]. Also accepts parameter names: data, hex_data, bytes.")));
+        tools.add(toolSchema("write_memory", "Write hex-encoded bytes to memory at address.",
+                param("address", "string", "Hex address"),
+                param("hex_bytes", "string", "Hex-encoded bytes, e.g. \"48656c6c6f\". Also accepts: data, hex_data, bytes.")));
         tools.add(toolSchema("list_memory_map", "List all memory mapped regions with base, size and permissions"));
-        tools.add(toolSchema("search_memory", "Search for byte pattern or text string in memory. " +
-                        "Supports: (1) hex byte pattern with optional ?? wildcards (e.g. '48656c6c6f', 'ff??00??ab'), " +
-                        "(2) text string search (set type='string'). " +
-                        "Search scope: specify module_name to search within a module, or start+end for a specific range, " +
-                        "or scope='stack' to search the stack (from SP to stack base), " +
-                        "or scope='heap' with permission to search heap memory by permission, " +
-                        "or omit all to search all readable mapped memory.",
-                param("pattern", "string", "The pattern to search. For hex: hex bytes, ?? for wildcard. For string: the text to find."),
-                param("type", "string", "Optional. 'hex' (default) or 'string'. If 'string', pattern is treated as UTF-8 text."),
-                param("module_name", "string", "Optional. Search only within this module."),
-                param("start", "string", "Optional. Hex start address."),
-                param("end", "string", "Optional. Hex end address."),
-                param("scope", "string", "Optional. 'stack' to search stack only, 'heap' to search heap by permission. Omit for default behavior."),
-                param("permission", "string", "Optional. Used with scope='heap'. 'read', 'write', or 'execute'. Default 'write'."),
-                param("max_results", "integer", "Optional. Max matches to return. Default 50.")));
+        tools.add(toolSchema("search_memory", "Search memory for hex pattern (with ?? wildcards) or text string.",
+                param("pattern", "string", "Hex bytes with optional ?? wildcards, or text if type='string'"),
+                param("type", "string", "Optional. 'hex' (default) or 'string'"),
+                param("module_name", "string", "Optional. Limit search to this module"),
+                param("start", "string", "Optional. Hex start address"),
+                param("end", "string", "Optional. Hex end address"),
+                param("scope", "string", "Optional. 'stack' or 'heap'"),
+                param("permission", "string", "Optional. For scope='heap': 'read'/'write'/'execute'. Default 'write'"),
+                param("max_results", "integer", "Optional. Default 50")));
 
         tools.add(toolSchema("get_registers", "Read all general purpose registers"));
         tools.add(toolSchema("get_register", "Read a specific register by name",
@@ -112,201 +97,109 @@ public class McpTools {
                 param("name", "string", "Register name"),
                 param("value", "string", "Hex value to write")));
 
-        tools.add(toolSchema("disassemble", "Disassemble instructions at address. To disassemble at current PC, first use get_register to read PC value. " +
-                        "Branch targets (bl, b, cbz, etc.) are automatically annotated with the nearest symbol name when available, " +
-                        "e.g. 'bl #0x12a38770  ; memset'.",
-                param("address", "string", "Hex address to disassemble at"),
-                param("count", "integer", "Number of instructions to disassemble, default 10")));
+        tools.add(toolSchema("disassemble", "Disassemble instructions at address. Branch targets auto-annotated with symbol names.",
+                param("address", "string", "Hex address"),
+                param("count", "integer", "Number of instructions, default 10")));
         tools.add(toolSchema("assemble", "Assemble instruction text to machine code hex (does not write to memory)",
                 param("assembly", "string", "Assembly instruction text, e.g. 'mov x0, #1'"),
                 param("address", "string", "Hex address for PC-relative encoding, default 0")));
         tools.add(toolSchema("patch", "Assemble instruction and write to memory at address",
                 param("address", "string", "Hex address to patch"),
                 param("assembly", "string", "Assembly instruction text")));
-        tools.add(toolSchema("add_breakpoint", "Add a breakpoint at address. Optionally set as temporary (auto-removed after first hit).",
+        tools.add(toolSchema("add_breakpoint", "Add breakpoint at address.",
                 param("address", "string", "Hex address"),
-                param("temporary", "boolean", "If true, breakpoint is removed automatically after first hit. Default false.")));
-        tools.add(toolSchema("remove_breakpoint", "Remove breakpoint at address",
+                param("temporary", "boolean", "Auto-remove after first hit. Default false.")));
+        tools.add(toolSchema("remove_breakpoint", "Remove breakpoint at address.",
                 param("address", "string", "Hex address")));
-        tools.add(toolSchema("list_breakpoints", "List all currently set breakpoints with address, module info, temporary status and disassembly of the instruction at each breakpoint address"));
-        tools.add(toolSchema("add_breakpoint_by_symbol", "Add a breakpoint at a symbol in a module. Saves the two-step process of find_symbol + add_breakpoint.",
-                param("module_name", "string", "Module name, e.g. libnative.so"),
-                param("symbol_name", "string", "Symbol name, e.g. JNI_OnLoad, _Z3foov"),
-                param("temporary", "boolean", "If true, breakpoint is removed automatically after first hit. Default false.")));
-        tools.add(toolSchema("add_breakpoint_by_offset", "Add a breakpoint at a module base + offset. Convenient when working with IDA/Ghidra offsets.",
-                param("module_name", "string", "Module name, e.g. libnative.so"),
-                param("offset", "string", "Hex offset from module base, e.g. 0x1234"),
-                param("temporary", "boolean", "If true, breakpoint is removed automatically after first hit. Default false.")));
-        tools.add(toolSchema("continue_execution", "Resume emulator execution. " +
-                "If paused at a breakpoint, continues from current PC. " +
-                "If emulation has completed, re-runs the emulation from the beginning. " +
-                "Returns immediately; use poll_events to receive execution_started, breakpoint_hit, or execution_completed events."));
-        tools.add(toolSchema("step_over", "Step over current instruction (does not enter function calls). " +
-                "Sets a temporary breakpoint at the next instruction and resumes. Use poll_events to wait for completion."));
-        tools.add(toolSchema("step_into", "Step into: execute specified number of instructions then stop. Use poll_events to wait for completion.",
-                param("count", "integer", "Number of instructions to execute. Default 1.")));
-        tools.add(toolSchema("step_out", "Step out of current function. Reads the LR (link register), sets a temporary breakpoint at that address, " +
-                "and continues execution. Equivalent to 'run until function returns'. Use poll_events to wait for the breakpoint_hit event."));
-        tools.add(toolSchema("next_block", "Resume execution and break at the start of the next basic block. " +
-                "A basic block is a straight-line sequence of instructions with no branches except at the end. " +
-                "This is useful for quickly skipping the rest of the current block. " +
-                "Only supported on Unicorn/Unicorn2 backends — will fail on Hypervisor/Dynarmic/KVM. " +
-                "Use poll_events to wait for the breakpoint_hit event."));
-        tools.add(toolSchema("step_until_mnemonic", "Resume execution and break when an instruction with the specified mnemonic is about to execute. " +
-                        "For example, use mnemonic='bl' to stop at the next BL (branch with link / function call) instruction, " +
-                        "or 'ret' to stop at the next RET instruction. " +
-                        "This works by enabling per-instruction code hooks internally, so it may be slower than normal execution. " +
-                        "Only supported on Unicorn/Unicorn2 backends (requires setFastDebug) — will fail on Hypervisor/Dynarmic/KVM. " +
-                        "Use poll_events to wait for the breakpoint_hit event.",
-                param("mnemonic", "string", "The instruction mnemonic to break on, e.g. 'bl', 'blx', 'ret', 'svc', 'brk'. Case-sensitive, use lowercase.")));
-        tools.add(toolSchema("poll_events", "Poll for runtime events. Event types: " +
-                "execution_started (emulation began), execution_completed (emulation finished), breakpoint_hit (breakpoint triggered with pc/module/offset), " +
-                "trace_code (instruction executed), trace_read (memory read), trace_write (memory write). " +
-                "Call this after continue_execution/step_over/step_into to wait for results. " +
-                "Returns all pending events, or waits up to timeout_ms for at least one event.",
-                param("timeout_ms", "integer", "Max milliseconds to wait for events. Default 10000 (10s). Set 0 for no wait.")));
+        tools.add(toolSchema("list_breakpoints", "List all breakpoints with address, module info and disassembly."));
+        tools.add(toolSchema("add_breakpoint_by_symbol", "Add breakpoint at module symbol (preferred over find_symbol + add_breakpoint).",
+                param("module_name", "string", "Module name"),
+                param("symbol_name", "string", "Symbol name, e.g. JNI_OnLoad"),
+                param("temporary", "boolean", "Auto-remove after first hit. Default false.")));
+        tools.add(toolSchema("add_breakpoint_by_offset", "Add breakpoint at module base + offset (for IDA/Ghidra offsets).",
+                param("module_name", "string", "Module name"),
+                param("offset", "string", "Hex offset, e.g. 0x1234"),
+                param("temporary", "boolean", "Auto-remove after first hit. Default false.")));
+        tools.add(toolSchema("continue_execution", "Resume execution from current PC."));
+        tools.add(toolSchema("step_over", "Step over current instruction (skip function calls)."));
+        tools.add(toolSchema("step_into", "Execute N instructions then stop.",
+                param("count", "integer", "Number of instructions. Default 1.")));
+        tools.add(toolSchema("step_out", "Run until current function returns (bp at LR)."));
+        tools.add(toolSchema("next_block", "Break at next basic block start. Unicorn only."));
+        tools.add(toolSchema("step_until_mnemonic", "Break when specified mnemonic executes. Unicorn only.",
+                param("mnemonic", "string", "e.g. 'bl', 'ret'. Lowercase.")));
+        tools.add(toolSchema("poll_events", "Poll runtime events (breakpoint_hit, execution_completed, trace_code/read/write). Call after execution tools.",
+                param("timeout_ms", "integer", "Max ms to wait. Default 10000. 0=no wait.")));
 
-        tools.add(toolSchema("trace_read", "Start tracing memory reads in address range. Each memory read triggers a trace_read event (with pc, address, size, hex, module, offset) collected via poll_events. Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
+        tools.add(toolSchema("trace_read", "Trace memory reads in address range. Events via poll_events. Auto-removed on bp/step/finish.",
                 param("begin", "string", "Hex start address"),
                 param("end", "string", "Hex end address"),
-                param("break_on", "string", "Optional. Hex address condition: when a read hits this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
-        tools.add(toolSchema("trace_write", "Start tracing memory writes in address range. Each memory write triggers a trace_write event (with pc, address, size, value, module, offset) collected via poll_events. Note: on Hypervisor backend, size and value may be 0 due to backend limitation; use disassemble on the pc to determine write size from the instruction (e.g. STR=4/8 bytes, STRB=1, STRH=2, STP=16), then set a breakpoint or step_into to pause after the write and use read_memory to inspect. Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
+                param("break_on", "string", "Optional. Hex address to pause on when hit.")));
+        tools.add(toolSchema("trace_write", "Trace memory writes in address range. Events via poll_events. Auto-removed on bp/step/finish.",
                 param("begin", "string", "Hex start address"),
                 param("end", "string", "Hex end address"),
-                param("break_on", "string", "Optional. Hex address condition: when a write hits this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
-        tools.add(toolSchema("trace_code", "Start tracing instruction execution in address range. Each executed instruction triggers a trace_code event collected via poll_events. " +
-                        "Event fields: address, mnemonic, operands, size, module, offset, " +
-                        "regs_read (register values read by this instruction BEFORE execution), " +
-                        "prev_write (register values written by the PREVIOUS instruction AFTER execution). " +
-                        "This makes the trace self-contained — you can follow data flow without separate register reads. " +
-                        "Useful for understanding execution flow, data dependencies and control transfer. " +
-                        "Trace is automatically removed when a breakpoint hits, single-step completes, or execution finishes.",
+                param("break_on", "string", "Optional. Hex address to pause on when hit.")));
+        tools.add(toolSchema("trace_code", "Trace instruction execution in range. Events include regs_read (before) and prev_write (after previous insn) for data flow tracking.",
                 param("begin", "string", "Hex start address"),
                 param("end", "string", "Hex end address"),
-                param("break_on", "string", "Optional. Hex PC address condition: when execution reaches this exact address, the emulator pauses into debug state (like a conditional breakpoint). Omit to collect events only without pausing.")));
-        tools.add(toolSchema("get_callstack", "Get the current call stack (backtrace). Returns each frame with PC address, module name, offset, and nearest symbol name if available. Only meaningful when the emulator is paused (breakpoint or single-step)."));
-        tools.add(toolSchema("find_symbol", "Find symbol by name in a module, or find the nearest symbol to an address. " +
-                "Provide module_name + symbol_name to look up a symbol's address. " +
-                "Provide address to find the nearest symbol at that address. " +
-                "Note: unidbg only has dynamic/exported symbols from ELF .dynsym; many symbols visible in IDA (from .symtab or DWARF) may not be found here. " +
-                "If a symbol is not found, use module base + offset from IDA/disassembler to calculate the address directly.",
-                param("module_name", "string", "Optional. Module name to search in, e.g. libnative.so"),
-                param("symbol_name", "string", "Optional. Symbol name to find, e.g. JNI_OnLoad, _Z3foov"),
+                param("break_on", "string", "Optional. Hex PC to pause on when reached.")));
+        tools.add(toolSchema("get_callstack", "Get call stack (backtrace) with PC, module, offset and nearest symbol."));
+        tools.add(toolSchema("find_symbol", "Find symbol by name in module, or find nearest symbol to an address.",
+                param("module_name", "string", "Optional. Module name"),
+                param("symbol_name", "string", "Optional. Symbol name"),
                 param("address", "string", "Optional. Hex address to find nearest symbol for")));
-        tools.add(toolSchema("read_string", "Read a null-terminated C string (UTF-8) from memory at address. Useful for reading strings pointed to by registers or memory.",
-                param("address", "string", "Hex address to read string from"),
-                param("max_length", "integer", "Max bytes to read before giving up. Default 256.")));
-        tools.add(toolSchema("read_std_string", "Read a C++ std::string (libc++ layout) from memory. " +
-                        "Parses the SSO (Small String Optimization) or heap-allocated layout automatically. " +
-                        "The address should point to the std::string object itself (not the data pointer). " +
-                        "Returns the string value, data size, storage type (SSO/heap), and hex dump of the data.",
-                param("address", "string", "Hex address of the std::string object")));
-        tools.add(toolSchema("read_pointer", "Read pointer value(s) at address, optionally following a pointer chain. " +
-                        "Useful for traversing data structures like ObjC isa chains, vtables, linked lists, etc. " +
-                        "Each level dereferences the pointer and reads the next value. " +
-                        "Returns each level's address, pointer value, module info, and nearest symbol.",
-                param("address", "string", "Hex address to read pointer from"),
-                param("depth", "integer", "Optional. Number of levels to follow the pointer chain. Default 1 (just read one pointer)."),
-                param("offset", "integer", "Optional. Byte offset to add at each dereference level. Default 0. E.g. offset=8 reads *(ptr+8) at each level.")));
-        tools.add(toolSchema("read_typed", "Read memory as typed values. Interprets raw bytes as the specified data type. " +
-                        "Supports: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer. " +
-                        "For pointer type, also shows module+offset and nearest symbol for each value.",
-                param("address", "string", "Hex address to read from"),
-                param("type", "string", "Data type: int8, uint8, int16, uint16, int32, uint32, int64, uint64, float, double, pointer"),
-                param("count", "integer", "Optional. Number of elements to read. Default 1.")));
-        tools.add(toolSchema("call_function", "Call a native function at the given address with arguments and return the result. " +
-                        "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
-                        "The function executes synchronously and may fail with any exception (crash, invalid memory, etc). " +
-                        "You can set up trace_code/trace_read/trace_write BEFORE calling this tool — " +
-                        "traces will be active during the function execution, and trace events can be retrieved via poll_events after call_function returns. " +
-                        "Arguments are passed via args array. Each element MUST be a string (not a number). Types:\n" +
-                        "  - Hex integer: \"0x1234\" or \"1234\" (BOTH are parsed as hexadecimal. \"128\" = 0x128 = 296 decimal, NOT 128 decimal. For decimal 128, use \"0x80\")\n" +
-                        "  - C string: \"s:hello world\" (auto-allocated in memory, pointer passed as arg)\n" +
-                        "  - Byte array: \"b:48656c6c6f\" (hex-encoded bytes, auto-allocated, pointer passed)\n" +
-                        "  - Null pointer: \"null\"\n" +
-                        "Examples: calloc(1, 256) = args: [\"0x1\", \"0x100\"], memset(ptr, 0, 64) = args: [\"0x12c5f000\", \"0x0\", \"0x40\"], puts(msg) = args: [\"s:hello\"]. " +
-                        "Return value is the function's return (X0 on ARM64, R0 on ARM32). " +
-                        "If the return value looks like a pointer, the tool automatically shows module+symbol info, " +
-                        "attempts to read it as a C string, and shows a hex dump preview.",
-                param("address", "string", "Hex address of the function to call"),
-                argsParam("Optional. Array of argument strings. MUST be strings, not numbers. E.g. [\"0x1\", \"0x100\", \"s:hello\", \"null\"]"),
-                param("preview_size", "integer", "Optional. Number of bytes to hex-dump at the return address when it looks like a pointer. Default 64. Set 0 to disable preview.")));
+        tools.add(toolSchema("read_string", "Read null-terminated C string (UTF-8) from memory.",
+                param("address", "string", "Hex address"),
+                param("max_length", "integer", "Max bytes. Default 256.")));
+        tools.add(toolSchema("read_std_string", "Read C++ std::string (libc++ layout, auto-detects SSO/heap).",
+                param("address", "string", "Hex address of std::string object")));
+        tools.add(toolSchema("read_pointer", "Read pointer(s) at address, optionally follow chain (isa, vtable, etc).",
+                param("address", "string", "Hex address"),
+                param("depth", "integer", "Optional. Chain depth. Default 1."),
+                param("offset", "integer", "Optional. Byte offset at each dereference. Default 0.")));
+        tools.add(toolSchema("read_typed", "Read memory as typed values: int8/16/32/64, uint8/16/32/64, float, double, pointer.",
+                param("address", "string", "Hex address"),
+                param("type", "string", "Data type"),
+                param("count", "integer", "Optional. Number of elements. Default 1.")));
+        tools.add(toolSchema("call_function", "Call native function at address. Requires isRunning=false. Arg format in instructions. " +
+                        "Traces set before this call remain active. Returns function result with auto pointer preview.",
+                param("address", "string", "Hex address of function"),
+                argsParam(),
+                param("preview_size", "integer", "Optional. Hex preview bytes at return pointer. Default 64. 0=disable.")));
 
-        tools.add(toolSchema("call_symbol", "Call a named exported function by module and symbol name. " +
-                        "Resolves the symbol address automatically, saving a separate find_symbol + call_function workflow. " +
-                        "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
-                        "Arguments follow the same format as call_function.",
-                param("module_name", "string", "Module name containing the symbol, e.g. 'libc.so'"),
-                param("symbol_name", "string", "Exported symbol name, e.g. 'malloc', 'memset'. For ELF: prefix with '_' is optional."),
-                argsParam("Optional. Array of argument strings, same format as call_function. E.g. [\"0x100\"] for malloc(256)."),
-                param("preview_size", "integer", "Optional. Number of bytes to hex-dump at the return address. Default 64. Set 0 to disable.")));
+        tools.add(toolSchema("call_symbol", "Call exported function by module+symbol name. Requires isRunning=false. Same arg format as call_function.",
+                param("module_name", "string", "Module name, e.g. 'libc.so'"),
+                param("symbol_name", "string", "Symbol name, e.g. 'malloc'"),
+                argsParam(),
+                param("preview_size", "integer", "Optional. Default 64. 0=disable.")));
 
-        tools.add(toolSchema("list_modules", "List all loaded modules with name, base address and size. Optionally filter by name.",
-                param("filter", "string", "Optional. Filter modules by name (case-insensitive substring match). E.g. 'libc' matches 'libc.so', 'libcrypto.so', etc.")));
-        tools.add(toolSchema("get_module_info", "Get detailed information about a loaded module including exported symbol count",
-                param("module_name", "string", "Module name, e.g. libnative.so")));
-        tools.add(toolSchema("list_exports", "List exported/dynamic symbols of a module. Useful for discovering available functions. " +
-                        "Returns symbol name, address, and demangled name (for C++ symbols). " +
-                        "Note: only dynamic symbols (.dynsym for ELF, export trie for Mach-O) are available.",
-                param("module_name", "string", "Module name, e.g. libnative.so"),
-                param("filter", "string", "Optional. Filter symbols by name (case-insensitive substring match). E.g. 'jni' to find JNI-related symbols.")));
-        tools.add(toolSchema("get_threads", "List all threads/tasks in the emulator with their IDs and status."));
-        tools.add(toolSchema("allocate_memory", "Allocate a block of readable+writable memory in the emulator. " +
-                        "Returns the base address of the allocated region. Useful for preparing complex data structures " +
-                        "or buffers before calling call_function. Use free_memory to release when done.\n" +
-                        "Optionally, pass 'data' (hex-encoded bytes) to fill the allocated memory immediately, " +
-                        "saving a separate write_memory call. If 'data' is provided without 'size', " +
-                        "the size is inferred from the data length.\n" +
-                        "Allocation strategy depends on emulator state:\n" +
-                        "- When isRunning=true: MUST use runtime=true (mmap). Cannot call libc malloc while emulator is executing.\n" +
-                        "- When isRunning=false (default): uses runtime=false (libc malloc), which allocates from the heap " +
-                        "like a normal program would. You can also pass runtime=true to force mmap.\n" +
-                        "mmap allocates page-aligned memory (wastes space for small allocations); malloc is more efficient for small buffers.",
-                param("size", "integer", "Number of bytes to allocate. If omitted and 'data' is provided, inferred from data length."),
-                param("data", "string", "Optional. Hex-encoded bytes to write into the allocated memory, e.g. \"48656c6c6f\" for \"Hello\". " +
-                        "If provided, the data is written starting at the base address immediately after allocation."),
-                param("runtime", "boolean", "Optional. true=use mmap (page-aligned, always safe), false=use libc malloc (heap, more efficient, requires isRunning=false). " +
-                        "Default: true when isRunning, false when stopped.")));
-        tools.add(toolSchema("free_memory", "Free a previously allocated memory block. Only blocks allocated via allocate_memory can be freed. " +
-                        "Blocks allocated with malloc (runtime=false) will call libc free() — requires isRunning=false. " +
-                        "Blocks allocated with mmap (runtime=true) will call munmap — safe in any state.",
-                param("address", "string", "Hex address of the allocated block to free (as returned by allocate_memory)")));
-        tools.add(toolSchema("list_allocations", "List all memory blocks allocated via allocate_memory that have not been freed yet."));
+        tools.add(toolSchema("list_modules", "List loaded modules with name, base and size.",
+                param("filter", "string", "Optional. Case-insensitive name filter.")));
+        tools.add(toolSchema("get_module_info", "Get module details: base, size, exports count, dependencies.",
+                param("module_name", "string", "Module name")));
+        tools.add(toolSchema("list_exports", "List exported symbols of a module with addresses and demangled names.",
+                param("module_name", "string", "Module name"),
+                param("filter", "string", "Optional. Case-insensitive name filter.")));
+        tools.add(toolSchema("get_threads", "List all threads/tasks with IDs and status."));
+        tools.add(toolSchema("allocate_memory", "Allocate RW memory. See instructions for malloc vs mmap strategy.",
+                param("size", "integer", "Bytes to allocate (or inferred from data)"),
+                param("data", "string", "Optional. Hex bytes to fill immediately."),
+                param("runtime", "boolean", "Optional. true=mmap, false=malloc. Auto-selected based on state.")));
+        tools.add(toolSchema("free_memory", "Free memory allocated via allocate_memory.",
+                param("address", "string", "Hex address to free")));
+        tools.add(toolSchema("list_allocations", "List active allocations from allocate_memory."));
 
         if (emulator.getFamily() == Family.iOS) {
-            tools.add(toolSchema("inspect_objc_msg", "Inspect the current objc_msgSend call when stopped at its first instruction. " +
-                            "Reads X0 (receiver) and X1 (selector) to display the ObjC message being sent, e.g. '-[NSString length]'. " +
-                            "Uses pure memory parsing (isa -> class_ro_t -> name), does NOT call ObjC runtime functions, " +
-                            "so emulator state is not modified. Works at any breakpoint, not just objc_msgSend."));
-            tools.add(toolSchema("get_objc_class_name", "Get the Objective-C class name of an object at the given address. " +
-                            "Uses pure memory parsing (isa -> class_ro_t -> name), does NOT call ObjC runtime functions, " +
-                            "so emulator state is not modified.",
-                    param("address", "string", "Hex address of the ObjC object")));
-            tools.add(toolSchema("dump_objc_class", "Dump an Objective-C class definition including properties, instance methods, class methods, protocols, and ivars. " +
-                            "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
-                            "LIMITATIONS:\n" +
-                            "1) iOS ONLY — this tool is not available on Android emulators.\n" +
-                            "2) Requires the ObjC runtime to be loaded. A 'libclassdump' helper dylib is auto-loaded on first use.\n" +
-                            "3) The class must exist in the ObjC runtime (already registered). Use search_objc_classes to discover class names.\n" +
-                            "4) Internally calls ObjC runtime methods, which WILL modify emulator state (registers, stack). " +
-                            "Save/restore registers manually if needed.\n" +
-                            "5) The class name must be the exact Objective-C class name (e.g. 'NSString', 'UIViewController').",
-                    param("class_name", "string", "Exact Objective-C class name, e.g. 'NSString', 'UIViewController', 'MyCustomClass'")));
+            tools.add(toolSchema("inspect_objc_msg", "Show current objc_msgSend: receiver class + selector from X0/X1. Pure memory parsing, no state change."));
+            tools.add(toolSchema("get_objc_class_name", "Get ObjC class name of object. Pure memory parsing, no state change.",
+                    param("address", "string", "Hex address of ObjC object")));
+            tools.add(toolSchema("dump_objc_class", "Dump ObjC class definition (properties, methods, ivars). Requires isRunning=false. Modifies registers/stack.",
+                    param("class_name", "string", "Exact ObjC class name, e.g. 'NSString'")));
         }
 
         if (emulator.getFamily() == Family.iOS && emulator.is64Bit()) {
-            tools.add(toolSchema("dump_gpb_protobuf", "Dump a GPB (Google Protobuf for Objective-C) message class definition as .proto format. " +
-                            "IMPORTANT: Cannot be called while emulator is running (isRunning=true). " +
-                            "IMPORTANT LIMITATIONS:\n" +
-                            "1) iOS 64-bit ONLY — this tool is not available on Android emulators.\n" +
-                            "2) Requires the Google Protobuf Objective-C runtime (GPB) library to be loaded in the process.\n" +
-                            "3) The class must be a GPBMessage subclass that responds to the 'descriptor' ObjC selector.\n" +
-                            "4) Only dumps the message DEFINITION (field names, types, numbers) — NOT the actual data/contents of any message instance.\n" +
-                            "5) Internally calls ObjC runtime methods, which WILL modify emulator state (registers, stack). " +
-                            "Save/restore registers manually if needed.\n" +
-                            "6) The class name must be the exact Objective-C class name (e.g. 'MyApp_SearchRequest', not the proto message name).\n" +
-                            "Use list_exports or search_memory to discover GPB class names (they typically have a 'GPB' prefix or contain 'Root' suffix for root classes).",
-                    param("class_name", "string", "Exact Objective-C GPBMessage subclass name, e.g. 'GPBStruct', 'MyApp_SearchRequest'")));
+            tools.add(toolSchema("dump_gpb_protobuf", "Dump GPB protobuf message schema as .proto. iOS 64-bit only. Requires isRunning=false. Modifies registers/stack.",
+                    param("class_name", "string", "GPBMessage subclass name, e.g. 'GPBStruct', 'MyApp_SearchRequest'")));
         }
 
         for (CustomTool ct : customTools) {
@@ -403,43 +296,36 @@ public class McpTools {
 
     private JSONObject checkConnection() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Connected to unidbg emulator\n");
         Family family = emulator.getFamily();
-        sb.append("Family: ").append(family.name()).append('\n');
-        sb.append("Architecture: ").append(emulator.is64Bit() ? "ARM64" : "ARM32").append('\n');
         String backendClass = emulator.getBackend().getClass().getSimpleName();
-        sb.append("Backend: ").append(backendClass).append('\n');
-        sb.append("Backend capabilities: ").append(getBackendCapabilities(backendClass)).append('\n');
-        sb.append("Process: ").append(emulator.getProcessName()).append('\n');
-        sb.append("PID: ").append(emulator.getPid()).append('\n');
-        sb.append("Page size: 0x").append(Long.toHexString(emulator.getPageAlign())).append('\n');
         Debugger debugger = emulator.attach();
         boolean hasRunnable = debugger.hasRunnable();
-        sb.append("Mode: ").append(hasRunnable ? "custom_tools (DebugRunnable set)" : "breakpoint_debug").append('\n');
-        sb.append("Debug idle: ").append(server.isDebugIdle()).append('\n');
-        sb.append("Is running: ").append(emulator.isRunning()).append('\n');
-        sb.append("Breakpoints: ").append(debugger.getBreakPoints().size()).append('\n');
-        sb.append("Pending events: ").append(server.getPendingEventCount()).append('\n');
+        sb.append(family.name()).append(' ').append(emulator.is64Bit() ? "ARM64" : "ARM32")
+                .append(" | ").append(backendClass).append(" (").append(getBackendCapabilities(backendClass)).append(")\n");
+        String processName = emulator.getProcessName();
+        int lastSlash = processName.lastIndexOf('/');
+        sb.append(lastSlash >= 0 ? processName.substring(lastSlash + 1) : processName);
+        sb.append(" | ").append(hasRunnable ? "custom_tools" : "bp_debug")
+                .append(" idle=").append(server.isDebugIdle())
+                .append(" running=").append(emulator.isRunning())
+                .append(" bp=").append(debugger.getBreakPoints().size())
+                .append(" events=").append(server.getPendingEventCount()).append('\n');
         Collection<Module> modules = emulator.getMemory().getLoadedModules();
-        sb.append("Loaded modules: ").append(modules.size()).append('\n');
+        sb.append(modules.size()).append(" modules");
         for (Module m : modules) {
-            sb.append("  ").append(m.name).append(" @ 0x").append(Long.toHexString(m.base)).append('\n');
+            boolean isSystemLib = m.name.startsWith("lib") || m.base > 0x100000000L;
+            if (!isSystemLib) {
+                sb.append(", ").append(m.name).append("@0x").append(Long.toHexString(m.base));
+            }
         }
+        sb.append('\n');
         return textResult(sb.toString());
     }
 
     private static String getBackendCapabilities(String backendClass) {
-        if (backendClass.contains("Unicorn")) {
-            return "FULL — unlimited breakpoints, code/read/write trace, single-step, block hook (next_block), " +
-                    "per-instruction hook (step_until_mnemonic), write trace reports size+value";
-        } else if (backendClass.contains("Hypervisor")) {
-            return "PARTIAL — hardware breakpoints (limited count), 1 code trace at a time, read/write trace via watchpoints (limited count), " +
-                    "write trace cannot report size/value, single-step supported, " +
-                    "NO block hook (next_block unavailable), NO per-instruction hook (step_until_mnemonic unavailable)";
-        } else if (backendClass.contains("Dynarmic") || backendClass.contains("Kvm")) {
-            return "MINIMAL — breakpoints only, NO code/read/write trace, NO single-step, NO block hook, NO per-instruction hook " +
-                    "(trace_code/trace_read/trace_write/step_into/step_over/next_block/step_until_mnemonic unavailable)";
-        }
+        if (backendClass.contains("Unicorn")) return "FULL";
+        if (backendClass.contains("Hypervisor")) return "PARTIAL";
+        if (backendClass.contains("Dynarmic") || backendClass.contains("Kvm")) return "MINIMAL";
         return "unknown";
     }
 
@@ -448,11 +334,32 @@ public class McpTools {
         int size = args.containsKey("size") ? args.getIntValue("size") : 0x70;
         try {
             byte[] data = emulator.getBackend().mem_read(address, size);
-            String dump = Inspector.inspectString(data, "0x" + Long.toHexString(address));
-            return textResult(dump);
+            return textResult(hexDump(data, address));
         } catch (Exception e) {
             return errorResult("Failed to read memory at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
+    }
+
+    private static String hexDump(byte[] data, long baseAddr) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < data.length; i += 16) {
+            sb.append(String.format("%08x: ", baseAddr + i));
+            int end = Math.min(i + 16, data.length);
+            for (int j = i; j < i + 16; j++) {
+                if (j < end) {
+                    sb.append(String.format("%02X ", data[j]));
+                } else {
+                    sb.append("   ");
+                }
+            }
+            sb.append(' ');
+            for (int j = i; j < end; j++) {
+                char c = (char) (data[j] & 0xFF);
+                sb.append(c >= 0x20 && c <= 0x7e ? c : '.');
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 
     private JSONObject writeMemory(JSONObject args) {
@@ -478,12 +385,34 @@ public class McpTools {
 
     private JSONObject listMemoryMap() {
         Collection<MemoryMap> maps = emulator.getMemory().getMemoryMap();
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-18s %-18s %-10s %s%n", "Base", "End", "Size", "Perm"));
+        Memory memory = emulator.getMemory();
+        LinkedHashMap<String, long[]> moduleRanges = new LinkedHashMap<>();
+        List<long[]> anonymous = new ArrayList<>();
         for (MemoryMap map : maps) {
-            String perm = permString(map.prot);
-            sb.append(String.format("0x%016x 0x%016x 0x%-8x %s%n",
-                    map.base, map.base + map.size, map.size, perm));
+            Module module = memory.findModuleByAddress(map.base);
+            if (module != null) {
+                long[] range = moduleRanges.get(module.name);
+                long end = map.base + map.size;
+                if (range == null) {
+                    moduleRanges.put(module.name, new long[]{map.base, end});
+                } else {
+                    if (map.base < range[0]) range[0] = map.base;
+                    if (end > range[1]) range[1] = end;
+                }
+            } else {
+                anonymous.add(new long[]{map.base, map.base + map.size, map.prot});
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(moduleRanges.size()).append(" modules, ").append(anonymous.size()).append(" anonymous:\n");
+        for (Map.Entry<String, long[]> e : moduleRanges.entrySet()) {
+            long[] r = e.getValue();
+            sb.append(e.getKey()).append(" 0x").append(Long.toHexString(r[0]))
+                    .append("-0x").append(Long.toHexString(r[1]))
+                    .append(" 0x").append(Long.toHexString(r[1] - r[0])).append('\n');
+        }
+        for (long[] r : anonymous) {
+            sb.append(String.format("0x%x-0x%x 0x%x %s\n", r[0], r[1], r[1] - r[0], permString((int) r[2])));
         }
         return textResult(sb.toString());
     }
@@ -629,22 +558,38 @@ public class McpTools {
         Backend backend = emulator.getBackend();
         StringBuilder sb = new StringBuilder();
         if (emulator.is64Bit()) {
+            List<String> zeros = new ArrayList<>();
             for (int i = 0; i <= 28; i++) {
                 long val = backend.reg_read(Arm64Const.UC_ARM64_REG_X0 + i).longValue();
-                sb.append(String.format("X%-3d = 0x%016x%n", i, val));
+                if (val == 0) {
+                    zeros.add("X" + i);
+                } else {
+                    sb.append("X").append(i).append("=0x").append(Long.toHexString(val)).append('\n');
+                }
             }
-            sb.append(String.format("FP   = 0x%016x%n", backend.reg_read(Arm64Const.UC_ARM64_REG_FP).longValue()));
-            sb.append(String.format("LR   = 0x%016x%n", backend.reg_read(Arm64Const.UC_ARM64_REG_LR).longValue()));
-            sb.append(String.format("SP   = 0x%016x%n", backend.reg_read(Arm64Const.UC_ARM64_REG_SP).longValue()));
-            sb.append(String.format("PC   = 0x%016x%n", backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue()));
+            sb.append("FP=0x").append(Long.toHexString(backend.reg_read(Arm64Const.UC_ARM64_REG_FP).longValue())).append('\n');
+            sb.append("LR=0x").append(Long.toHexString(backend.reg_read(Arm64Const.UC_ARM64_REG_LR).longValue())).append('\n');
+            sb.append("SP=0x").append(Long.toHexString(backend.reg_read(Arm64Const.UC_ARM64_REG_SP).longValue())).append('\n');
+            sb.append("PC=0x").append(Long.toHexString(backend.reg_read(Arm64Const.UC_ARM64_REG_PC).longValue())).append('\n');
+            if (!zeros.isEmpty()) {
+                sb.append("Zero: ").append(String.join(",", zeros)).append('\n');
+            }
         } else {
+            List<String> zeros = new ArrayList<>();
             for (int i = 0; i <= 12; i++) {
                 long val = backend.reg_read(ArmConst.UC_ARM_REG_R0 + i).intValue() & 0xffffffffL;
-                sb.append(String.format("R%-3d = 0x%08x%n", i, val));
+                if (val == 0) {
+                    zeros.add("R" + i);
+                } else {
+                    sb.append("R").append(i).append("=0x").append(Long.toHexString(val)).append('\n');
+                }
             }
-            sb.append(String.format("SP   = 0x%08x%n", backend.reg_read(ArmConst.UC_ARM_REG_SP).intValue() & 0xffffffffL));
-            sb.append(String.format("LR   = 0x%08x%n", backend.reg_read(ArmConst.UC_ARM_REG_LR).intValue() & 0xffffffffL));
-            sb.append(String.format("PC   = 0x%08x%n", backend.reg_read(ArmConst.UC_ARM_REG_PC).intValue() & 0xffffffffL));
+            sb.append("SP=0x").append(Long.toHexString(backend.reg_read(ArmConst.UC_ARM_REG_SP).intValue() & 0xffffffffL)).append('\n');
+            sb.append("LR=0x").append(Long.toHexString(backend.reg_read(ArmConst.UC_ARM_REG_LR).intValue() & 0xffffffffL)).append('\n');
+            sb.append("PC=0x").append(Long.toHexString(backend.reg_read(ArmConst.UC_ARM_REG_PC).intValue() & 0xffffffffL)).append('\n');
+            if (!zeros.isEmpty()) {
+                sb.append("Zero: ").append(String.join(",", zeros)).append('\n');
+            }
         }
         return textResult(sb.toString());
     }
@@ -916,13 +861,13 @@ public class McpTools {
 
     private JSONObject continueExecution() {
         server.injectCommand("c");
-        return textResult("Execution resumed. Use poll_events to wait for breakpoint_hit or execution_completed.");
+        return textResult("Resumed.");
     }
 
 
     private JSONObject stepOver() {
         server.injectCommand("n");
-        return textResult("Step over. Use poll_events to wait for completion.");
+        return textResult("Stepping over.");
     }
 
     private JSONObject stepInto(JSONObject args) {
@@ -932,7 +877,7 @@ public class McpTools {
         } else {
             server.injectCommand("s" + count);
         }
-        return textResult("Step into (" + count + " instruction" + (count > 1 ? "s" : "") + "). Use poll_events to wait for completion.");
+        return textResult("Stepping " + count + " insn.");
     }
 
     private JSONObject stepOut() {
@@ -956,7 +901,7 @@ public class McpTools {
             }
             server.injectCommand("c");
             String text = result.getJSONArray("content").getJSONObject(0).getString("text");
-            return textResult(text + "\nExecution resumed. Use poll_events to wait for breakpoint_hit when function returns.");
+            return textResult(text + "\nResumed, will break at LR.");
         } catch (Exception e) {
             return errorResult("Step out failed: " + exMsg(e));
         }
@@ -971,7 +916,7 @@ public class McpTools {
             return errorResult("next_block is not supported on " + backendClass + " backend. Only Unicorn/Unicorn2 backends support BlockHook.");
         }
         server.injectCommand("nb");
-        return textResult("Resuming execution, will break at the start of the next basic block. Use poll_events to wait for breakpoint_hit.");
+        return textResult("Resuming, break at next block.");
     }
 
     private JSONObject stepUntilMnemonic(JSONObject args) {
@@ -988,8 +933,7 @@ public class McpTools {
                     " backend. Only Unicorn/Unicorn2 backends support per-instruction hook (setFastDebug).");
         }
         server.injectCommand("s" + mnemonic);
-        return textResult("Resuming execution, will break when a '" + mnemonic +
-                "' instruction is reached. Use poll_events to wait for breakpoint_hit.");
+        return textResult("Resuming, break on '" + mnemonic + "'.");
     }
 
     private JSONObject pollEvents(JSONObject args) {
@@ -1035,7 +979,7 @@ public class McpTools {
             if (breakOn != -1) {
                 msg.append(", will break on address 0x").append(Long.toHexString(breakOn));
             }
-            msg.append(". Trace data will be collected as trace_read events, use poll_events to retrieve.");
+            msg.append(".");
             return textResult(msg.toString());
         } catch (Exception e) {
             return errorResult("Failed to start trace read: " + e.getClass().getName() + ": " + exMsg(e));
@@ -1071,7 +1015,7 @@ public class McpTools {
             if (breakOn != -1) {
                 msg.append(", will break on address 0x").append(Long.toHexString(breakOn));
             }
-            msg.append(". Trace data will be collected as trace_write events, use poll_events to retrieve.");
+            msg.append(".");
             return textResult(msg.toString());
         } catch (Exception e) {
             return errorResult("Failed to start trace write: " + e.getClass().getName() + ": " + exMsg(e));
@@ -1192,7 +1136,7 @@ public class McpTools {
             if (breakOn != -1) {
                 msg.append(", will break on PC 0x").append(Long.toHexString(breakOn));
             }
-            msg.append(". Trace data will be collected as trace_code events, use poll_events to retrieve.");
+            msg.append(".");
             return textResult(msg.toString());
         } catch (Exception e) {
             return errorResult("Failed to start trace code: " + e.getClass().getName() + ": " + exMsg(e));
@@ -1246,13 +1190,9 @@ public class McpTools {
                             " (in " + module.name + "+0x" + Long.toHexString(address - module.base) + ")");
                 }
                 GccDemangler demangler = DemanglerFactory.createDemangler();
-                String sb = "Address: 0x" + Long.toHexString(address) + '\n' +
-                        "Module: " + module.name + '\n' +
-                        "Nearest symbol: " + symbol.getName() + '\n' +
-                        "Demangled: " + demangler.demangle(symbol.getName()) + '\n' +
-                        "Symbol address: 0x" + Long.toHexString(symbol.getAddress()) + '\n' +
-                        "Offset from symbol: +0x" + Long.toHexString(address - symbol.getAddress()) + '\n';
-                return textResult(sb);
+                return textResult("0x" + Long.toHexString(address) + " = " +
+                        module.name + "!" + demangler.demangle(symbol.getName()) +
+                        "+0x" + Long.toHexString(address - symbol.getAddress()));
             }
             if (moduleName != null && symbolName != null) {
                 Module module = emulator.getMemory().findModule(moduleName);
@@ -1264,12 +1204,9 @@ public class McpTools {
                     return errorResult("Symbol '" + symbolName + "' not found in " + moduleName);
                 }
                 GccDemangler demangler = DemanglerFactory.createDemangler();
-                String sb = "Symbol: " + symbol.getName() + '\n' +
-                        "Demangled: " + demangler.demangle(symbol.getName()) + '\n' +
-                        "Address: 0x" + Long.toHexString(symbol.getAddress()) + '\n' +
-                        "Module: " + moduleName + '\n' +
-                        "Offset: 0x" + Long.toHexString(symbol.getAddress() - module.base) + '\n';
-                return textResult(sb);
+                return textResult(demangler.demangle(symbol.getName()) +
+                        " @ 0x" + Long.toHexString(symbol.getAddress()) +
+                        " (" + moduleName + "+0x" + Long.toHexString(symbol.getAddress() - module.base) + ")");
             }
             return errorResult("Provide either (module_name + symbol_name) or (address).");
         } catch (Exception e) {
@@ -1287,14 +1224,11 @@ public class McpTools {
                 len++;
             }
             String str = new String(data, 0, len, java.nio.charset.StandardCharsets.UTF_8);
-            StringBuilder sb = new StringBuilder();
-            sb.append("Address: 0x").append(Long.toHexString(address)).append('\n');
-            sb.append("Length: ").append(len).append(" bytes").append('\n');
-            sb.append("String: ").append(str).append('\n');
+            String result = "\"" + str + "\" (" + len + "B)";
             if (len == maxLength) {
-                sb.append("(truncated, no null terminator found within max_length)");
+                result += " [truncated]";
             }
-            return textResult(sb.toString());
+            return textResult(result);
         } catch (Exception e) {
             return errorResult("Failed to read string at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
@@ -1314,15 +1248,8 @@ public class McpTools {
             byte[] data = stdStr.getData(emulator);
             String str = new String(data, java.nio.charset.StandardCharsets.UTF_8);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("Address: 0x").append(Long.toHexString(address)).append('\n');
-            sb.append("Storage: ").append(isTiny ? "SSO (inline)" : "heap").append('\n');
-            sb.append("Size: ").append(dataSize).append(" bytes").append('\n');
-            sb.append("String: ").append(str).append('\n');
-            if (dataSize > 0) {
-                sb.append("Hex: ").append(Hex.encodeHexString(data)).append('\n');
-            }
-            return textResult(sb.toString());
+            String result = "\"" + str + "\" (" + dataSize + "B, " + (isTiny ? "SSO" : "heap") + ")";
+            return textResult(result);
         } catch (Exception e) {
             return errorResult("Failed to read std::string at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
@@ -1451,7 +1378,7 @@ public class McpTools {
             return errorResult("Cannot call function while emulator is running.");
         }
         long address = parseAddress(args.getString("address"));
-        return doCallFunction(address, null, args);
+        return doCallFunction(address, args);
     }
 
     private JSONObject callSymbol(JSONObject args) {
@@ -1478,11 +1405,10 @@ public class McpTools {
             return errorResult("Symbol '" + symbolName + "' not found in " + moduleName +
                     ". Use list_exports to see available symbols.");
         }
-        String label = moduleName + "!" + symbolName;
-        return doCallFunction(symbol.getAddress(), label, args);
+        return doCallFunction(symbol.getAddress(), args);
     }
 
-    private JSONObject doCallFunction(long address, String label, JSONObject args) {
+    private JSONObject doCallFunction(long address, JSONObject args) {
         JSONArray argsArray = args.getJSONArray("args");
         Object[] funcArgs;
         if (argsArray == null || argsArray.isEmpty()) {
@@ -1500,69 +1426,39 @@ public class McpTools {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Calling ");
-        if (label != null) {
-            sb.append(label).append(" (0x").append(Long.toHexString(address)).append(')');
-        } else {
-            sb.append("0x").append(Long.toHexString(address));
-            Module module = emulator.getMemory().findModuleByAddress(address);
-            if (module != null) {
-                sb.append(" (").append(module.name).append("+0x").append(Long.toHexString(address - module.base)).append(')');
-            }
-        }
-        sb.append(" with ").append(funcArgs.length).append(" arg(s)\n");
-        for (int i = 0; i < funcArgs.length; i++) {
-            Object arg = funcArgs[i];
-            if (arg instanceof Long) {
-                sb.append(String.format("  arg[%d]: 0x%x%n", i, (Long) arg));
-            } else if (arg instanceof String) {
-                sb.append(String.format("  arg[%d]: string \"%s\"%n", i, arg));
-            } else if (arg instanceof byte[]) {
-                sb.append(String.format("  arg[%d]: byte[%d] %s%n", i, ((byte[]) arg).length, Hex.encodeHexString((byte[]) arg)));
-            } else {
-                sb.append(String.format("  arg[%d]: null%n", i));
-            }
-        }
 
         int previewSize = args.containsKey("preview_size") ? args.getIntValue("preview_size") : 64;
 
         try {
             Number result = Module.emulateFunction(emulator, address, funcArgs);
             long retVal = result.longValue();
-            sb.append("\nResult: 0x").append(Long.toHexString(retVal));
-            sb.append(" (").append(retVal).append(")\n");
+            sb.append("ret=0x").append(Long.toHexString(retVal));
+            if (retVal != 0 && retVal < 0x100000) {
+                sb.append(" (").append(retVal).append(')');
+            }
 
             Memory memory = emulator.getMemory();
-            GccDemangler demangler = DemanglerFactory.createDemangler();
             Module retModule = memory.findModuleByAddress(retVal);
             if (retModule != null) {
-                sb.append("  Module: ").append(retModule.name).append("+0x").append(Long.toHexString(retVal - retModule.base));
+                GccDemangler demangler = DemanglerFactory.createDemangler();
+                sb.append(' ').append(retModule.name).append("+0x").append(Long.toHexString(retVal - retModule.base));
                 Symbol sym = retModule.findClosestSymbolByAddress(retVal, false);
                 if (sym != null && retVal - sym.getAddress() <= Unwinder.SYMBOL_SIZE) {
-                    sb.append("  <").append(demangler.demangle(sym.getName())).append('>');
+                    sb.append(" <").append(demangler.demangle(sym.getName())).append('>');
                 }
-                sb.append('\n');
             }
 
             if (retVal > 0x1000 && previewSize > 0) {
                 try {
                     byte[] previewData = emulator.getBackend().mem_read(retVal, previewSize);
-                    int strLen = 0;
-                    boolean printable = true;
-                    while (strLen < previewData.length && previewData[strLen] != 0) {
-                        if (previewData[strLen] < 0x20 || previewData[strLen] > 0x7e) {
-                            printable = false;
-                            break;
-                        }
-                        strLen++;
+                    String str = tryPrintableString(previewData);
+                    if (str != null) {
+                        sb.append(" \"").append(str).append('"');
                     }
-                    if (printable && strLen > 0) {
-                        sb.append("  String: \"").append(new String(previewData, 0, strLen, java.nio.charset.StandardCharsets.UTF_8)).append("\"\n");
-                    }
-                    sb.append("  Hex preview (").append(previewSize).append(" bytes): ").append(Hex.encodeHexString(previewData)).append('\n');
                 } catch (Exception ignored) {
                 }
             }
+            sb.append('\n');
             return textResult(sb.toString());
         } catch (Exception e) {
             sb.append("\nCall FAILED: ").append(e.getClass().getName()).append(": ").append(exMsg(e)).append('\n');
@@ -1591,18 +1487,16 @@ public class McpTools {
         String filter = args != null ? args.getString("filter") : null;
         Collection<Module> modules = emulator.getMemory().getLoadedModules();
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-40s %-18s %-10s%n", "Name", "Base", "Size"));
         int count = 0;
         for (Module m : modules) {
             if (filter != null && !filter.isEmpty() && !m.name.toLowerCase().contains(filter.toLowerCase())) {
                 continue;
             }
-            sb.append(String.format("%-40s 0x%016x 0x%x%n", m.name, m.base, m.size));
+            sb.append(m.name).append(" 0x").append(Long.toHexString(m.base))
+                    .append(" 0x").append(Long.toHexString(m.size)).append('\n');
             count++;
         }
-        if (filter != null && !filter.isEmpty()) {
-            sb.insert(0, String.format("Showing %d of %d modules (filter: '%s')%n", count, modules.size(), filter));
-        }
+        sb.insert(0, count + " modules" + (filter != null && !filter.isEmpty() ? " (filter: '" + filter + "', total: " + modules.size() + ")" : "") + ":\n");
         return textResult(sb.toString());
     }
 
@@ -1613,16 +1507,21 @@ public class McpTools {
             return errorResult("Module not found: " + moduleName);
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Name: ").append(module.name).append('\n');
-        sb.append("Base: 0x").append(Long.toHexString(module.base)).append('\n');
-        sb.append("Size: 0x").append(Long.toHexString(module.size)).append('\n');
-        sb.append("Path: ").append(module.getPath()).append('\n');
+        sb.append(module.name).append(" 0x").append(Long.toHexString(module.base))
+                .append(" size=0x").append(Long.toHexString(module.size)).append('\n');
         Collection<Symbol> exports = module.getExportedSymbols();
-        sb.append("Exported symbols: ").append(exports.size()).append('\n');
-        sb.append("Dependencies: ").append(module.getNeededLibraries().size()).append('\n');
-        for (Module dep : module.getNeededLibraries()) {
-            sb.append("  ").append(dep.name).append('\n');
+        sb.append("exports=").append(exports.size());
+        Collection<Module> deps = module.getNeededLibraries();
+        if (!deps.isEmpty()) {
+            sb.append(" deps=");
+            boolean first = true;
+            for (Module dep : deps) {
+                if (!first) sb.append(',');
+                sb.append(dep.name);
+                first = false;
+            }
         }
+        sb.append('\n');
         return textResult(sb.toString());
     }
 
@@ -1639,6 +1538,8 @@ public class McpTools {
         return textResult("Emulation started: " + tool.name);
     }
 
+    private static final int MAX_EXPORT_LINES = 200;
+
     private JSONObject listExports(JSONObject args) {
         String moduleName = args.getString("module_name");
         String filter = args.getString("filter");
@@ -1649,8 +1550,7 @@ public class McpTools {
             }
             Collection<Symbol> symbols = module.getExportedSymbols();
             if (symbols.isEmpty()) {
-                return textResult("No exported symbols found in " + moduleName +
-                        ". Note: only dynamic/exported symbols are available.");
+                return textResult("No exported symbols in " + moduleName);
             }
             GccDemangler demangler = DemanglerFactory.createDemangler();
             List<String> lines = new ArrayList<>();
@@ -1665,21 +1565,24 @@ public class McpTools {
                 }
                 long addr = symbol.getAddress();
                 String demangled = demangler.demangle(symbol.getName());
-                String line = String.format("0x%x  %s+0x%x  %s", addr, moduleName,
-                        addr - module.base, symbol.getName());
-                if (!demangled.equals(symbol.getName())) {
-                    line += "  (" + demangled + ")";
-                }
+                String line = "+0x" + Long.toHexString(addr - module.base) + " " +
+                        (demangled.equals(symbol.getName()) ? symbol.getName() : demangled);
                 lines.add(line);
             }
             StringBuilder sb = new StringBuilder();
+            boolean truncated = lines.size() > MAX_EXPORT_LINES && (filter == null || filter.isEmpty());
             if (filter != null && !filter.isEmpty()) {
                 sb.append(String.format("Showing %d of %d symbols (filter: '%s')%n", lines.size(), symbols.size(), filter));
             } else {
-                sb.append(String.format("%d exported symbol(s):%n", lines.size()));
+                sb.append(String.format("%d exported symbol(s)%s:%n", lines.size(),
+                        truncated ? " (showing first " + MAX_EXPORT_LINES + ", use filter to narrow)" : ""));
             }
-            for (String line : lines) {
-                sb.append(line).append('\n');
+            int limit = truncated ? MAX_EXPORT_LINES : lines.size();
+            for (int i = 0; i < limit; i++) {
+                sb.append(lines.get(i)).append('\n');
+            }
+            if (truncated) {
+                sb.append("... ").append(lines.size() - MAX_EXPORT_LINES).append(" more symbols omitted. Use filter parameter to search.\n");
             }
             return textResult(sb.toString());
         } catch (Exception e) {
@@ -1743,15 +1646,12 @@ public class McpTools {
             if (initData != null) {
                 pointer.write(0, initData, 0, initData.length);
             }
-            String method = runtime ? "mmap (page-aligned, free anytime)" : "malloc (heap, free requires isRunning=false)";
             StringBuilder sb = new StringBuilder();
-            sb.append("Allocated ").append(size).append(" bytes (0x").append(Integer.toHexString(size))
-                    .append(") at 0x").append(Long.toHexString(pointer.peer))
-                    .append(" via ").append(method);
+            sb.append("0x").append(Long.toHexString(pointer.peer))
+                    .append(" (").append(size).append(" bytes, ").append(runtime ? "mmap" : "malloc").append(')');
             if (initData != null) {
-                sb.append("\nWritten ").append(initData.length).append(" bytes of initial data.");
+                sb.append(" +data");
             }
-            sb.append("\nUse free_memory to release when done.");
             return textResult(sb.toString());
         } catch (Exception e) {
             return errorResult("Failed to allocate memory: " + exMsg(e));
@@ -1773,8 +1673,7 @@ public class McpTools {
         try {
             alloc.block.free();
             allocatedBlocks.remove(address);
-            String method = alloc.runtime ? "munmap" : "libc free";
-            return textResult("Freed memory at 0x" + Long.toHexString(address) + " via " + method + ".");
+            return textResult("Freed 0x" + Long.toHexString(address));
         } catch (Exception e) {
             return errorResult("Failed to free memory at 0x" + Long.toHexString(address) + ": " + exMsg(e));
         }
@@ -1878,15 +1777,9 @@ public class McpTools {
                         sb.append("  (").append(module.name).append("+0x").append(Long.toHexString(val - module.base)).append(')');
                     } else if (val > 0x1000) {
                         try {
-                            byte[] probe = backend.mem_read(val, 64);
-                            int sLen = 0;
-                            boolean printable = true;
-                            while (sLen < probe.length && probe[sLen] != 0) {
-                                if (probe[sLen] < 0x20 || probe[sLen] > 0x7e) { printable = false; break; }
-                                sLen++;
-                            }
-                            if (printable && sLen > 0) {
-                                sb.append("  \"").append(new String(probe, 0, sLen, java.nio.charset.StandardCharsets.UTF_8)).append('"');
+                            String s = tryPrintableString(backend.mem_read(val, 64));
+                            if (s != null) {
+                                sb.append("  \"").append(s).append('"');
                             }
                         } catch (Exception ignored) {
                         }
@@ -1919,8 +1812,7 @@ public class McpTools {
                 return errorResult("Class '" + className + "' not found or returned empty definition. " +
                         "Make sure the class exists in the ObjC runtime.");
             }
-            return textResult("ObjC class dump for " + className + ":\n\n" + classDef +
-                    "\n\nNote: Registers and stack may have been modified by the ObjC runtime calls used to extract this definition.");
+            return textResult(classDef);
         } catch (UnsupportedOperationException e) {
             return errorResult("ObjC class dump not supported: " + exMsg(e));
         } catch (Exception e) {
@@ -1946,9 +1838,7 @@ public class McpTools {
         }
         try {
             String protoDef = emulator.dumpGPBProtobufDef(className);
-            return textResult("GPB Protobuf definition for " + className + ":\n\n" + protoDef +
-                    "\n\nNote: This is the message SCHEMA (field definitions), not actual data. " +
-                    "Registers and stack may have been modified by the ObjC runtime calls used to extract this definition.");
+            return textResult(protoDef);
         } catch (UnsupportedOperationException e) {
             return errorResult("GPB protobuf dump not supported: " + exMsg(e) +
                     ". Ensure the Google Protobuf Objective-C runtime (GPB) library is loaded and the class '" +
@@ -2065,6 +1955,15 @@ public class McpTools {
         return result;
     }
 
+    private static String tryPrintableString(byte[] data) {
+        int len = 0;
+        while (len < data.length && data[len] != 0) {
+            if (data[len] < 0x20 || data[len] > 0x7e) return null;
+            len++;
+        }
+        return len > 0 ? new String(data, 0, len, java.nio.charset.StandardCharsets.UTF_8) : null;
+    }
+
     private static String exMsg(Exception e) {
         String msg = e.getMessage();
         if (msg == null || msg.isEmpty()) {
@@ -2125,14 +2024,14 @@ public class McpTools {
         return p;
     }
 
-    private static JSONObject argsParam(String description) {
+    private static JSONObject argsParam() {
         JSONObject p = new JSONObject(true);
         p.put("_name", "args");
         p.put("type", "array");
         JSONObject items = new JSONObject(true);
         items.put("type", "string");
         p.put("items", items);
-        p.put("description", description);
+        p.put("description", "Args array, format in instructions.");
         return p;
     }
 
