@@ -144,7 +144,7 @@ public abstract class AbstractARMDebugger implements Debugger {
     protected abstract void showWriteHelp();
 
     final boolean handleWriteCommand(Backend backend, String line) {
-        if (!line.startsWith("w")) {
+        if (!line.startsWith("w") || "where".equals(line)) {
             return false;
         }
         String command;

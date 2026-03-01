@@ -83,22 +83,22 @@ public class Hypervisor implements Closeable {
 
     private static native void enable_single_step(long handle, boolean status);
     public void enable_single_step(boolean status) {
-        if (log.isDebugEnabled()) {
-            log.debug("enable_single_step status={}", status);
+        if (log.isTraceEnabled()) {
+            log.trace("enable_single_step status={}", status);
         }
         enable_single_step(nativeHandle, status);
     }
 
     public void install_hw_breakpoint(int n, long address) {
-        if (log.isDebugEnabled()) {
-            log.debug("install_hw_breakpoint n={}, address=0x{}", n, Long.toHexString(address));
+        if (log.isTraceEnabled()) {
+            log.trace("install_hw_breakpoint n={}, address=0x{}", n, Long.toHexString(address));
         }
         install_hw_breakpoint(nativeHandle, n, address);
     }
     private static native void install_hw_breakpoint(long handle, int n, long address);
     public void disable_hw_breakpoint(int n) {
-        if (log.isDebugEnabled()) {
-            log.debug("disable_hw_breakpoint n={}", n);
+        if (log.isTraceEnabled()) {
+            log.trace("disable_hw_breakpoint n={}", n);
         }
         disable_hw_breakpoint(nativeHandle, n);
     }
@@ -192,8 +192,8 @@ public class Hypervisor implements Closeable {
         if (index < 0 || index > 30) {
             throw new IllegalArgumentException("index=" + index);
         }
-        if (log.isTraceEnabled()) {
-            log.trace("reg_write64 index={}, value=0x{}", index, Long.toHexString(value));
+        if (log.isDebugEnabled()) {
+            log.debug("reg_write64 index={}, value=0x{}", index, Long.toHexString(value));
         }
         int ret = reg_write(nativeHandle, index, value);
         if (ret != 0) {
@@ -202,8 +202,8 @@ public class Hypervisor implements Closeable {
     }
 
     public void reg_set_sp64(long value) {
-        if (log.isTraceEnabled()) {
-            log.trace("reg_set_sp64 value=0x{}", Long.toHexString(value));
+        if (log.isDebugEnabled()) {
+            log.debug("reg_set_sp64 value=0x{}", Long.toHexString(value));
         }
         int ret = reg_set_sp64(nativeHandle, value);
         if (ret != 0) {
