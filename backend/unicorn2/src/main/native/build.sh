@@ -2,9 +2,9 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RESOURCES_DIR="$SCRIPT_DIR/../../resources/natives"
-DYNARMIC_HOME="${DYNARMIC_HOME:-$HOME/git/dynarmic}"
-IMAGE_NAME="unidbg-dynarmic-builder"
+RESOURCES_DIR="$SCRIPT_DIR/../resources/natives"
+UNICORN_HOME="${UNICORN_HOME:-$HOME/git/unicorn}"
+IMAGE_NAME="unidbg-unicorn2-builder"
 NPROC=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
 CLEAN=false
@@ -17,14 +17,11 @@ done
 
 cd "$SCRIPT_DIR"
 
-# --- Build dynarmic static libraries ---
+# --- Build unicorn static library ---
 
-CMAKE_COMMON_ARGS="-DCMAKE_BUILD_TYPE=Release -DDYNARMIC_TESTS=OFF -DDYNARMIC_WARNINGS_AS_ERRORS=OFF -DDYNARMIC_USE_BUNDLED_EXTERNALS=ON"
-
-build_dynarmic_lib() {
+build_unicorn_lib() {
     local build_dir="$1"
-    local deployment_target="$2"
-    local extra_cmake_args="$3"
+    local extra_cmake_args="$2"
 
     if $CLEAN && [ -d "$build_dir" ]; then
         echo "  Cleaning $build_dir ..."
@@ -42,8 +39,9 @@ build_dynarmic_lib() {
     pushd "$build_dir" > /dev/null
     if $need_configure; then
         echo "  Configuring in $build_dir ..."
-        cmake .. $CMAKE_COMMON_ARGS \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET="$deployment_target" \
+        cmake .. -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+              -DUNICORN_ARCH="arm;aarch64" \
               $extra_cmake_args
     fi
     echo "  Building in $build_dir ..."
@@ -56,110 +54,100 @@ build_dynarmic_lib() {
 build_osx_arm64() {
     echo "=== Building for osx_arm64 (native) ==="
 
-    build_dynarmic_lib "$DYNARMIC_HOME/build_arm64" 13.0
+    build_unicorn_lib "$UNICORN_HOME/build_arm64" "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
 
     JAVA_INC="$(realpath "$JAVA_HOME"/include)"
     JAVA_PLATFORM_INC="$(dirname "$(find "$JAVA_INC" -name jni_md.h)")"
-    BUILD_DIR="$DYNARMIC_HOME/build_arm64"
 
-    xcrun -sdk macosx clang++ -arch arm64 -o libdynarmic.dylib -shared -std=c++20 -O2 \
-      -mmacosx-version-min=13.0 \
-      -I "$DYNARMIC_HOME/src" \
-      -I "$DYNARMIC_HOME/externals/fmt/include" \
+    xcrun -sdk macosx clang -arch arm64 -o libunicorn.dylib -shared -O3 -DNDEBUG \
+      -mmacosx-version-min=11.0 \
+      -I "$UNICORN_HOME/include" \
       -I "$JAVA_INC" -I "$JAVA_PLATFORM_INC" \
-      -DDYNARMIC_MASTER \
-      dynarmic.cpp arm_dynarmic_cp15.cpp \
-      "$BUILD_DIR/src/dynarmic/libdynarmic.a" \
-      "$BUILD_DIR/externals/mcl/src/libmcl.a" \
-      "$BUILD_DIR/externals/fmt/libfmt.a"
+      -fPIC -Wall -Wno-missing-braces \
+      unicorn.c sample_arm.c sample_arm64.c \
+      "$UNICORN_HOME/build_arm64/libunicorn.a"
 
     mkdir -p "$RESOURCES_DIR/osx_arm64"
-    mv libdynarmic.dylib "$RESOURCES_DIR/osx_arm64/"
+    mv libunicorn.dylib "$RESOURCES_DIR/osx_arm64/"
 
-    echo "Done: $RESOURCES_DIR/osx_arm64/libdynarmic.dylib"
-    ls -l "$RESOURCES_DIR/osx_arm64/libdynarmic.dylib"
+    echo "Done: $RESOURCES_DIR/osx_arm64/libunicorn.dylib"
+    ls -l "$RESOURCES_DIR/osx_arm64/libunicorn.dylib"
     echo
 }
 
 build_osx_64() {
     echo "=== Building for osx_64 (cross-compile x86_64) ==="
 
-    build_dynarmic_lib "$DYNARMIC_HOME/build_x86_64" 10.15 "-DCMAKE_OSX_ARCHITECTURES=x86_64"
+    build_unicorn_lib "$UNICORN_HOME/build_x86_64" \
+        "-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
 
     JAVA_INC="$(realpath "$JAVA_HOME"/include)"
     JAVA_PLATFORM_INC="$(dirname "$(find "$JAVA_INC" -name jni_md.h)")"
-    BUILD_DIR="$DYNARMIC_HOME/build_x86_64"
 
-    xcrun -sdk macosx clang++ -arch x86_64 -o libdynarmic.dylib -shared -std=c++20 -O2 \
+    xcrun -sdk macosx clang -arch x86_64 -o libunicorn.dylib -shared -O3 -DNDEBUG \
       -mmacosx-version-min=10.15 \
-      -I "$DYNARMIC_HOME/src" \
-      -I "$DYNARMIC_HOME/externals/fmt/include" \
+      -I "$UNICORN_HOME/include" \
       -I "$JAVA_INC" -I "$JAVA_PLATFORM_INC" \
-      -DDYNARMIC_MASTER \
-      dynarmic.cpp arm_dynarmic_cp15.cpp \
-      "$BUILD_DIR/src/dynarmic/libdynarmic.a" \
-      "$BUILD_DIR/externals/mcl/src/libmcl.a" \
-      "$BUILD_DIR/externals/fmt/libfmt.a" \
-      "$BUILD_DIR/externals/zydis/libZydis.a"
+      -fPIC -Wall -Wno-missing-braces \
+      unicorn.c sample_arm.c sample_arm64.c \
+      "$UNICORN_HOME/build_x86_64/libunicorn.a"
 
     mkdir -p "$RESOURCES_DIR/osx_64"
-    mv libdynarmic.dylib "$RESOURCES_DIR/osx_64/"
+    mv libunicorn.dylib "$RESOURCES_DIR/osx_64/"
 
-    echo "Done: $RESOURCES_DIR/osx_64/libdynarmic.dylib"
-    ls -l "$RESOURCES_DIR/osx_64/libdynarmic.dylib"
+    echo "Done: $RESOURCES_DIR/osx_64/libunicorn.dylib"
+    ls -l "$RESOURCES_DIR/osx_64/libunicorn.dylib"
     echo
 }
 
 # --- Docker builds (cross-compilation for Linux / Windows) ---
 
-get_dynarmic_commit() {
-    git -C "$DYNARMIC_HOME" rev-parse HEAD 2>/dev/null || echo "unknown"
+get_unicorn_commit() {
+    git -C "$UNICORN_HOME" rev-parse HEAD 2>/dev/null || echo "unknown"
 }
 
 build_linux() {
     local platform=$1
     local output_dir=$2
-    shift 2
-    local extra_args="$@"
 
     echo "=== Building for $output_dir ($platform) ==="
 
-    local docker_args="--build-arg DYNARMIC_COMMIT=$(get_dynarmic_commit)"
+    local docker_args="--build-arg UNICORN_COMMIT=$(get_unicorn_commit)"
     if $CLEAN; then
         docker_args="$docker_args --no-cache"
     fi
 
-    docker build --platform "$platform" $docker_args $extra_args -t "${IMAGE_NAME}-${output_dir}" .
+    docker build --platform "$platform" $docker_args -t "${IMAGE_NAME}-${output_dir}" .
 
-    echo "Extracting libdynarmic.so..."
+    echo "Extracting libunicorn.so..."
     mkdir -p "$RESOURCES_DIR/$output_dir"
     CONTAINER_ID=$(docker create --platform "$platform" "${IMAGE_NAME}-${output_dir}")
-    docker cp "$CONTAINER_ID:/build/jni/build/libdynarmic.so" "$RESOURCES_DIR/$output_dir/libdynarmic.so"
+    docker cp "$CONTAINER_ID:/build/jni/build/libunicorn.so" "$RESOURCES_DIR/$output_dir/libunicorn.so"
     docker rm "$CONTAINER_ID" > /dev/null
 
-    echo "Done: $RESOURCES_DIR/$output_dir/libdynarmic.so"
-    ls -l "$RESOURCES_DIR/$output_dir/libdynarmic.so"
+    echo "Done: $RESOURCES_DIR/$output_dir/libunicorn.so"
+    ls -l "$RESOURCES_DIR/$output_dir/libunicorn.so"
     echo
 }
 
 build_windows() {
     echo "=== Building for windows_64 (MinGW cross-compilation) ==="
 
-    local docker_args="--build-arg DYNARMIC_COMMIT=$(get_dynarmic_commit)"
+    local docker_args="--build-arg UNICORN_COMMIT=$(get_unicorn_commit)"
     if $CLEAN; then
         docker_args="$docker_args --no-cache"
     fi
 
     docker build $docker_args -f Dockerfile.windows -t "${IMAGE_NAME}-windows_64" .
 
-    echo "Extracting dynarmic.dll..."
+    echo "Extracting unicorn.dll..."
     mkdir -p "$RESOURCES_DIR/windows_64"
     CONTAINER_ID=$(docker create "${IMAGE_NAME}-windows_64")
-    docker cp "$CONTAINER_ID:/build/jni/dynarmic.dll" "$RESOURCES_DIR/windows_64/dynarmic.dll"
+    docker cp "$CONTAINER_ID:/build/jni/unicorn.dll" "$RESOURCES_DIR/windows_64/unicorn.dll"
     docker rm "$CONTAINER_ID" > /dev/null
 
-    echo "Done: $RESOURCES_DIR/windows_64/dynarmic.dll"
-    ls -l "$RESOURCES_DIR/windows_64/dynarmic.dll"
+    echo "Done: $RESOURCES_DIR/windows_64/unicorn.dll"
+    ls -l "$RESOURCES_DIR/windows_64/unicorn.dll"
     echo
 }
 
@@ -179,7 +167,7 @@ case "$TARGET" in
         build_osx_64
         ;;
     linux_arm64)
-        build_linux linux/arm64 linux_arm64 --build-arg DEVTOOLSET=devtoolset-10
+        build_linux linux/arm64 linux_arm64
         ;;
     linux_64)
         build_linux linux/amd64 linux_64
@@ -188,14 +176,14 @@ case "$TARGET" in
         build_windows
         ;;
     docker)
-        build_linux linux/arm64 linux_arm64 --build-arg DEVTOOLSET=devtoolset-10
+        build_linux linux/arm64 linux_arm64
         build_linux linux/amd64 linux_64
         build_windows
         ;;
     all)
         build_osx_arm64
         build_osx_64
-        build_linux linux/arm64 linux_arm64 --build-arg DEVTOOLSET=devtoolset-10
+        build_linux linux/arm64 linux_arm64
         build_linux linux/amd64 linux_64
         build_windows
         ;;
