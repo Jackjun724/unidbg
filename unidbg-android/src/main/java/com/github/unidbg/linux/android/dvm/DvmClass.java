@@ -34,6 +34,24 @@ public class DvmClass extends DvmObject<Class<?>> {
         this.className = className;
     }
 
+    public void setMethodID(int methodID, DvmMethod dvmMethod) {
+        if (!staticMethodMap.containsKey(methodID)) {
+            staticMethodMap.put(methodID, dvmMethod);
+        }
+        if (!methodMap.containsKey(methodID)) {
+            methodMap.put(methodID, dvmMethod);
+        }
+    }
+
+    public void setFieldId(int fieldID, DvmField dvmField) {
+        if (!staticFieldMap.containsKey(fieldID)) {
+            staticFieldMap.put(fieldID, dvmField);
+        }
+        if (!fieldMap.containsKey(fieldID)) {
+            fieldMap.put(fieldID, dvmField);
+        }
+    }
+
     @SuppressWarnings("unused")
     public DvmClass getSuperclass() {
         return superClass;

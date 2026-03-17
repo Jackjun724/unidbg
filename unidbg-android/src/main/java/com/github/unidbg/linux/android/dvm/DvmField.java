@@ -12,7 +12,7 @@ public class DvmField extends Hashable {
     final String fieldType;
     private final boolean isStatic;
 
-    DvmField(DvmClass dvmClass, String fieldName, String fieldType, boolean isStatic) {
+    public DvmField(DvmClass dvmClass, String fieldName, String fieldType, boolean isStatic) {
         this.dvmClass = dvmClass;
         this.fieldName = fieldName;
         this.fieldType = fieldType;

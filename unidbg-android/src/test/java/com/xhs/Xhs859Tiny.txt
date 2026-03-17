@@ -1,0 +1,225 @@
+package com.xhs;
+
+import com.github.unidbg.AndroidEmulator;
+import com.github.unidbg.Emulator;
+import com.github.unidbg.Module;
+import com.github.unidbg.arm.backend.Unicorn2Factory;
+import com.github.unidbg.arm.context.EditableArm64RegisterContext;
+import com.github.unidbg.linux.ARM64SyscallHandler;
+import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
+import com.github.unidbg.linux.android.AndroidResolver;
+import com.github.unidbg.linux.android.dvm.*;
+import com.github.unidbg.linux.android.dvm.array.ArrayObject;
+import com.github.unidbg.linux.android.dvm.wrapper.DvmBoolean;
+import com.github.unidbg.linux.android.dvm.wrapper.DvmInteger;
+import com.github.unidbg.memory.Memory;
+import com.github.unidbg.memory.SvcMemory;
+import com.github.unidbg.virtualmodule.android.AndroidModule;
+import com.github.unidbg.virtualmodule.android.JniGraphics;
+import com.github.unidbg.virtualmodule.android.MediaNdkModule;
+
+import java.io.File;
+import java.lang.reflect.Field;
+
+public class Xhs859Tiny extends AbstractJni {
+
+    private final AndroidEmulator emulator;
+    private final VM vm;
+    private final Module module;
+    private final DvmClass tinyT;
+
+    Xhs859Tiny() {
+        // 第一步:创建64位模拟器
+        emulator = AndroidEmulatorBuilder.for64Bit()
+                .setProcessName("com.xingin.xhs")
+                .addBackendFactory(new Unicorn2Factory(true))
+                .build();
+
+        // 第二步:通过反射替换SyscallHandler,处理缺失的syscall 0x103
+        patchSyscallHandler();
+
+        final Memory memory = emulator.getMemory();
+        memory.setLibraryResolver(new AndroidResolver(23));
+
+        vm = emulator.createDalvikVM(new File("C:\\Users\\Administrator\\Desktop\\999\\unidbg-master\\unidbg-android\\src\\test\\java\\com\\xhs\\xhs8_59_0.apk"));
+        vm.setVerbose(true);
+        vm.setJni(this);
+
+        new MediaNdkModule(emulator, vm).register(memory);
+        new AndroidModule(emulator, vm).register(memory);
+        new JniGraphics(emulator, vm).register(memory);
+        DalvikModule dm = vm.loadLibrary(new File("C:\\Users\\Administrator\\Desktop\\999\\unidbg-master\\unidbg-android\\src\\test\\java\\com\\xhs\\libtiny.so"), true);
+        module = dm.getModule();
+        dm.callJNI_OnLoad(emulator);
+        tinyT = vm.resolveClass("com/xingin/tiny/internal/t");
+    }
+
+    /**
+     * 核心补丁:通过反射替换SyscallHandler来处理syscall 0x103
+     * 参考看雪文章中处理prctl syscall的思路
+     */
+    private void patchSyscallHandler() {
+        try {
+            Field syscallHandlerField = emulator.getClass().getSuperclass().getDeclaredField("syscallHandler");
+            syscallHandlerField.setAccessible(true);
+
+            ARM64SyscallHandler originalHandler = (ARM64SyscallHandler) syscallHandlerField.get(emulator);
+
+            Field svcMemoryField = ARM64SyscallHandler.class.getDeclaredField("svcMemory");
+            svcMemoryField.setAccessible(true);
+            SvcMemory svcMemory = (SvcMemory) svcMemoryField.get(originalHandler);
+
+            // 创建自定义handler,处理缺失的syscall
+            ARM64SyscallHandler customHandler = new ARM64SyscallHandler(svcMemory) {
+                @Override
+                protected boolean handleUnknownSyscall(Emulator<?> emulator, int NR) {
+                    if (NR == 0x103) {  // 259
+                        System.out.println("[PATCH] Syscall 0x103 handled!");
+                        EditableArm64RegisterContext context = emulator.getContext();
+                        context.setXLong(0, 100);
+                        return true;
+                    }
+                    return super.handleUnknownSyscall(emulator, NR);
+                }
+            };
+
+            syscallHandlerField.set(emulator, customHandler);
+            System.out.println("[SUCCESS] SyscallHandler patched!");
+        } catch (Exception e) {
+            System.err.println("[ERROR] Patch failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 补环境:处理反射Method相关调用
+     * 参考看雪文章中的补环境思路
+     */
+    @Override
+    public DvmObject<?> callStaticObjectMethodV(BaseVM vm, DvmClass dvmClass, String signature, VaList vaList) {
+        switch (signature) {
+            case "com/xingin/tiny/internal/t->b(I[Ljava/lang/Object;)Ljava/lang/Object;": {
+                int i = vaList.getIntArg(0);
+                System.out.println("[JNI] Tiny.t.b i=" + i);
+                switch (i) {
+                    case -1939572706: {
+                        // 处理反射获取Method
+                        ArrayObject arrayObject = vaList.getObjectArg(1);
+                        DvmClass clazz = (DvmClass) arrayObject.getValue()[0];
+                        String methodName = (String) arrayObject.getValue()[1].getValue();
+                        DvmObject[] signatureArgs = (DvmObject[]) arrayObject.getValue()[2].getValue();
+
+                        StringBuilder methodSignature = new StringBuilder("(");
+                        for (DvmObject signatureArg : signatureArgs) {
+                            if (signatureArg.getValue().getClass() == String.class) {
+                                methodSignature.append("L")
+                                        .append(signatureArg.getValue().getClass().getName().replaceAll("\\.", "/"))
+                                        .append(";");
+                            } else {
+                                methodSignature.append(signatureArg.getValue().getClass().getName());
+                            }
+                        }
+                        methodSignature.append(")Ljava/lang/Object;");
+
+                        System.out.println("[REFLECT] " + methodName + methodSignature);
+
+                        DvmMethod dvmMethod = new DvmMethod(clazz, methodName, methodSignature.toString(), true);
+                        DvmObject result = vm.resolveClass("java/lang/reflect/Method").newObject(dvmMethod);
+                        clazz.setMethodID(result.hashCode(), dvmMethod);
+
+                        System.out.println("[REFLECT] setMethodId: 0x" + Integer.toHexString(result.hashCode()));
+                        return result;
+                    }
+                    // 这里可以根据文章继续添加其他case的补环境
+                }
+            }
+        }
+        return super.callStaticObjectMethodV(vm, dvmClass, signature, vaList);
+    }
+
+    /**
+     * 补环境:处理Float相关方法
+     */
+    @Override
+    public float callFloatMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+        switch (signature) {
+            case "java/lang/Float->floatValue()F": {
+                return ((Double) dvmObject.getValue()).floatValue();
+            }
+        }
+        return super.callFloatMethodV(vm, dvmObject, signature, vaList);
+    }
+
+    /**
+     * 补环境:处理Boolean相关方法
+     */
+    @Override
+    public boolean callBooleanMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+        switch (signature) {
+            case "java/lang/Boolean->booleanValue()Z": {
+                return (boolean) dvmObject.getValue();
+            }
+        }
+        return super.callBooleanMethodV(vm, dvmObject, signature, vaList);
+    }
+
+    /**
+     * 补环境:处理Object方法
+     */
+    @Override
+    public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
+        switch (signature) {
+            case "android/content/Context->getPackageCodePath()Ljava/lang/String;": {
+                return new StringObject(vm, "/data/app/com.xingin.xhs/base.apk");
+            }
+            case "android/content/Context->getAssets()Landroid/content/res/AssetManager;": {
+                return new DvmObject<>(vm) {};
+            }
+            case "android/content/Context->getPackageName()Ljava/lang/String;": {
+                return new StringObject(vm, "com.xingin.xhs");
+            }
+        }
+        return super.callObjectMethodV(vm, dvmObject, signature, vaList);
+    }
+
+    /**
+     * 调用初始化函数
+     */
+    public void callInit() {
+        String method = "a(I[Ljava/lang/Object;)Ljava/lang/Object;";
+        int i = 1853701372;
+        ArrayObject objArr = new ArrayObject();
+        DvmObject result = tinyT.callStaticJniMethodObject(emulator, method, i, objArr);
+        System.out.println("[RESULT] " + result);
+    }
+
+    /**
+     * 调用第二个初始化函数(参考看雪文章)
+     */
+    public void callInit2() {
+        String method = "a(I[Ljava/lang/Object;)Ljava/lang/Object;";
+        int i = -1681571521;
+        ArrayObject objArr = new ArrayObject(
+            new StringObject(vm, "ECFAAF01"),
+            new StringObject(vm, "vivo"),
+            DvmInteger.valueOf(vm, 0),
+            DvmBoolean.valueOf(vm, true),
+            DvmBoolean.valueOf(vm, false),
+            DvmBoolean.valueOf(vm, false),
+            vm.resolveClass("java/lang/Float").newObject(1.0),
+            DvmBoolean.valueOf(vm, false),
+            DvmBoolean.valueOf(vm, false),
+            DvmBoolean.valueOf(vm, false),
+            DvmBoolean.valueOf(vm, false),
+            DvmBoolean.valueOf(vm, false)
+        );
+        DvmObject result = tinyT.callStaticJniMethodObject(emulator, method, i, objArr);
+        System.out.println("[RESULT] " + result);
+    }
+
+    public static void main(String[] args) {
+        Xhs859Tiny demo = new Xhs859Tiny();
+        demo.callInit();
+        // demo.callInit2();  // 第二个初始化函数
+    }
+}

@@ -14,7 +14,7 @@ public class DvmMethod extends Hashable {
     final String args;
     final boolean isStatic;
 
-    DvmMethod(DvmClass dvmClass, String methodName, String args, boolean isStatic) {
+    public DvmMethod(DvmClass dvmClass, String methodName, String args, boolean isStatic) {
         this.dvmClass = dvmClass;
         this.methodName = methodName;
         this.args = args;

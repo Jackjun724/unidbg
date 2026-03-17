@@ -194,7 +194,8 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
 
     @Override
     public int getPid() {
-        return pid;
+//        return pid;
+        return 100;
     }
 
     @Override
@@ -293,7 +294,7 @@ public abstract class AbstractEmulator<T extends NewFileIO> implements Emulator<
         this.timeout = timeout;
     }
 
-    private boolean running;
+    public boolean running;
 
     @Override
     public boolean isRunning() {

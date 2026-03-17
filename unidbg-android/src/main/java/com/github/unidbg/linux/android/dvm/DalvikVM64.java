@@ -87,14 +87,18 @@ public class DalvikVM64 extends BaseVM implements VM {
         Pointer _FromReflectedMethod = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer jmethodID = context.getPointerArg(1);
+                return jmethodID.toIntPeer();
             }
         });
 
         Pointer _FromReflectedField = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer jfieldID = context.getPointerArg(1);
+                return jfieldID.toIntPeer();
             }
         });
 
@@ -125,7 +129,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                     return addLocalObject(dvmMethod.toReflectedMethod());
                 }
             }
-        }) ;
+        });
 
         Pointer _GetSuperclass = svcMemory.registerSvc(new Arm64Svc() {
             @Override
@@ -3475,7 +3479,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                 if (log.isDebugEnabled()) {
                     log.debug("GetStringRegion string={}, value={}, start={}, length={}, buf{}, lr={}", string, value, start, length, buf, context.getLRPointer());
                 }
-                byte[] data = Arrays.copyOfRange(bytes, start, start+length+1);
+                byte[] data = Arrays.copyOfRange(bytes, start, start + length + 1);
                 buf.write(0, data, 0, data.length);
                 return JNI_OK;
             }
@@ -3499,7 +3503,7 @@ public class DalvikVM64 extends BaseVM implements VM {
                 if (log.isDebugEnabled()) {
                     log.debug("GetStringUTFRegion string={}, value={}, start={}, length={}, buf{}, lr={}", string, value, start, length, buf, context.getLRPointer());
                 }
-                byte[] data = Arrays.copyOfRange(bytes, start, start+length+1);
+                byte[] data = Arrays.copyOfRange(bytes, start, start + length + 1);
                 buf.write(0, data, 0, data.length);
                 return JNI_OK;
             }

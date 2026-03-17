@@ -182,7 +182,8 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
     protected abstract T createByteArrayFileIO(String pathname, int oflags, byte[] data);
 
     protected long currentTimeMillis() {
-        return System.currentTimeMillis();
+//        return System.currentTimeMillis();
+        return 1773776029582L;
     }
 
     @SuppressWarnings("unused")
@@ -574,9 +575,9 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
     }
 
     protected int getrandom(Pointer buf, int bufSize, int flags) {
-        Random random = new Random();
+        // Random random = new Random();
         byte[] bytes = new byte[bufSize];
-        random.nextBytes(bytes);
+        // random.nextBytes(bytes);
         buf.write(0, bytes, 0, bytes.length);
         if (log.isDebugEnabled()) {
             log.debug(Inspector.inspectString(bytes, "getrandom buf=" + buf + ", bufSize=" + bufSize + ", flags=0x" + Integer.toHexString(flags)));

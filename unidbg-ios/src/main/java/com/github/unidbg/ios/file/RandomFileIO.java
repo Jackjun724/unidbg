@@ -29,7 +29,7 @@ public class RandomFileIO extends DriverFileIO {
     }
 
     protected void randBytes(byte[] bytes) {
-        ThreadLocalRandom.current().nextBytes(bytes);
+//        ThreadLocalRandom.current().nextBytes(bytes);
     }
 
 }

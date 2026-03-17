@@ -1169,6 +1169,8 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
         return pointer.toUIntPeer();
     }
 
+    private static final int PR_SET_DUMPABLE = 3;
+    private static final int PR_GET_NO_NEW_PRIVS = 39;
     private static final int PR_SET_NAME = 15;
     private static final int PR_SET_NO_NEW_PRIVS = 38;
     private static final int PR_SET_THP_DISABLE = 41;
@@ -1205,6 +1207,8 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
                 return 0;
             case PR_SET_NO_NEW_PRIVS:
             case PR_SET_THP_DISABLE:
+            case PR_SET_DUMPABLE:
+            case PR_GET_NO_NEW_PRIVS:
                 return 0;
             default:
                 throw new UnsupportedOperationException("option=" + option);
@@ -1224,7 +1228,9 @@ public class ARM64SyscallHandler extends AndroidSyscallHandler {
         RegisterContext context = emulator.getContext();
         int clk_id = context.getIntArg(0) & 0x7;
         Pointer tp = context.getPointerArg(1);
-        long offset = clk_id == CLOCK_REALTIME ? currentTimeMillis() * 1000000L : System.nanoTime() - nanoTime;
+//        long offset = clk_id == CLOCK_REALTIME ? currentTimeMillis() * 1000000L : System.nanoTime() - nanoTime;
+        long offset = clk_id == CLOCK_REALTIME ? currentTimeMillis() * 1000000L : 100000L;
+
         long tv_sec = offset / 1000000000L;
         long tv_nsec = offset % 1000000000L;
         if (log.isDebugEnabled()) {
