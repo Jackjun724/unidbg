@@ -4,11 +4,9 @@ import com.github.unidbg.AndroidEmulator;
 import com.github.unidbg.Emulator;
 import com.github.unidbg.Module;
 import com.github.unidbg.arm.backend.Unicorn2Factory;
+import com.github.unidbg.arm.context.RegisterContext;
 import com.github.unidbg.debugger.BreakPointCallback;
 import com.github.unidbg.debugger.Debugger;
-import com.github.unidbg.file.FileResult;
-import com.github.unidbg.file.IOResolver;
-import com.github.unidbg.file.linux.AndroidFileIO;
 import com.github.unidbg.linux.android.AndroidEmulatorBuilder;
 import com.github.unidbg.linux.android.AndroidResolver;
 import com.github.unidbg.linux.android.dvm.*;
@@ -18,14 +16,10 @@ import com.github.unidbg.linux.android.dvm.jni.ProxyDvmObject;
 import com.github.unidbg.linux.android.dvm.wrapper.DvmBoolean;
 import com.github.unidbg.linux.android.dvm.wrapper.DvmInteger;
 import com.github.unidbg.linux.android.dvm.wrapper.DvmLong;
-import com.github.unidbg.linux.file.ByteArrayFileIO;
-import com.github.unidbg.linux.file.DirectoryFileIO;
-import com.github.unidbg.linux.file.SimpleFileIO;
 import com.github.unidbg.memory.Memory;
+import com.github.unidbg.pointer.UnidbgPointer;
+import com.github.unidbg.utils.Inspector;
 import com.github.unidbg.virtualmodule.android.AndroidModule;
-import com.github.unidbg.virtualmodule.android.JniGraphics;
-import com.github.unidbg.virtualmodule.android.MediaNdkModule;
-import unicorn.Arm64Const;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -91,10 +85,13 @@ public class demo1 extends AbstractJni {
 
     public void hook() {
         Debugger debugger = emulator.attach();
-        // BASE64
+        // S1 -> BASE64
 //        debugger.addBreakPoint(module.base + 0x7329F4);
-        debugger.addBreakPoint(module.base + 0x72436C);
+        // S1 -> SHA
+//        debugger.addBreakPoint(module.base + 0x72436C);
 
+        // jni hash -> put
+//        debugger.addBreakPoint(module.base + 0x17EC24);
 
 // 方法2: 如果是 JNI 方法，可以直接 hook 方法返回
 //        debugger.addBreakPoint(module.base + 0x22c40);
@@ -162,20 +159,20 @@ public class demo1 extends AbstractJni {
 //        });
 
 //        debugger.addBreakPoint(module.base + 0x2636C);
-//        emulator.traceWrite(0x404d3300,0x404d3300+48);
+        emulator.traceWrite(0x12b284b0, 0x12b284b0 + 64);
 
-//
-//        debugger.addBreakPoint(module.findSymbolByName("memcpy").getAddress(), new BreakPointCallback() {
-//            @Override
-//            public boolean onHit(Emulator<?> emulator, long address) {
-//                RegisterContext context = emulator.getContext();
-//                int len = context.getIntArg(2);
-//                UnidbgPointer pointer1 = context.getPointerArg(0);
-//                UnidbgPointer pointer2 = context.getPointerArg(1);
-//                Inspector.inspect(pointer2.getByteArray(0, len), "dest " + Long.toHexString(pointer1.peer) + " src " + Long.toHexString(pointer2.peer));
-//                return true;
-//            }
-//        });
+
+        debugger.addBreakPoint(module.findSymbolByName("memcpy").getAddress(), new BreakPointCallback() {
+            @Override
+            public boolean onHit(Emulator<?> emulator, long address) {
+                RegisterContext context = emulator.getContext();
+                int len = context.getIntArg(2);
+                UnidbgPointer pointer1 = context.getPointerArg(0);
+                UnidbgPointer pointer2 = context.getPointerArg(1);
+                Inspector.inspect(pointer2.getByteArray(0, len), "memcpy dest " + Long.toHexString(pointer1.peer) + " src " + Long.toHexString(pointer2.peer));
+                return true;
+            }
+        });
     }
 
     public void trace() {
@@ -547,7 +544,7 @@ public class demo1 extends AbstractJni {
                 "ug_role=-1",
                 null
         );
-        Map mapResult =  (Map)result.getValue();
+        Map mapResult = (Map) result.getValue();
         System.out.println("mapResult:" + mapResult);
     }
 
