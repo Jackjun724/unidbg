@@ -161,7 +161,6 @@ public class demo1 extends AbstractJni {
 //        debugger.addBreakPoint(module.base + 0x2636C);
         emulator.traceWrite(0x12b284b0, 0x12b284b0 + 64);
 
-
         debugger.addBreakPoint(module.findSymbolByName("memcpy").getAddress(), new BreakPointCallback() {
             @Override
             public boolean onHit(Emulator<?> emulator, long address) {
@@ -172,6 +171,25 @@ public class demo1 extends AbstractJni {
                 Inspector.inspect(pointer2.getByteArray(0, len), "memcpy dest " + Long.toHexString(pointer1.peer) + " src " + Long.toHexString(pointer2.peer));
                 return true;
             }
+        });
+
+        debugger.addBreakPoint(module.base + 0x547210, (emulator, address) -> {
+            RegisterContext context = emulator.getContext();
+            UnidbgPointer dest = context.getPointerArg(0);   // x0 = dest
+            UnidbgPointer src = context.getPointerArg(1);    // x1 = src
+            int len = context.getIntArg(2);                  // x2 = length
+
+            if (len > 0 && len < 0x10000 && src != null) {
+                Inspector.inspect(src.getByteArray(0, len),
+                        "custom memcpy dest=0x" + Long.toHexString(dest.peer) +
+                                " src=0x" + Long.toHexString(src.peer) +
+                                " len=" + len);
+            } else {
+                System.out.println("custom memcpy dest=0x" + Long.toHexString(dest.peer) +
+                        " src=0x" + (src != null ? Long.toHexString(src.peer) : "null") +
+                        " len=" + len);
+            }
+            return false; // true = continue execution, false = pause at breakpoint
         });
     }
 
