@@ -22,24 +22,44 @@ import org.slf4j.LoggerFactory;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class UnixSyscallHandler<T extends NewFileIO> implements SyscallHandler<T> {
 
+    protected static final int SIGBUS = 7; /* BUS error (4.2 BSD).  */
+    protected static final int SIGCHLD = 17;
     private static final Logger log = LoggerFactory.getLogger(UnixSyscallHandler.class);
-
-    private final List<IOResolver<T>> resolvers = new ArrayList<>(5);
-
+    private static final Pattern FD_PATTERN = Pattern.compile("/proc/self/fd/(\\d+)");
+    private static final int SIGHUP = 1;
+    private static final int SIGINT = 2;
+    private static final int SIGQUIT = 3;
+    private static final int SIGILL = 4;
+    private static final int SIGTRAP = 5; /* Trace trap (POSIX).  */
+    private static final int SIGABRT = 6;
+    private static final int SIGFPE = 8; /* Floating-point exception (ANSI).  */
+    private static final int SIGUSR1 = 10;
+    private static final int SIGSEGV = 11;
+    private static final int SIGUSR2 = 12;
+    private static final int SIGPIPE = 13;
+    private static final int SIGALRM = 14;
+    private static final int SIGTERM = 15;
+    private static final int SIGCONT = 18;
+    private static final int SIGTSTP = 20;
+    private static final int SIGTTIN = 21;
+    private static final int SIGTTOU = 22;
+    private static final int SIGWINCH = 28;
+    private static final int SIGSYS = 31; /* Bad system call.  */
+    private static final int SIGRTMIN = 32;
     protected final Map<Integer, T> fdMap = new TreeMap<>();
+    private final List<IOResolver<T>> resolvers = new ArrayList<>(5);
+    private final Map<Integer, byte[]> sigMap = new HashMap<>();
+    protected boolean verbose;
+    protected boolean threadDispatcherEnabled;
+    private int count = 100;
+    private FileListener fileListener;
+    private Breaker breaker;
 
     @Override
     public FileIO getFileIO(int fd) {
@@ -54,15 +74,6 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         }
     }
 
-    protected boolean verbose;
-
-    @Override
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    private FileListener fileListener;
-
     public void setFileListener(FileListener fileListener) {
         this.fileListener = fileListener;
     }
@@ -72,7 +83,10 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         return verbose;
     }
 
-    private Breaker breaker;
+    @Override
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
 
     @Override
     public void setBreaker(Breaker breaker) {
@@ -153,7 +167,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         if (failResult != null && failResult.isFallback()) {
             return FileResult.success(failResult.io);
         }
-        
+
         if (pathname.startsWith("/proc/" + emulator.getPid() + "/fd/") || pathname.startsWith("/proc/self/fd/")) {
             int fd = Integer.parseInt(pathname.substring(pathname.lastIndexOf("/") + 1));
             T file = fdMap.get(fd);
@@ -167,7 +181,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         if (("/proc/" + emulator.getPid() + "/task/").equals(pathname) || "/proc/self/task/".equals(pathname)) {
             return createTaskDir(emulator, oflags, pathname);
         }
-        
+
         return failResult;
     }
 
@@ -183,7 +197,10 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
 
     protected long currentTimeMillis() {
 //        return System.currentTimeMillis();
-        return 1773776029582L;
+//        count++;
+//        System.out.println("getCurrentTimeMillis: " + (1770000000L + count) * 1000);
+//        return (1770000000L + count) * 1000;
+        return 0L;
     }
 
     @SuppressWarnings("unused")
@@ -396,8 +413,6 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         return file.fcntl(emulator, cmd, arg);
     }
 
-    private static final Pattern FD_PATTERN = Pattern.compile("/proc/self/fd/(\\d+)");
-
     protected int readlink(Emulator<?> emulator, String path, Pointer buf, int bufSize) {
         if (log.isDebugEnabled()) {
             log.debug("readlink path={}, buf={}, bufSize={}", path, buf, bufSize);
@@ -413,31 +428,6 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         buf.setString(0, path);
         return path.length() + 1;
     }
-
-    private final Map<Integer, byte[]> sigMap = new HashMap<>();
-
-    private static final int SIGHUP = 1;
-    private static final int SIGINT = 2;
-    private static final int SIGQUIT = 3;
-    private static final int SIGILL = 4;
-    private static final int SIGTRAP = 5; /* Trace trap (POSIX).  */
-    private static final int SIGABRT = 6;
-    protected static final int SIGBUS = 7; /* BUS error (4.2 BSD).  */
-    private static final int SIGFPE = 8; /* Floating-point exception (ANSI).  */
-    private static final int SIGUSR1 = 10;
-    private static final int SIGSEGV = 11;
-    private static final int SIGUSR2 = 12;
-    private static final int SIGPIPE = 13;
-    private static final int SIGALRM = 14;
-    private static final int SIGTERM = 15;
-    protected static final int SIGCHLD = 17;
-    private static final int SIGCONT = 18;
-    private static final int SIGTSTP = 20;
-    private static final int SIGTTIN = 21;
-    private static final int SIGTTOU = 22;
-    private static final int SIGWINCH = 28;
-    private static final int SIGSYS = 31; /* Bad system call.  */
-    private static final int SIGRTMIN = 32;
 
     protected int sigaction(Emulator<?> emulator, int signum, Pointer act, Pointer oldact) {
         final int ACT_SIZE = 16;
@@ -578,6 +568,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
         // Random random = new Random();
         byte[] bytes = new byte[bufSize];
         // random.nextBytes(bytes);
+        System.out.println("getrandom");
         buf.write(0, bytes, 0, bytes.length);
         if (log.isDebugEnabled()) {
             log.debug(Inspector.inspectString(bytes, "getrandom buf=" + buf + ", bufSize=" + bufSize + ", flags=0x" + Integer.toHexString(flags)));
@@ -592,6 +583,7 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
 
     /**
      * handle unknown syscall
+     *
      * @param NR syscall number
      */
     protected boolean handleUnknownSyscall(Emulator<?> emulator, int NR) {
@@ -618,8 +610,6 @@ public abstract class UnixSyscallHandler<T extends NewFileIO> implements Syscall
             io.close();
         }
     }
-
-    protected boolean threadDispatcherEnabled;
 
     @Override
     public void setEnableThreadDispatcher(boolean threadDispatcherEnabled) {

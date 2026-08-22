@@ -3054,7 +3054,17 @@ public class DalvikVM64 extends BaseVM implements VM {
         Pointer _GetLongArrayElements = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer object = context.getPointerArg(1);
+                Pointer isCopy = context.getPointerArg(2);
+                LongArray array = getObject(object.toIntPeer());
+                if (log.isDebugEnabled()) {
+                    log.debug("GetLongArrayElements array={}, isCopy={}", array, isCopy);
+                }
+                if (verbose || verboseFieldOperation) {
+                    System.out.printf("JNIEnv->GetLongArrayElements(%s) => %s was called from %s%n", isCopy != null, array, context.getLRPointer());
+                }
+                return Objects.requireNonNull(array)._GetArrayCritical(emulator, isCopy).peer;
             }
         });
 
@@ -3135,7 +3145,16 @@ public class DalvikVM64 extends BaseVM implements VM {
         Pointer _ReleaseLongArrayElements = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer object = context.getPointerArg(1);
+                Pointer pointer = context.getPointerArg(2);
+                int mode = context.getIntArg(3);
+                LongArray array = getObject(object.toIntPeer());
+                if (log.isDebugEnabled()) {
+                    log.debug("ReleaseLongArrayElements array={}, pointer={}, mode={}", array, pointer, mode);
+                }
+                Objects.requireNonNull(array)._ReleaseArrayCritical(pointer, mode);
+                return 0;
             }
         });
 
@@ -3228,7 +3247,21 @@ public class DalvikVM64 extends BaseVM implements VM {
         Pointer _GetLongArrayRegion = svcMemory.registerSvc(new Arm64Svc() {
             @Override
             public long handle(Emulator<?> emulator) {
-                throw new UnsupportedOperationException();
+                RegisterContext context = emulator.getContext();
+                UnidbgPointer object = context.getPointerArg(1);
+                int start = context.getIntArg(2);
+                int length = context.getIntArg(3);
+                Pointer buf = context.getPointerArg(4);
+                LongArray array = getObject(object.toIntPeer());
+                if (verbose || verboseFieldOperation) {
+                    System.out.printf("JNIEnv->GetLongArrayRegion(%s, %d, %d, %s) was called from %s%n", array, start, length, buf, context.getLRPointer());
+                }
+                long[] data = Arrays.copyOfRange(Objects.requireNonNull(array).value, start, start + length);
+                if (log.isDebugEnabled()) {
+                    log.debug("GetLongArrayRegion array={}, start={}, length={}, buf={}", array, start, length, buf);
+                }
+                buf.write(0, data, 0, data.length);
+                return 0;
             }
         });
 

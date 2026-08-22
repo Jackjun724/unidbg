@@ -1,0 +1,1268 @@
+
+[19:14:42 253][libtiny.so 0x19c204] [fd7bbaa9] 0x1219c204: "stp x29, x30, [sp, #-0x60]!" fp=0x0 lr=0x7ffff0000 sp=0xe4fff710 => lr=0x7ffff0000 sp=0xe4fff6b0
+[19:14:42 255][libtiny.so 0x19c208] [fc6f01a9] 0x1219c208: "stp x28, x27, [sp, #0x10]" x28=0x0 x27=0x0 sp=0xe4fff6b0
+[19:14:42 255][libtiny.so 0x19c20c] [fa6702a9] 0x1219c20c: "stp x26, x25, [sp, #0x20]" x26=0x0 x25=0x0 sp=0xe4fff6b0
+[19:14:42 255][libtiny.so 0x19c210] [f85f03a9] 0x1219c210: "stp x24, x23, [sp, #0x30]" x24=0x0 x23=0x0 sp=0xe4fff6b0
+[19:14:42 255][libtiny.so 0x19c214] [f65704a9] 0x1219c214: "stp x22, x21, [sp, #0x40]" x22=0x0 x21=0x0 sp=0xe4fff6b0
+[19:14:42 256][libtiny.so 0x19c218] [f44f05a9] 0x1219c218: "stp x20, x19, [sp, #0x50]" x20=0x0 x19=0x0 sp=0xe4fff6b0
+[19:14:42 256][libtiny.so 0x19c21c] [fd030091] 0x1219c21c: "mov x29, sp" sp=0xe4fff6b0 => fp=0xe4fff6b0
+[19:14:42 256][libtiny.so 0x19c220] [ffc304d1] 0x1219c220: "sub sp, sp, #0x130" sp=0xe4fff6b0 => sp=0xe4fff580
+[19:14:42 256][libtiny.so 0x19c224] [f3030091] 0x1219c224: "mov x19, sp" sp=0xe4fff580 => x19=0xe4fff580
+[19:14:42 256][libtiny.so 0x19c228] [4bd03bd5] 0x1219c228: "mrs x11, tpidr_el0" x11=0x1273a000 => x11=0xe4fff718
+[19:14:42 256][libtiny.so 0x19c22c] [6b0200f9] 0x1219c22c: "str x11, [x19]" x11=0xe4fff718 x19=0xe4fff580
+[19:14:42 256][libtiny.so 0x19c230] [6b1540f9] 0x1219c230: "ldr x11, [x11, #0x28]" x11=0xe4fff718 => x11=0x0
+[19:14:42 256][libtiny.so 0x19c234] [a8e300d1] 0x1219c234: "sub x8, x29, #0x38" fp=0xe4fff6b0 => x8=0xe4fff678
+[19:14:42 256][libtiny.so 0x19c238] [f72c00d0] 0x1219c238: "adrp x23, #0x1273a000" => x23=0x1273a000
+[19:14:42 256][libtiny.so 0x19c23c] [edad9b92] 0x1219c23c: "mov x13, #-0xdd70" x13=0x1273a000 => x13=0xffffffffffff2290
+[19:14:42 256][libtiny.so 0x19c240] [ab031ff8] 0x1219c240: "stur x11, [x29, #-0x10]" x11=0x0 fp=0xe4fff6b0
+[19:14:42 256][libtiny.so 0x19c244] [682201a9] 0x1219c244: "stp x8, x8, [x19, #0x10]" x8=0xe4fff678 x19=0xe4fff580
+[19:14:42 256][libtiny.so 0x19c248] [6b0a40f9] 0x1219c248: "ldr x11, [x19, #0x10]" x19=0xe4fff580 => x11=0xe4fff678
+[19:14:42 256][libtiny.so 0x19c24c] [080040f9] 0x1219c24c: "ldr x8, [x0]" x0=0xfffe0080 => x8=0xfffe16a0
+[19:14:42 256][libtiny.so 0x19c250] [eb5a45f9] 0x1219c250: "ldr x11, [x23, #0xab0]" x23=0x1273a000 => x11=0x1592a678
+[19:14:42 256][libtiny.so 0x19c254] [09859f52] 0x1219c254: "mov w9, #0xfc28" w9=0x0 => w9=0xfc28
+[19:14:42 256][libtiny.so 0x19c258] [0a000090] 0x1219c258: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 256][libtiny.so 0x19c25c] [0c1940f9] 0x1219c25c: "ldr x12, [x8, #0x30]" x8=0xfffe16a0 => x12=0xfffe1680
+[19:14:42 256][libtiny.so 0x19c260] [ed90bff2] 0x1219c260: "movk x13, #0xfc87, lsl #16" x13=0xffffffffffff2290 => x13=0xfffffffffc872290
+[19:14:42 256][libtiny.so 0x19c264] [4977a072] 0x1219c264: "movk w9, #0x3ba, lsl #16" w9=0xfc28 => w9=0x3bafc28
+[19:14:42 256][libtiny.so 0x19c268] [4a112a91] 0x1219c268: "add x10, x10, #0xa84" x10=0x1219c000 => x10=0x1219ca84
+[19:14:42 256][libtiny.so 0x19c26c] [4801098b] 0x1219c26c: "add x8, x10, x9" x10=0x1219ca84 x9=0x3bafc28 => x8=0x15d4c6ac
+[19:14:42 256][libtiny.so 0x19c270] [16000090] 0x1219c270: "adrp x22, #0x1219c000" => x22=0x1219c000
+[19:14:42 256][libtiny.so 0x19c274] [69010d8b] 0x1219c274: "add x9, x11, x13" x11=0x1592a678 x13=0xfffffffffc872290 => x9=0x1219c908
+[19:14:42 256][libtiny.so 0x19c278] [f92c00d0] 0x1219c278: "adrp x25, #0x1273a000" => x25=0x1273a000
+[19:14:42 257][libtiny.so 0x19c27c] [fa2c00d0] 0x1219c27c: "adrp x26, #0x1273a000" => x26=0x1273a000
+[19:14:42 257][libtiny.so 0x19c280] [fc2c00d0] 0x1219c280: "adrp x28, #0x1273a000" => x28=0x1273a000
+[19:14:42 257][libtiny.so 0x19c284] [f42c00d0] 0x1219c284: "adrp x20, #0x1273a000" => x20=0x1273a000
+[19:14:42 257][libtiny.so 0x19c288] [f52c00d0] 0x1219c288: "adrp x21, #0x1273a000" => x21=0x1273a000
+[19:14:42 257][libtiny.so 0x19c28c] [fb2c00d0] 0x1219c28c: "adrp x27, #0x1273a000" => x27=0x1273a000
+[19:14:42 257][libtiny.so 0x19c290] [600600f9] 0x1219c290: "str x0, [x19, #8]" x0=0xfffe0080 x19=0xe4fff580
+[19:14:42 257][libtiny.so 0x19c294] [d6322291] 0x1219c294: "add x22, x22, #0x88c" x22=0x1219c000 => x22=0x1219c88c
+[19:14:42 257][libtiny.so 0x19c298] [6c1200f9] 0x1219c298: "str x12, [x19, #0x20]" x12=0xfffe1680 x19=0xe4fff580
+[19:14:42 257][libtiny.so 0x19c29c] [f82c00d0] 0x1219c29c: "adrp x24, #0x1273a000" => x24=0x1273a000
+[19:14:42 257][libtiny.so 0x19c2a0] [20011fd6] 0x1219c2a0: "br x9" x9=0x1219c908
+[19:14:42 257][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0x1219c908 => x9=0xffffffffffff03d8
+[19:14:42 257][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 257][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c6ac x9=0xfffffffffc4503d8 => x8=0x1219ca84
+[19:14:42 257][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219ca84
+[19:14:42 257][libtiny.so 0x19ca84] [610e40f9] 0x1219ca84: "ldr x1, [x19, #0x18]" x19=0xe4fff580 => x1=0xe4fff678
+[19:14:42 257][libtiny.so 0x19ca88] [681240f9] 0x1219ca88: "ldr x8, [x19, #0x20]" x19=0xe4fff580 => x8=0xfffe1680
+[19:14:42 257][libtiny.so 0x19ca8c] [600640f9] 0x1219ca8c: "ldr x0, [x19, #8]" x19=0xe4fff580 => x0=0xfffe0080
+[19:14:42 257][libtiny.so 0x19ca90] [c2008052] 0x1219ca90: "mov w2, #6" w2=0x1 => w2=0x6
+[19:14:42 257][libtiny.so 0x19ca94] [2200a072] 0x1219ca94: "movk w2, #1, lsl #16" w2=0x6 => w2=0x10006
+[19:14:42 257][libtiny.so 0x19ca98] [00013fd6] 0x1219ca98: "blr x8" x8=0xfffe1680 => lr=0x1219ca9c
+[19:14:42 257][libtiny.so 0x19ca9c] [08d18052] 0x1219ca9c: "mov w8, #0x688" w8=0xfffe1680 => w8=0x688
+[19:14:42 257][libtiny.so 0x19caa0] [0a000090] 0x1219caa0: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 258][libtiny.so 0x19caa4] [297345f9] 0x1219caa4: "ldr x9, [x25, #0xae0]" x25=0x1273a000 => x9=0x155a6864
+[19:14:42 258][libtiny.so 0x19caa8] [4877a072] 0x1219caa8: "movk w8, #0x3ba, lsl #16" w8=0x688 => w8=0x3ba0688
+[19:14:42 258][libtiny.so 0x19caac] [4aa12d91] 0x1219caac: "add x10, x10, #0xb68" x10=0x1219c000 => x10=0x1219cb68
+[19:14:42 258][libtiny.so 0x19cab0] [4801088b] 0x1219cab0: "add x8, x10, x8" x10=0x1219cb68 x8=0x3ba0688 => x8=0x15d3d1f0
+[19:14:42 258][libtiny.so 0x19cab4] [8c1f8d52] 0x1219cab4: "mov w12, #0x68fc" w12=0xfffe1680 => w12=0x68fc
+[19:14:42 258][libtiny.so 0x19cab8] [4a01084b] 0x1219cab8: "sub w10, w10, w8" w10=0x1219cb68 w8=0x15d3d1f0 => w10=0xfc45f978
+[19:14:42 258][libtiny.so 0x19cabc] [2c0fa072] 0x1219cabc: "movk w12, #0x79, lsl #16" w12=0x68fc => w12=0x7968fc
+[19:14:42 258][libtiny.so 0x19cac0] [1f000071] 0x1219cac0: "cmp w0, #0" w0=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 258][libtiny.so 0x19cac4] [4a010c0b] 0x1219cac4: "add w10, w10, w12" w10=0xfc45f978 w12=0x7968fc => w10=0xfcbf6274
+[19:14:42 258][libtiny.so 0x19cac8] [eb179f1a] 0x1219cac8: "cset w11, eq" nzcv: N=0, Z=1, C=1, V=0 => w11=0x1
+[19:14:42 259][libtiny.so 0x19cacc] [29c12a8b] 0x1219cacc: "add x9, x9, w10, sxtw" x9=0x155a6864 w10=0xfcbf6274 => x9=0x1219cad8
+[19:14:42 259][libtiny.so 0x19cad0] [6bbe0039] 0x1219cad0: "strb w11, [x19, #0x2f]" w11=0x1 x19=0xe4fff580
+[19:14:42 259][libtiny.so 0x19cad4] [20011fd6] 0x1219cad4: "br x9" x9=0x1219cad8
+[19:14:42 259][libtiny.so 0x19cad8] [e9d08092] 0x1219cad8: "mov x9, #-0x688" x9=0x1219cad8 => x9=0xfffffffffffff978
+[19:14:42 259][libtiny.so 0x19cadc] [a988bff2] 0x1219cadc: "movk x9, #0xfc45, lsl #16" x9=0xfffffffffffff978 => x9=0xfffffffffc45f978
+[19:14:42 259][libtiny.so 0x19cae0] [0801098b] 0x1219cae0: "add x8, x8, x9" x8=0x15d3d1f0 x9=0xfffffffffc45f978 => x8=0x1219cb68
+[19:14:42 259][libtiny.so 0x19cae4] [00011fd6] 0x1219cae4: "br x8" x8=0x1219cb68
+[19:14:42 259][libtiny.so 0x19cb68] [e94300d1] 0x1219cb68: "sub x9, sp, #0x10" sp=0xe4fff580 => x9=0xe4fff570
+[19:14:42 259][libtiny.so 0x19cb6c] [3f010091] 0x1219cb6c: "mov sp, x9" x9=0xe4fff570 => sp=0xe4fff570
+[19:14:42 259][libtiny.so 0x19cb70] [e82c00d0] 0x1219cb70: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 259][libtiny.so 0x19cb74] [0a4d45f9] 0x1219cb74: "ldr x10, [x8, #0xa98]" x8=0x1273a000 => x10=0x15b32e14
+[19:14:42 259][libtiny.so 0x19cb78] [88718d52] 0x1219cb78: "mov w8, #0x6b8c" w8=0x1273a000 => w8=0x6b8c
+[19:14:42 259][libtiny.so 0x19cb7c] [0b000090] 0x1219cb7c: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 259][libtiny.so 0x19cb80] [a8cda072] 0x1219cb80: "movk w8, #0x66d, lsl #16" w8=0x6b8c => w8=0x66d6b8c
+[19:14:42 259][libtiny.so 0x19cb84] [6bc11891] 0x1219cb84: "add x11, x11, #0x630" x11=0x1219c000 => x11=0x1219c630
+[19:14:42 259][libtiny.so 0x19cb88] [6801088b] 0x1219cb88: "add x8, x11, x8" x11=0x1219c630 x8=0x66d6b8c => x8=0x188731bc
+[19:14:42 259][libtiny.so 0x19cb8c] [0c868052] 0x1219cb8c: "mov w12, #0x430" w12=0x7968fc => w12=0x430
+[19:14:42 259][libtiny.so 0x19cb90] [6b01084b] 0x1219cb90: "sub w11, w11, w8" w11=0x1219c630 w8=0x188731bc => w11=0xf9929474
+[19:14:42 259][libtiny.so 0x19cb94] [8c5aa072] 0x1219cb94: "movk w12, #0x2d4, lsl #16" w12=0x430 => w12=0x2d40430
+[19:14:42 259][libtiny.so 0x19cb98] [6b010c0b] 0x1219cb98: "add w11, w11, w12" w11=0xf9929474 w12=0x2d40430 => w11=0xfc6698a4
+[19:14:42 259][libtiny.so 0x19cb9c] [4ac12b8b] 0x1219cb9c: "add x10, x10, w11, sxtw" x10=0x15b32e14 w11=0xfc6698a4 => x10=0x1219c6b8
+[19:14:42 259][libtiny.so 0x19cba0] [691a00f9] 0x1219cba0: "str x9, [x19, #0x30]" x9=0xe4fff570 x19=0xe4fff580
+[19:14:42 259][libtiny.so 0x19cba4] [40011fd6] 0x1219cba4: "br x10" x10=0x1219c6b8
+[19:14:42 259][libtiny.so 0x19c6b8] [e92c00d0] 0x1219c6b8: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 259][libtiny.so 0x19c6bc] [294945f9] 0x1219c6bc: "ldr x9, [x9, #0xa90]" x9=0x1273a000 => x9=0x1561717c
+[19:14:42 259][libtiny.so 0x19c6c0] [eb979592] 0x1219c6c0: "mov x11, #-0xacc0" x11=0xfc6698a4 => x11=0xffffffffffff5340
+[19:14:42 259][libtiny.so 0x19c6c4] [6a118592] 0x1219c6c4: "mov x10, #-0x288c" x10=0x1219c6b8 => x10=0xffffffffffffd774
+[19:14:42 259][libtiny.so 0x19c6c8] [0b97bff2] 0x1219c6c8: "movk x11, #0xfcb8, lsl #16" x11=0xffffffffffff5340 => x11=0xfffffffffcb85340
+[19:14:42 259][libtiny.so 0x19c6cc] [6a9abff2] 0x1219c6cc: "movk x10, #0xfcd3, lsl #16" x10=0xffffffffffffd774 => x10=0xfffffffffcd3d774
+[19:14:42 259][libtiny.so 0x19c6d0] [29010b8b] 0x1219c6d0: "add x9, x9, x11" x9=0x1561717c x11=0xfffffffffcb85340 => x9=0x1219c4bc
+[19:14:42 260][libtiny.so 0x19c6d4] [08010a8b] 0x1219c6d4: "add x8, x8, x10" x8=0x188731bc x10=0xfffffffffcd3d774 => x8=0x155b0930
+[19:14:42 260][libtiny.so 0x19c6d8] [20011fd6] 0x1219c6d8: "br x9" x9=0x1219c4bc
+[19:14:42 260][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 260][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 260][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b0930 x9=0xfffffffffcbebd00 => x8=0x1219c630
+[19:14:42 260][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c630
+[19:14:42 260][libtiny.so 0x19c630] [681a40f9] 0x1219c630: "ldr x8, [x19, #0x30]" x19=0xe4fff580 => x8=0xe4fff570
+[19:14:42 260][libtiny.so 0x19c634] [09008012] 0x1219c634: "mov w9, #-1" w9=0xfcbebd00 => w9=0xffffffff
+[19:14:42 260][libtiny.so 0x19c638] [0a189652] 0x1219c638: "mov w10, #0xb0c0" w10=0xfcd3d774 => w10=0xb0c0
+[19:14:42 260][libtiny.so 0x19c63c] [0b108552] 0x1219c63c: "mov w11, #0x2880" w11=0xfcb85340 => w11=0x2880
+[19:14:42 260][libtiny.so 0x19c640] [0c000090] 0x1219c640: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 260][libtiny.so 0x19c644] [090100b9] 0x1219c644: "str w9, [x8]" w9=0xffffffff x8=0xe4fff570
+[19:14:42 260][libtiny.so 0x19c648] [0f000090] 0x1219c648: "adrp x15, #0x1219c000" => x15=0x1219c000
+[19:14:42 260][libtiny.so 0x19c64c] [cacda072] 0x1219c64c: "movk w10, #0x66e, lsl #16" w10=0xb0c0 => w10=0x66eb0c0
+[19:14:42 260][libtiny.so 0x19c650] [0b6da072] 0x1219c650: "movk w11, #0x368, lsl #16" w11=0x2880 => w11=0x3682880
+[19:14:42 260][libtiny.so 0x19c654] [8c510e91] 0x1219c654: "add x12, x12, #0x394" x12=0x1219c000 => x12=0x1219c394
+[19:14:42 260][libtiny.so 0x19c658] [68be4039] 0x1219c658: "ldrb w8, [x19, #0x2f]" x19=0xe4fff580 => w8=0x1
+[19:14:42 260][libtiny.so 0x19c65c] [efd10a91] 0x1219c65c: "add x15, x15, #0x2b4" x15=0x1219c000 => x15=0x1219c2b4
+[19:14:42 260][libtiny.so 0x19c660] [e9010a8b] 0x1219c660: "add x9, x15, x10" x15=0x1219c2b4 x10=0x66eb0c0 => x9=0x18887374
+[19:14:42 260][libtiny.so 0x19c664] [8a010b8b] 0x1219c664: "add x10, x12, x11" x12=0x1219c394 x11=0x3682880 => x10=0x1581ec14
+[19:14:42 260][libtiny.so 0x19c668] [6bbe4039] 0x1219c668: "ldrb w11, [x19, #0x2f]" x19=0xe4fff580 => w11=0x1
+[19:14:42 260][libtiny.so 0x19c66c] [6ebe4039] 0x1219c66c: "ldrb w14, [x19, #0x2f]" x19=0xe4fff580 => w14=0x1
+[19:14:42 260][libtiny.so 0x19c670] [8d709852] 0x1219c670: "mov w13, #0xc384" w13=0xfc872290 => w13=0xc384
+[19:14:42 260][libtiny.so 0x19c674] [ad55a072] 0x1219c674: "movk w13, #0x2ad, lsl #16" w13=0xc384 => w13=0x2adc384
+[19:14:42 260][libtiny.so 0x19c678] [1f010071] 0x1219c678: "cmp w8, #0" w8=0x1 => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 260][libtiny.so 0x19c67c] [4811899a] 0x1219c67c: "csel x8, x10, x9, ne" nzcv: N=0, Z=0, C=1, V=0 x10=0x1581ec14 x9=0x18887374 => x8=0x1581ec14
+[19:14:42 261][libtiny.so 0x19c680] [ea010d0b] 0x1219c680: "add w10, w15, w13" w15=0x1219c2b4 w13=0x2adc384 => w10=0x14c78638
+[19:14:42 261][libtiny.so 0x19c684] [ed032e2a] 0x1219c684: "mvn w13, w14" w14=0x1 => w13=0xfffffffe
+[19:14:42 261][libtiny.so 0x19c688] [ee2c00d0] 0x1219c688: "adrp x14, #0x1273a000" => x14=0x1273a000
+[19:14:42 261][libtiny.so 0x19c68c] [098e9852] 0x1219c68c: "mov w9, #0xc470" w9=0x18887374 => w9=0xc470
+[19:14:42 261][libtiny.so 0x19c690] [ad014092] 0x1219c690: "and x13, x13, #1" x13=0xfffffffe => x13=0x0
+[19:14:42 261][libtiny.so 0x19c694] [ce012a91] 0x1219c694: "add x14, x14, #0xa80" x14=0x1273a000 => x14=0x1273aa80
+[19:14:42 261][libtiny.so 0x19c698] [a904a072] 0x1219c698: "movk w9, #0x25, lsl #16" w9=0xc470 => w9=0x25c470
+[19:14:42 261][libtiny.so 0x19c69c] [cd796df8] 0x1219c69c: "ldr x13, [x14, x13, lsl #3]" x14=0x1273aa80 x13=0x0 => x13=0x155c26b4
+[19:14:42 261][libtiny.so 0x19c6a0] [8901090b] 0x1219c6a0: "add w9, w12, w9" w12=0x1219c394 w9=0x25c470 => w9=0x123f8804
+[19:14:42 261][libtiny.so 0x19c6a4] [7f010071] 0x1219c6a4: "cmp w11, #0" w11=0x1 => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 261][libtiny.so 0x19c6a8] [29118a1a] 0x1219c6a8: "csel w9, w9, w10, ne" nzcv: N=0, Z=0, C=1, V=0 w9=0x123f8804 w10=0x14c78638 => w9=0x123f8804
+[19:14:42 261][libtiny.so 0x19c6ac] [2901084b] 0x1219c6ac: "sub w9, w9, w8" w9=0x123f8804 w8=0x1581ec14 => w9=0xfcbd9bf0
+[19:14:42 261][libtiny.so 0x19c6b0] [a9c1298b] 0x1219c6b0: "add x9, x13, w9, sxtw" x13=0x155c26b4 w9=0xfcbd9bf0 => x9=0x1219c2a4
+[19:14:42 261][libtiny.so 0x19c6b4] [20011fd6] 0x1219c6b4: "br x9" x9=0x1219c2a4
+[19:14:42 261][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0x1219c2a4 => x9=0xffffffffffffd780
+[19:14:42 261][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 261][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581ec14 x9=0xfffffffffc97d780 => x8=0x1219c394
+[19:14:42 263][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c394
+[19:14:42 263][libtiny.so 0x19c394] [08859f52] 0x1219c394: "mov w8, #0xfc28" w8=0x1219c394 => w8=0xfc28
+[19:14:42 263][libtiny.so 0x19c398] [0b000090] 0x1219c398: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 263][libtiny.so 0x19c39c] [ea5a45f9] 0x1219c39c: "ldr x10, [x23, #0xab0]" x23=0x1273a000 => x10=0x1592a678
+[19:14:42 263][libtiny.so 0x19c3a0] [4877a072] 0x1219c3a0: "movk w8, #0x3ba, lsl #16" w8=0xfc28 => w8=0x3bafc28
+[19:14:42 263][libtiny.so 0x19c3a4] [6b612491] 0x1219c3a4: "add x11, x11, #0x918" x11=0x1219c000 => x11=0x1219c918
+[19:14:42 263][libtiny.so 0x19c3a8] [a9835cf8] 0x1219c3a8: "ldur x9, [x29, #-0x38]" fp=0xe4fff6b0 => x9=0xfffe1640
+[19:14:42 263][libtiny.so 0x19c3ac] [6801088b] 0x1219c3ac: "add x8, x11, x8" x11=0x1219c918 x8=0x3bafc28 => x8=0x15d4c540
+[19:14:42 263][libtiny.so 0x19c3b0] [0cd78352] 0x1219c3b0: "mov w12, #0x1eb8" w12=0x1219c394 => w12=0x1eb8
+[19:14:42 263][libtiny.so 0x19c3b4] [6b01084b] 0x1219c3b4: "sub w11, w11, w8" w11=0x1219c918 w8=0x15d4c540 => w11=0xfc4503d8
+[19:14:42 263][libtiny.so 0x19c3b8] [4c08a072] 0x1219c3b8: "movk w12, #0x42, lsl #16" w12=0x1eb8 => w12=0x421eb8
+[19:14:42 263][libtiny.so 0x19c3bc] [6b010c0b] 0x1219c3bc: "add w11, w11, w12" w11=0xfc4503d8 w12=0x421eb8 => w11=0xfc872290
+[19:14:42 263][libtiny.so 0x19c3c0] [4ac12b8b] 0x1219c3c0: "add x10, x10, w11, sxtw" x10=0x1592a678 w11=0xfc872290 => x10=0x1219c908
+[19:14:42 263][libtiny.so 0x19c3c4] [691e00f9] 0x1219c3c4: "str x9, [x19, #0x38]" x9=0xfffe1640 x19=0xe4fff580
+[19:14:42 263][libtiny.so 0x19c3c8] [40011fd6] 0x1219c3c8: "br x10" x10=0x1219c908
+[19:14:42 263][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0xfffe1640 => x9=0xffffffffffff03d8
+[19:14:42 263][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 263][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c540 x9=0xfffffffffc4503d8 => x8=0x1219c918
+[19:14:42 263][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219c918
+[19:14:42 263][libtiny.so 0x19c918] [601e40f9] 0x1219c918: "ldr x0, [x19, #0x38]" x19=0xe4fff580 => x0=0xfffe1640
+[19:14:42 263][libtiny.so 0x19c91c] [a1c300d1] 0x1219c91c: "sub x1, x29, #0x30" fp=0xe4fff6b0 => x1=0xe4fff680
+[19:14:42 264][libtiny.so 0x19c920] [080040f9] 0x1219c920: "ldr x8, [x0]" x0=0xfffe1640 => x8=0xfffe0ef0
+[19:14:42 264][libtiny.so 0x19c924] [086d43f9] 0x1219c924: "ldr x8, [x8, #0x6d8]" x8=0xfffe0ef0 => x8=0xfffe0e00
+[19:14:42 264][libtiny.so 0x19c928] [00013fd6] 0x1219c928: "blr x8" x8=0xfffe0e00 => lr=0x1219c92c
+[19:14:42 264][libtiny.so 0x19c92c] [08108552] 0x1219c92c: "mov w8, #0x2880" w8=0xfffe0e00 => w8=0x2880
+[19:14:42 264][libtiny.so 0x19c930] [0c000090] 0x1219c930: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 264][libtiny.so 0x19c934] [4b4345f9] 0x1219c934: "ldr x11, [x26, #0xa80]" x26=0x1273a000 => x11=0x155c26b4
+[19:14:42 264][libtiny.so 0x19c938] [086da072] 0x1219c938: "movk w8, #0x368, lsl #16" w8=0x2880 => w8=0x3682880
+[19:14:42 264][libtiny.so 0x19c93c] [8c310f91] 0x1219c93c: "add x12, x12, #0x3cc" x12=0x1219c000 => x12=0x1219c3cc
+[19:14:42 264][libtiny.so 0x19c940] [a9035df8] 0x1219c940: "ldur x9, [x29, #-0x30]" fp=0xe4fff6b0 => x9=0xfffe0080
+[19:14:42 264][libtiny.so 0x19c944] [8801088b] 0x1219c944: "add x8, x12, x8" x12=0x1219c3cc x8=0x3682880 => x8=0x1581ec4c
+[19:14:42 264][libtiny.so 0x19c948] [0d8e9852] 0x1219c948: "mov w13, #0xc470" w13=0x155c26b4 => w13=0xc470
+[19:14:42 264][libtiny.so 0x19c94c] [8c01084b] 0x1219c94c: "sub w12, w12, w8" w12=0x1219c3cc w8=0x1581ec4c => w12=0xfc97d780
+[19:14:42 264][libtiny.so 0x19c950] [ad04a072] 0x1219c950: "movk w13, #0x25, lsl #16" w13=0xc470 => w13=0x25c470
+[19:14:42 264][libtiny.so 0x19c954] [8c010d0b] 0x1219c954: "add w12, w12, w13" w12=0xfc97d780 w13=0x25c470 => w12=0xfcbd9bf0
+[19:14:42 264][libtiny.so 0x19c958] [0a3100d0] 0x1219c958: "adrp x10, #0x127be000" => x10=0x127be000
+[19:14:42 264][libtiny.so 0x19c95c] [6bc12c8b] 0x1219c95c: "add x11, x11, w12, sxtw" x11=0x155c26b4 w12=0xfcbd9bf0 => x11=0x1219c2a4
+[19:14:42 264][libtiny.so 0x19c960] [498904f9] 0x1219c960: "str x9, [x10, #0x910]" x9=0xfffe0080 x10=0x127be000
+[19:14:42 264][libtiny.so 0x19c964] [60011fd6] 0x1219c964: "br x11" x11=0x1219c2a4
+[19:14:42 264][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0xfffe0080 => x9=0xffffffffffffd780
+[19:14:42 264][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 264][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581ec4c x9=0xfffffffffc97d780 => x8=0x1219c3cc
+[19:14:42 264][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c3cc
+[19:14:42 264][libtiny.so 0x19c3cc] [e82c00d0] 0x1219c3cc: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 264][libtiny.so 0x19c3d0] [8bd98352] 0x1219c3d0: "mov w11, #0x1ecc" w11=0x1219c2a4 => w11=0x1ecc
+[19:14:42 264][libtiny.so 0x19c3d4] [0c000090] 0x1219c3d4: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 264][libtiny.so 0x19c3d8] [a9835cf8] 0x1219c3d8: "ldur x9, [x29, #-0x38]" fp=0xe4fff6b0 => x9=0xfffe1640
+[19:14:42 264][libtiny.so 0x19c3dc] [0a6b45f9] 0x1219c3dc: "ldr x10, [x24, #0xad0]" x24=0x1273a000 => x10=0x1546a964
+[19:14:42 264][libtiny.so 0x19c3e0] [eb69a072] 0x1219c3e0: "movk w11, #0x34f, lsl #16" w11=0x1ecc => w11=0x34f1ecc
+[19:14:42 264][libtiny.so 0x19c3e4] [8cb13c91] 0x1219c3e4: "add x12, x12, #0xf2c" x12=0x1219c000 => x12=0x1219cf2c
+[19:14:42 264][libtiny.so 0x19c3e8] [0e7945f9] 0x1219c3e8: "ldr x14, [x8, #0xaf0]" x8=0x1273a000 => x14=0xffffffffe7f2c968
+[19:14:42 264][libtiny.so 0x19c3ec] [8d768852] 0x1219c3ec: "mov w13, #0x43b4" w13=0x25c470 => w13=0x43b4
+[19:14:42 264][libtiny.so 0x19c3f0] [88010b8b] 0x1219c3f0: "add x8, x12, x11" x12=0x1219cf2c x11=0x34f1ecc => x8=0x1568edf8
+[19:14:42 265][libtiny.so 0x19c3f4] [4d04a072] 0x1219c3f4: "movk w13, #0x22, lsl #16" w13=0x43b4 => w13=0x2243b4
+[19:14:42 265][libtiny.so 0x19c3f8] [8b01084b] 0x1219c3f8: "sub w11, w12, w8" w12=0x1219cf2c w8=0x1568edf8 => w11=0xfcb0e134
+[19:14:42 265][libtiny.so 0x19c3fc] [6b010d0b] 0x1219c3fc: "add w11, w11, w13" w11=0xfcb0e134 w13=0x2243b4 => w11=0xfcd324e8
+[19:14:42 265][libtiny.so 0x19c400] [693a04a9] 0x1219c400: "stp x9, x14, [x19, #0x40]" x9=0xfffe1640 x14=0xffffffffe7f2c968 x19=0xe4fff580
+[19:14:42 265][libtiny.so 0x19c404] [49c12b8b] 0x1219c404: "add x9, x10, w11, sxtw" x10=0x1546a964 w11=0xfcd324e8 => x9=0x1219ce4c
+[19:14:42 265][libtiny.so 0x19c408] [20011fd6] 0x1219c408: "br x9" x9=0x1219ce4c
+[19:14:42 265][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x1219ce4c => x9=0xffffffffffffe134
+[19:14:42 265][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 265][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568edf8 x9=0xfffffffffcb0e134 => x8=0x1219cf2c
+[19:14:42 265][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219cf2c
+[19:14:42 265][libtiny.so 0x19cf2c] [682640f9] 0x1219cf2c: "ldr x8, [x19, #0x48]" x19=0xe4fff580 => x8=0xffffffffe7f2c968
+[19:14:42 265][libtiny.so 0x19cf30] [09308652] 0x1219cf30: "mov w9, #0x3180" w9=0xfcb0e134 => w9=0x3180
+[19:14:42 265][libtiny.so 0x19cf34] [0951a572] 0x1219cf34: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 265][libtiny.so 0x19cf38] [8ae28b52] 0x1219cf38: "mov w10, #0x5f14" w10=0x1546a964 => w10=0x5f14
+[19:14:42 265][libtiny.so 0x19cf3c] [0801098b] 0x1219cf3c: "add x8, x8, x9" x8=0xffffffffe7f2c968 x9=0x2a883180 => x8=0x127afae8
+[19:14:42 265][libtiny.so 0x19cf40] [08fddf08] 0x1219cf40: "ldarb w8, [x8]" x8=0x127afae8 => w8=0x0
+[19:14:42 265][libtiny.so 0x19cf44] [0e000090] 0x1219cf44: "adrp x14, #0x1219c000" => x14=0x1219c000
+[19:14:42 265][libtiny.so 0x19cf48] [cad9a072] 0x1219cf48: "movk w10, #0x6ce, lsl #16" w10=0x5f14 => w10=0x6ce5f14
+[19:14:42 265][libtiny.so 0x19cf4c] [09608852] 0x1219cf4c: "mov w9, #0x4300" w9=0x2a883180 => w9=0x4300
+[19:14:42 265][libtiny.so 0x19cf50] [0b000090] 0x1219cf50: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 265][libtiny.so 0x19cf54] [0c078052] 0x1219cf54: "mov w12, #0x38" w12=0x1219cf2c => w12=0x38
+[19:14:42 265][libtiny.so 0x19cf58] [1f010072] 0x1219cf58: "tst w8, #1" w8=0x0 => nzcv: N=0, Z=1, C=0, V=0
+[19:14:42 266][libtiny.so 0x19cf5c] [0d028052] 0x1219cf5c: "mov w13, #0x10" w13=0x2243b4 => w13=0x10
+[19:14:42 266][libtiny.so 0x19cf60] [ce912791] 0x1219cf60: "add x14, x14, #0x9e4" x14=0x1219c000 => x14=0x1219c9e4
+[19:14:42 266][libtiny.so 0x19cf64] [2968a072] 0x1219cf64: "movk w9, #0x341, lsl #16" w9=0x4300 => w9=0x3414300
+[19:14:42 266][libtiny.so 0x19cf68] [6bc11791] 0x1219cf68: "add x11, x11, #0x5f0" x11=0x1219c000 => x11=0x1219c5f0
+[19:14:42 266][libtiny.so 0x19cf6c] [c8010a8b] 0x1219cf6c: "add x8, x14, x10" x14=0x1219c9e4 x10=0x6ce5f14 => x8=0x18e828f8
+[19:14:42 266][libtiny.so 0x19cf70] [aa018c9a] 0x1219cf70: "csel x10, x13, x12, eq" nzcv: N=0, Z=1, C=0, V=0 x13=0x10 x12=0x38 => x10=0x10
+[19:14:42 266][libtiny.so 0x19cf74] [ec2c00d0] 0x1219cf74: "adrp x12, #0x1273a000" => x12=0x1273a000
+[19:14:42 266][libtiny.so 0x19cf78] [6901098b] 0x1219cf78: "add x9, x11, x9" x11=0x1219c5f0 x9=0x3414300 => x9=0x155b08f0
+[19:14:42 266][libtiny.so 0x19cf7c] [8c012a91] 0x1219cf7c: "add x12, x12, #0xa80" x12=0x1273a000 => x12=0x1273aa80
+[19:14:42 266][libtiny.so 0x19cf80] [2801889a] 0x1219cf80: "csel x8, x9, x8, eq" nzcv: N=0, Z=1, C=0, V=0 x9=0x155b08f0 x8=0x18e828f8 => x8=0x155b08f0
+[19:14:42 266][libtiny.so 0x19cf84] [09d98252] 0x1219cf84: "mov w9, #0x16c8" w9=0x155b08f0 => w9=0x16c8
+[19:14:42 266][libtiny.so 0x19cf88] [8a696af8] 0x1219cf88: "ldr x10, [x12, x10]" x12=0x1273aa80 x10=0x10 => x10=0x1561717c
+[19:14:42 266][libtiny.so 0x19cf8c] [0cc89252] 0x1219cf8c: "mov w12, #0x9640" w12=0x1273aa80 => w12=0x9640
+[19:14:42 266][libtiny.so 0x19cf90] [4969a072] 0x1219cf90: "movk w9, #0x34a, lsl #16" w9=0x16c8 => w9=0x34a16c8
+[19:14:42 266][libtiny.so 0x19cf94] [2cffbf72] 0x1219cf94: "movk w12, #0xfff9, lsl #16" w12=0x9640 => w12=0xfff99640
+[19:14:42 266][libtiny.so 0x19cf98] [c901090b] 0x1219cf98: "add w9, w14, w9" w14=0x1219c9e4 w9=0x34a16c8 => w9=0x1563e0ac
+[19:14:42 266][libtiny.so 0x19cf9c] [6b010c0b] 0x1219cf9c: "add w11, w11, w12" w11=0x1219c5f0 w12=0xfff99640 => w11=0x12135c30
+[19:14:42 266][libtiny.so 0x19cfa0] [6901891a] 0x1219cfa0: "csel w9, w11, w9, eq" nzcv: N=0, Z=1, C=0, V=0 w11=0x12135c30 w9=0x1563e0ac => w9=0x12135c30
+[19:14:42 266][libtiny.so 0x19cfa4] [2901084b] 0x1219cfa4: "sub w9, w9, w8" w9=0x12135c30 w8=0x155b08f0 => w9=0xfcb85340
+[19:14:42 266][libtiny.so 0x19cfa8] [49c1298b] 0x1219cfa8: "add x9, x10, w9, sxtw" x10=0x1561717c w9=0xfcb85340 => x9=0x1219c4bc
+[19:14:42 267][libtiny.so 0x19cfac] [20011fd6] 0x1219cfac: "br x9" x9=0x1219c4bc
+[19:14:42 267][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 267][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 267][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b08f0 x9=0xfffffffffcbebd00 => x8=0x1219c5f0
+[19:14:42 267][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c5f0
+[19:14:42 267][libtiny.so 0x19c5f0] [803000f0] 0x1219c5f0: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 267][libtiny.so 0x19c5f4] [00a02b91] 0x1219c5f4: "add x0, x0, #0xae8" x0=0x127af000 => x0=0x127afae8
+[19:14:42 267][libtiny.so 0x19c5f8] [3e9afe97] 0x1219c5f8: "bl #0x12142ef0" => lr=0x1219c5fc
+[19:14:42 267][libtiny.so 0x19c5fc] [88ab9852] 0x1219c5fc: "mov w8, #0xc55c" w8=0x2 => w8=0xc55c
+[19:14:42 267][libtiny.so 0x19c600] [0a000090] 0x1219c600: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 267][libtiny.so 0x19c604] [895645f9] 0x1219c604: "ldr x9, [x20, #0xaa8]" x20=0x1273a000 => x9=0x153ed33c
+[19:14:42 267][libtiny.so 0x19c608] [08e4a072] 0x1219c608: "movk w8, #0x720, lsl #16" w8=0xc55c => w8=0x720c55c
+[19:14:42 267][libtiny.so 0x19c60c] [4a811f91] 0x1219c60c: "add x10, x10, #0x7e0" x10=0x1219c000 => x10=0x1219c7e0
+[19:14:42 267][libtiny.so 0x19c610] [4801088b] 0x1219c610: "add x8, x10, x8" x10=0x1219c7e0 x8=0x720c55c => x8=0x193a8d3c
+[19:14:42 267][libtiny.so 0x19c614] [0b619752] 0x1219c614: "mov w11, #0xbb08" w11=0x12135c30 => w11=0xbb08
+[19:14:42 267][libtiny.so 0x19c618] [4a01084b] 0x1219c618: "sub w10, w10, w8" w10=0x1219c7e0 w8=0x193a8d3c => w10=0xf8df3aa4
+[19:14:42 267][libtiny.so 0x19c61c] [6b7fa072] 0x1219c61c: "movk w11, #0x3fb, lsl #16" w11=0xbb08 => w11=0x3fbbb08
+[19:14:42 267][libtiny.so 0x19c620] [4a010b0b] 0x1219c620: "add w10, w10, w11" w10=0xf8df3aa4 w11=0x3fbbb08 => w10=0xfcdaf5ac
+[19:14:42 267][libtiny.so 0x19c624] [29c12a8b] 0x1219c624: "add x9, x9, w10, sxtw" x9=0x153ed33c w10=0xfcdaf5ac => x9=0x1219c8e8
+[19:14:42 267][libtiny.so 0x19c628] [605200b9] 0x1219c628: "str w0, [x19, #0x50]" w0=0x1 x19=0xe4fff580
+[19:14:42 267][libtiny.so 0x19c62c] [20011fd6] 0x1219c62c: "br x9" x9=0x1219c8e8
+[19:14:42 267][libtiny.so 0x19c8e8] [895345f9] 0x1219c8e8: "ldr x9, [x28, #0xaa0]" x28=0x1273a000 => x9=0x1534e678
+[19:14:42 267][libtiny.so 0x19c8ec] [6bee8392] 0x1219c8ec: "mov x11, #-0x1f74" x11=0x3fbbb08 => x11=0xffffffffffffe08c
+[19:14:42 267][libtiny.so 0x19c8f0] [6a299e92] 0x1219c8f0: "mov x10, #-0xf14c" x10=0xfcdaf5ac => x10=0xffffffffffff0eb4
+[19:14:42 267][libtiny.so 0x19c8f4] [8b9cbff2] 0x1219c8f4: "movk x11, #0xfce4, lsl #16" x11=0xffffffffffffe08c => x11=0xfffffffffce4e08c
+[19:14:42 267][libtiny.so 0x19c8f8] [6a8cbff2] 0x1219c8f8: "movk x10, #0xfc63, lsl #16" x10=0xffffffffffff0eb4 => x10=0xfffffffffc630eb4
+[19:14:42 268][libtiny.so 0x19c8fc] [29010b8b] 0x1219c8fc: "add x9, x9, x11" x9=0x1534e678 x11=0xfffffffffce4e08c => x9=0x1219c704
+[19:14:42 268][libtiny.so 0x19c900] [08010a8b] 0x1219c900: "add x8, x8, x10" x8=0x193a8d3c x10=0xfffffffffc630eb4 => x8=0x159d9bf0
+[19:14:42 268][libtiny.so 0x19c904] [20011fd6] 0x1219c904: "br x9" x9=0x1219c704
+[19:14:42 268][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x1219c704 => x9=0xffffffffffff2bf0
+[19:14:42 268][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 268][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9bf0 x9=0xfffffffffc7c2bf0 => x8=0x1219c7e0
+[19:14:42 268][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c7e0
+[19:14:42 268][libtiny.so 0x19c7e0] [695240b9] 0x1219c7e0: "ldr w9, [x19, #0x50]" x19=0xe4fff580 => w9=0x1
+[19:14:42 268][libtiny.so 0x19c7e4] [88789552] 0x1219c7e4: "mov w8, #0xabc4" w8=0x1219c7e0 => w8=0xabc4
+[19:14:42 268][libtiny.so 0x19c7e8] [0b000090] 0x1219c7e8: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 268][libtiny.so 0x19c7ec] [6a6345f9] 0x1219c7ec: "ldr x10, [x27, #0xac0]" x27=0x1273a000 => x10=0x160ac7d8
+[19:14:42 268][libtiny.so 0x19c7f0] [6868a072] 0x1219c7f0: "movk w8, #0x343, lsl #16" w8=0xabc4 => w8=0x343abc4
+[19:14:42 268][libtiny.so 0x19c7f4] [6ba13a91] 0x1219c7f4: "add x11, x11, #0xea8" x11=0x1219c000 => x11=0x1219cea8
+[19:14:42 268][libtiny.so 0x19c7f8] [0c029652] 0x1219c7f8: "mov w12, #0xb010" w12=0xfff99640 => w12=0xb010
+[19:14:42 268][libtiny.so 0x19c7fc] [6801088b] 0x1219c7fc: "add x8, x11, x8" x11=0x1219cea8 x8=0x343abc4 => x8=0x155d7a6c
+[19:14:42 268][libtiny.so 0x19c800] [4ceabf72] 0x1219c800: "movk w12, #0xff52, lsl #16" w12=0xb010 => w12=0xff52b010
+[19:14:42 268][libtiny.so 0x19c804] [6b01084b] 0x1219c804: "sub w11, w11, w8" w11=0x1219cea8 w8=0x155d7a6c => w11=0xfcbc543c
+[19:14:42 268][libtiny.so 0x19c808] [6b010c0b] 0x1219c808: "add w11, w11, w12" w11=0xfcbc543c w12=0xff52b010 => w11=0xfc0f044c
+[19:14:42 268][libtiny.so 0x19c80c] [3f010071] 0x1219c80c: "cmp w9, #0" w9=0x1 => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 268][libtiny.so 0x19c810] [e9179f1a] 0x1219c810: "cset w9, eq" nzcv: N=0, Z=0, C=1, V=0 => w9=0x0
+[19:14:42 268][libtiny.so 0x19c814] [4ac12b8b] 0x1219c814: "add x10, x10, w11, sxtw" x10=0x160ac7d8 w11=0xfc0f044c => x10=0x1219cc24
+[19:14:42 268][libtiny.so 0x19c818] [695e0139] 0x1219c818: "strb w9, [x19, #0x57]" w9=0x0 x19=0xe4fff580
+[19:14:42 268][libtiny.so 0x19c81c] [40011fd6] 0x1219c81c: "br x10" x10=0x1219cc24
+[19:14:42 268][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x0 => x9=0xffffffffffff543c
+[19:14:42 268][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 268][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d7a6c x9=0xfffffffffcbc543c => x8=0x1219cea8
+[19:14:42 268][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219cea8
+[19:14:42 268][libtiny.so 0x19cea8] [89e28b52] 0x1219cea8: "mov w9, #0x5f14" w9=0xfcbc543c => w9=0x5f14
+[19:14:42 268][libtiny.so 0x19ceac] [0a000090] 0x1219ceac: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 268][libtiny.so 0x19ceb0] [0cd98252] 0x1219ceb0: "mov w12, #0x16c8" w12=0xff52b010 => w12=0x16c8
+[19:14:42 268][libtiny.so 0x19ceb4] [685e4139] 0x1219ceb4: "ldrb w8, [x19, #0x57]" x19=0xe4fff580 => w8=0x0
+[19:14:42 268][libtiny.so 0x19ceb8] [c9d9a072] 0x1219ceb8: "movk w9, #0x6ce, lsl #16" w9=0x5f14 => w9=0x6ce5f14
+[19:14:42 268][libtiny.so 0x19cebc] [4a812891] 0x1219cebc: "add x10, x10, #0xa20" x10=0x1219c000 => x10=0x1219ca20
+[19:14:42 268][libtiny.so 0x19cec0] [4c69a072] 0x1219cec0: "movk w12, #0x34a, lsl #16" w12=0x16c8 => w12=0x34a16c8
+[19:14:42 268][libtiny.so 0x19cec4] [4901098b] 0x1219cec4: "add x9, x10, x9" x10=0x1219ca20 x9=0x6ce5f14 => x9=0x18e82934
+[19:14:42 269][libtiny.so 0x19cec8] [4a010c0b] 0x1219cec8: "add w10, w10, w12" w10=0x1219ca20 w12=0x34a16c8 => w10=0x1563e0e8
+[19:14:42 269][libtiny.so 0x19cecc] [6c5e4139] 0x1219cecc: "ldrb w12, [x19, #0x57]" x19=0xe4fff580 => w12=0x0
+[19:14:42 269][libtiny.so 0x19ced0] [6d5e4139] 0x1219ced0: "ldrb w13, [x19, #0x57]" x19=0xe4fff580 => w13=0x0
+[19:14:42 269][libtiny.so 0x19ced4] [0b859f52] 0x1219ced4: "mov w11, #0xfc28" w11=0xfc0f044c => w11=0xfc28
+[19:14:42 269][libtiny.so 0x19ced8] [0e000090] 0x1219ced8: "adrp x14, #0x1219c000" => x14=0x1219c000
+[19:14:42 269][libtiny.so 0x19cedc] [4b77a072] 0x1219cedc: "movk w11, #0x3ba, lsl #16" w11=0xfc28 => w11=0x3bafc28
+[19:14:42 269][libtiny.so 0x19cee0] [ce912791] 0x1219cee0: "add x14, x14, #0x9e4" x14=0x1219c000 => x14=0x1219c9e4
+[19:14:42 269][libtiny.so 0x19cee4] [1f010071] 0x1219cee4: "cmp w8, #0" w8=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 269][libtiny.so 0x19cee8] [c8010b8b] 0x1219cee8: "add x8, x14, x11" x14=0x1219c9e4 x11=0x3bafc28 => x8=0x15d4c60c
+[19:14:42 269][libtiny.so 0x19ceec] [0811899a] 0x1219ceec: "csel x8, x8, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x8=0x15d4c60c x9=0x18e82934 => x8=0x18e82934
+[19:14:42 269][libtiny.so 0x19cef0] [09078052] 0x1219cef0: "mov w9, #0x38" w9=0x18e82934 => w9=0x38
+[19:14:42 269][libtiny.so 0x19cef4] [bf010071] 0x1219cef4: "cmp w13, #0" w13=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 269][libtiny.so 0x19cef8] [0b068052] 0x1219cef8: "mov w11, #0x30" w11=0x3bafc28 => w11=0x30
+[19:14:42 269][libtiny.so 0x19cefc] [ed2c00d0] 0x1219cefc: "adrp x13, #0x1273a000" => x13=0x1273a000
+[19:14:42 269][libtiny.so 0x19cf00] [6911899a] 0x1219cf00: "csel x9, x11, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x11=0x30 x9=0x38 => x9=0x38
+[19:14:42 269][libtiny.so 0x19cf04] [0bd78352] 0x1219cf04: "mov w11, #0x1eb8" w11=0x30 => w11=0x1eb8
+[19:14:42 269][libtiny.so 0x19cf08] [ad012a91] 0x1219cf08: "add x13, x13, #0xa80" x13=0x1273a000 => x13=0x1273aa80
+[19:14:42 269][libtiny.so 0x19cf0c] [4b08a072] 0x1219cf0c: "movk w11, #0x42, lsl #16" w11=0x1eb8 => w11=0x421eb8
+[19:14:42 269][libtiny.so 0x19cf10] [a96969f8] 0x1219cf10: "ldr x9, [x13, x9]" x13=0x1273aa80 x9=0x38 => x9=0x159e1450
+[19:14:42 269][libtiny.so 0x19cf14] [cb010b0b] 0x1219cf14: "add w11, w14, w11" w14=0x1219c9e4 w11=0x421eb8 => w11=0x125be89c
+[19:14:42 269][libtiny.so 0x19cf18] [9f010071] 0x1219cf18: "cmp w12, #0" w12=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 269][libtiny.so 0x19cf1c] [6a118a1a] 0x1219cf1c: "csel w10, w11, w10, ne" nzcv: N=0, Z=1, C=1, V=0 w11=0x125be89c w10=0x1563e0e8 => w10=0x1563e0e8
+[19:14:42 269][libtiny.so 0x19cf20] [4a01084b] 0x1219cf20: "sub w10, w10, w8" w10=0x1563e0e8 w8=0x18e82934 => w10=0xfc7bb7b4
+[19:14:42 269][libtiny.so 0x19cf24] [29c12a8b] 0x1219cf24: "add x9, x9, w10, sxtw" x9=0x159e1450 w10=0xfc7bb7b4 => x9=0x1219cc04
+[19:14:42 269][libtiny.so 0x19cf28] [20011fd6] 0x1219cf28: "br x9" x9=0x1219cc04
+[19:14:42 269][libtiny.so 0x19cc04] [e95a45f9] 0x1219cc04: "ldr x9, [x23, #0xab0]" x23=0x1273a000 => x9=0x1592a678
+[19:14:42 269][libtiny.so 0x19cc08] [ebad9b92] 0x1219cc08: "mov x11, #-0xdd70" x11=0x125be89c => x11=0xffffffffffff2290
+[19:14:42 269][libtiny.so 0x19cc0c] [6a5d8c92] 0x1219cc0c: "mov x10, #-0x62ec" x10=0xfc7bb7b4 => x10=0xffffffffffff9d14
+[19:14:42 270][libtiny.so 0x19cc10] [eb90bff2] 0x1219cc10: "movk x11, #0xfc87, lsl #16" x11=0xffffffffffff2290 => x11=0xfffffffffc872290
+[19:14:42 270][libtiny.so 0x19cc14] [8a9dbff2] 0x1219cc14: "movk x10, #0xfcec, lsl #16" x10=0xffffffffffff9d14 => x10=0xfffffffffcec9d14
+[19:14:42 270][libtiny.so 0x19cc18] [29010b8b] 0x1219cc18: "add x9, x9, x11" x9=0x1592a678 x11=0xfffffffffc872290 => x9=0x1219c908
+[19:14:42 270][libtiny.so 0x19cc1c] [08010a8b] 0x1219cc1c: "add x8, x8, x10" x8=0x18e82934 x10=0xfffffffffcec9d14 => x8=0x15d4c648
+[19:14:42 270][libtiny.so 0x19cc20] [20011fd6] 0x1219cc20: "br x9" x9=0x1219c908
+[19:14:42 270][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0x1219c908 => x9=0xffffffffffff03d8
+[19:14:42 270][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 270][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c648 x9=0xfffffffffc4503d8 => x8=0x1219ca20
+[19:14:42 270][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219ca20
+[19:14:42 270][libtiny.so 0x19ca20] [e82c00d0] 0x1219ca20: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 270][libtiny.so 0x19ca24] [089145f9] 0x1219ca24: "ldr x8, [x8, #0xb20]" x8=0x1273a000 => x8=0xffffffff93fb3fa0
+[19:14:42 270][libtiny.so 0x19ca28] [89899652] 0x1219ca28: "mov w9, #0xb44c" w9=0xfc4503d8 => w9=0xb44c
+[19:14:42 270][libtiny.so 0x19ca2c] [c9c3af72] 0x1219ca2c: "movk w9, #0x7e1e, lsl #16" w9=0xb44c => w9=0x7e1eb44c
+[19:14:42 270][libtiny.so 0x19ca30] [0801098b] 0x1219ca30: "add x8, x8, x9" x8=0xffffffff93fb3fa0 x9=0x7e1eb44c => x8=0x1219f3ec
+[19:14:42 270][libtiny.so 0x19ca34] [00013fd6] 0x1219ca34: "blr x8" x8=0x1219f3ec
+[19:14:42 270][libtiny.so 0x19f3ec] [ff4301d1] 0x1219f3ec: "sub sp, sp, #0x50" sp=0xe4fff570 => sp=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f3f0] [fe1b00f9] 0x1219f3f0: "str x30, [sp, #0x30]" lr=0x1219ca38 sp=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f3f4] [f44f04a9] 0x1219f3f4: "stp x20, x19, [sp, #0x40]" x20=0x1273a000 x19=0xe4fff580 sp=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f3f8] [28fbfff0] 0x1219f3f8: "adrp x8, #0x12106000" => x8=0x12106000
+[19:14:42 270][libtiny.so 0x19f3fc] [54d03bd5] 0x1219f3fc: "mrs x20, tpidr_el0" x20=0x1273a000 => x20=0xe4fff718
+[19:14:42 270][libtiny.so 0x19f400] [08411891] 0x1219f400: "add x8, x8, #0x610" x8=0x12106000 => x8=0x12106610
+[19:14:42 270][libtiny.so 0x19f404] [891640f9] 0x1219f404: "ldr x9, [x20, #0x28]" x20=0xe4fff718 => x9=0x0
+[19:14:42 270][libtiny.so 0x19f408] [000540ad] 0x1219f408: "ldp q0, q1, [x8]" x8=0x12106610
+[19:14:42 270][libtiny.so 0x19f40c] [60038052] 0x1219f40c: "mov w0, #0x1b" w0=0x1 => w0=0x1b
+[19:14:42 270][libtiny.so 0x19f410] [e91700f9] 0x1219f410: "str x9, [sp, #0x28]" x9=0x0 sp=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f414] [e00700ad] 0x1219f414: "stp q0, q1, [sp]" sp=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f418] [7987fe97] 0x1219f418: "bl #0x121411fc" => lr=0x1219f41c
+[19:14:42 270][libtiny.so 0x19f41c] [e1030091] 0x1219f41c: "mov x1, sp" sp=0xe4fff520 => x1=0xe4fff520
+[19:14:42 270][libtiny.so 0x19f420] [42038052] 0x1219f420: "mov w2, #0x1a" w2=0x2 => w2=0x1a
+[19:14:42 270][libtiny.so 0x19f424] [f30300aa] 0x1219f424: "mov x19, x0" x0=0x12b186c0 => x19=0x12b186c0
+[19:14:42 270][libtiny.so 0x19f428] [1f680039] 0x1219f428: "strb wzr, [x0, #0x1a]" x0=0x12b186c0
+[19:14:42 270][libtiny.so 0x19f42c] [799f0e94] 0x1219f42c: "bl #0x12547210" => lr=0x1219f430
+[19:14:42 270][libtiny.so 0x19f430] [41038052] 0x1219f430: "mov w1, #0x1a" w1=0xe4fff520 => w1=0x1a
+[19:14:42 270][libtiny.so 0x19f434] [17e2fe97] 0x1219f434: "bl #0x12157c90" => lr=0x1219f438
+[19:14:42 270][libtiny.so 0x19f438] [881640f9] 0x1219f438: "ldr x8, [x20, #0x28]" x20=0xe4fff718 => x8=0x0
+[19:14:42 270][libtiny.so 0x19f43c] [e91740f9] 0x1219f43c: "ldr x9, [sp, #0x28]" sp=0xe4fff520 => x9=0x0
+[19:14:42 270][libtiny.so 0x19f440] [1f0109eb] 0x1219f440: "cmp x8, x9" x8=0x0 x9=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 270][libtiny.so 0x19f444] [c1000054] 0x1219f444: "b.ne #0x1219f45c" nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 271][libtiny.so 0x19f448] [e00313aa] 0x1219f448: "mov x0, x19" x19=0x12b186c0 => x0=0x12b186c0
+[19:14:42 271][libtiny.so 0x19f44c] [f44f44a9] 0x1219f44c: "ldp x20, x19, [sp, #0x40]" sp=0xe4fff520 => x20=0x1273a000 x19=0xe4fff580
+[19:14:42 271][libtiny.so 0x19f450] [fe1b40f9] 0x1219f450: "ldr x30, [sp, #0x30]" sp=0xe4fff520 => lr=0x1219ca38
+[19:14:42 271][libtiny.so 0x19f454] [ff430191] 0x1219f454: "add sp, sp, #0x50" sp=0xe4fff520 => sp=0xe4fff570
+[19:14:42 271][libtiny.so 0x19f458] [c0035fd6] 0x1219f458: "ret"
+[19:14:42 271][libtiny.so 0x19ca38] [e82c00d0] 0x1219ca38: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 271][libtiny.so 0x19ca3c] [e92c00d0] 0x1219ca3c: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 271][libtiny.so 0x19ca40] [0a5b9652] 0x1219ca40: "mov w10, #0xb2d8" w10=0xfc951e58 => w10=0xb2d8
+[19:14:42 271][libtiny.so 0x19ca44] [0b000090] 0x1219ca44: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 271][libtiny.so 0x19ca48] [297545f9] 0x1219ca48: "ldr x9, [x9, #0xae8]" x9=0x1273a000 => x9=0x1556e328
+[19:14:42 271][libtiny.so 0x19ca4c] [aaefa072] 0x1219ca4c: "movk w10, #0x77d, lsl #16" w10=0xb2d8 => w10=0x77db2d8
+[19:14:42 271][libtiny.so 0x19ca50] [6ba12c91] 0x1219ca50: "add x11, x11, #0xb28" x11=0x1219c000 => x11=0x1219cb28
+[19:14:42 271][libtiny.so 0x19ca54] [0d7d45f9] 0x1219ca54: "ldr x13, [x8, #0xaf8]" x8=0x1273a000 => x13=0xffffffffe7f2c970
+[19:14:42 271][libtiny.so 0x19ca58] [8c649252] 0x1219ca58: "mov w12, #0x9324" w12=0x12739c00 => w12=0x9324
+[19:14:42 271][libtiny.so 0x19ca5c] [68010a8b] 0x1219ca5c: "add x8, x11, x10" x11=0x1219cb28 x10=0x77db2d8 => x8=0x19977e00
+[19:14:42 271][libtiny.so 0x19ca60] [0c88a072] 0x1219ca60: "movk w12, #0x440, lsl #16" w12=0x9324 => w12=0x4409324
+[19:14:42 271][libtiny.so 0x19ca64] [6a01084b] 0x1219ca64: "sub w10, w11, w8" w11=0x1219cb28 w8=0x19977e00 => w10=0xf8824d28
+[19:14:42 271][libtiny.so 0x19ca68] [0b308652] 0x1219ca68: "mov w11, #0x3180" w11=0x1219cb28 => w11=0x3180
+[19:14:42 271][libtiny.so 0x19ca6c] [4a010c0b] 0x1219ca6c: "add w10, w10, w12" w10=0xf8824d28 w12=0x4409324 => w10=0xfcc2e04c
+[19:14:42 271][libtiny.so 0x19ca70] [0b51a572] 0x1219ca70: "movk w11, #0x2a88, lsl #16" w11=0x3180 => w11=0x2a883180
+[19:14:42 271][libtiny.so 0x19ca74] [ab010b8b] 0x1219ca74: "add x11, x13, x11" x13=0xffffffffe7f2c970 x11=0x2a883180 => x11=0x127afaf0
+[19:14:42 271][libtiny.so 0x19ca78] [29c12a8b] 0x1219ca78: "add x9, x9, w10, sxtw" x9=0x1556e328 w10=0xfcc2e04c => x9=0x1219c374
+[19:14:42 271][libtiny.so 0x19ca7c] [60ae05a9] 0x1219ca7c: "stp x0, x11, [x19, #0x58]" x0=0x12b186c0 x11=0x127afaf0 x19=0xe4fff580
+[19:14:42 271][libtiny.so 0x19ca80] [20011fd6] 0x1219ca80: "br x9" x9=0x1219c374
+[19:14:42 271][libtiny.so 0x19c374] [297345f9] 0x1219c374: "ldr x9, [x25, #0xae0]" x25=0x1273a000 => x9=0x155a6864
+[19:14:42 271][libtiny.so 0x19c378] [6bb19392] 0x1219c378: "mov x11, #-0x9d8c" x11=0x127afaf0 => x11=0xffffffffffff6274
+[19:14:42 271][libtiny.so 0x19c37c] [ea899592] 0x1219c37c: "mov x10, #-0xac50" x10=0xfcc2e04c => x10=0xffffffffffff53b0
+[19:14:42 271][libtiny.so 0x19c380] [eb97bff2] 0x1219c380: "movk x11, #0xfcbf, lsl #16" x11=0xffffffffffff6274 => x11=0xfffffffffcbf6274
+[19:14:42 271][libtiny.so 0x19c384] [8a87bff2] 0x1219c384: "movk x10, #0xfc3c, lsl #16" x10=0xffffffffffff53b0 => x10=0xfffffffffc3c53b0
+[19:14:42 271][libtiny.so 0x19c388] [29010b8b] 0x1219c388: "add x9, x9, x11" x9=0x155a6864 x11=0xfffffffffcbf6274 => x9=0x1219cad8
+[19:14:42 271][libtiny.so 0x19c38c] [08010a8b] 0x1219c38c: "add x8, x8, x10" x8=0x19977e00 x10=0xfffffffffc3c53b0 => x8=0x15d3d1b0
+[19:14:42 271][libtiny.so 0x19c390] [20011fd6] 0x1219c390: "br x9" x9=0x1219cad8
+[19:14:42 271][libtiny.so 0x19cad8] [e9d08092] 0x1219cad8: "mov x9, #-0x688" x9=0x1219cad8 => x9=0xfffffffffffff978
+[19:14:42 271][libtiny.so 0x19cadc] [a988bff2] 0x1219cadc: "movk x9, #0xfc45, lsl #16" x9=0xfffffffffffff978 => x9=0xfffffffffc45f978
+[19:14:42 273][libtiny.so 0x19cae0] [0801098b] 0x1219cae0: "add x8, x8, x9" x8=0x15d3d1b0 x9=0xfffffffffc45f978 => x8=0x1219cb28
+[19:14:42 273][libtiny.so 0x19cae4] [00011fd6] 0x1219cae4: "br x8" x8=0x1219cb28
+[19:14:42 273][libtiny.so 0x19cb28] [682e40f9] 0x1219cb28: "ldr x8, [x19, #0x58]" x19=0xe4fff580 => x8=0x12b186c0
+[19:14:42 273][libtiny.so 0x19cb2c] [693240f9] 0x1219cb2c: "ldr x9, [x19, #0x60]" x19=0xe4fff580 => x9=0x127afaf0
+[19:14:42 273][libtiny.so 0x19cb30] [0a608852] 0x1219cb30: "mov w10, #0x4300" w10=0xfc3c53b0 => w10=0x4300
+[19:14:42 273][libtiny.so 0x19cb34] [0b000090] 0x1219cb34: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 273][libtiny.so 0x19cb38] [2a68a072] 0x1219cb38: "movk w10, #0x341, lsl #16" w10=0x4300 => w10=0x3414300
+[19:14:42 273][libtiny.so 0x19cb3c] [6bb11591] 0x1219cb3c: "add x11, x11, #0x56c" x11=0x1219c000 => x11=0x1219c56c
+[19:14:42 274][libtiny.so 0x19cb40] [280100f9] 0x1219cb40: "str x8, [x9]" x8=0x12b186c0 x9=0x127afaf0
+[19:14:42 274][libtiny.so 0x19cb44] [e82c00d0] 0x1219cb44: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 274][libtiny.so 0x19cb48] [094945f9] 0x1219cb48: "ldr x9, [x8, #0xa90]" x8=0x1273a000 => x9=0x1561717c
+[19:14:42 274][libtiny.so 0x19cb4c] [68010a8b] 0x1219cb4c: "add x8, x11, x10" x11=0x1219c56c x10=0x3414300 => x8=0x155b086c
+[19:14:42 274][libtiny.so 0x19cb50] [6a01084b] 0x1219cb50: "sub w10, w11, w8" w11=0x1219c56c w8=0x155b086c => w10=0xfcbebd00
+[19:14:42 274][libtiny.so 0x19cb54] [0bc89252] 0x1219cb54: "mov w11, #0x9640" w11=0x1219c56c => w11=0x9640
+[19:14:42 274][libtiny.so 0x19cb58] [2bffbf72] 0x1219cb58: "movk w11, #0xfff9, lsl #16" w11=0x9640 => w11=0xfff99640
+[19:14:42 274][libtiny.so 0x19cb5c] [4a010b0b] 0x1219cb5c: "add w10, w10, w11" w10=0xfcbebd00 w11=0xfff99640 => w10=0xfcb85340
+[19:14:42 274][libtiny.so 0x19cb60] [29c12a8b] 0x1219cb60: "add x9, x9, w10, sxtw" x9=0x1561717c w10=0xfcb85340 => x9=0x1219c4bc
+[19:14:42 274][libtiny.so 0x19cb64] [20011fd6] 0x1219cb64: "br x9" x9=0x1219c4bc
+[19:14:42 274][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 274][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 274][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b086c x9=0xfffffffffcbebd00 => x8=0x1219c56c
+[19:14:42 274][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c56c
+[19:14:42 274][libtiny.so 0x19c56c] [803000f0] 0x1219c56c: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 274][libtiny.so 0x19c570] [00a02b91] 0x1219c570: "add x0, x0, #0xae8" x0=0x127af000 => x0=0x127afae8
+[19:14:42 274][libtiny.so 0x19c574] [ac9afe97] 0x1219c574: "bl #0x12143024" => lr=0x1219c578
+[19:14:42 274][libtiny.so 0x19c578] [89e28b52] 0x1219c578: "mov w9, #0x5f14" w9=0xfcbebd00 => w9=0x5f14
+[19:14:42 274][libtiny.so 0x19c57c] [0b000090] 0x1219c57c: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 274][libtiny.so 0x19c580] [e82c00d0] 0x1219c580: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 274][libtiny.so 0x19c584] [c9d9a072] 0x1219c584: "movk w9, #0x6ce, lsl #16" w9=0x5f14 => w9=0x6ce5f14
+[19:14:42 274][libtiny.so 0x19c588] [6b912791] 0x1219c588: "add x11, x11, #0x9e4" x11=0x1219c000 => x11=0x1219c9e4
+[19:14:42 274][libtiny.so 0x19c58c] [0a5d45f9] 0x1219c58c: "ldr x10, [x8, #0xab8]" x8=0x1273a000 => x10=0x159e1450
+[19:14:42 274][libtiny.so 0x19c590] [6801098b] 0x1219c590: "add x8, x11, x9" x11=0x1219c9e4 x9=0x6ce5f14 => x8=0x18e828f8
+[19:14:42 274][libtiny.so 0x19c594] [6901084b] 0x1219c594: "sub w9, w11, w8" w11=0x1219c9e4 w8=0x18e828f8 => w9=0xf931a0ec
+[19:14:42 274][libtiny.so 0x19c598] [0bd98252] 0x1219c598: "mov w11, #0x16c8" w11=0x1219c9e4 => w11=0x16c8
+[19:14:42 274][libtiny.so 0x19c59c] [4b69a072] 0x1219c59c: "movk w11, #0x34a, lsl #16" w11=0x16c8 => w11=0x34a16c8
+[19:14:42 274][libtiny.so 0x19c5a0] [29010b0b] 0x1219c5a0: "add w9, w9, w11" w9=0xf931a0ec w11=0x34a16c8 => w9=0xfc7bb7b4
+[19:14:42 274][libtiny.so 0x19c5a4] [49c1298b] 0x1219c5a4: "add x9, x10, w9, sxtw" x10=0x159e1450 w9=0xfc7bb7b4 => x9=0x1219cc04
+[19:14:42 274][libtiny.so 0x19c5a8] [20011fd6] 0x1219c5a8: "br x9" x9=0x1219cc04
+[19:14:42 274][libtiny.so 0x19cc04] [e95a45f9] 0x1219cc04: "ldr x9, [x23, #0xab0]" x23=0x1273a000 => x9=0x1592a678
+[19:14:42 274][libtiny.so 0x19cc08] [ebad9b92] 0x1219cc08: "mov x11, #-0xdd70" x11=0x34a16c8 => x11=0xffffffffffff2290
+[19:14:42 274][libtiny.so 0x19cc0c] [6a5d8c92] 0x1219cc0c: "mov x10, #-0x62ec" x10=0x159e1450 => x10=0xffffffffffff9d14
+[19:14:42 274][libtiny.so 0x19cc10] [eb90bff2] 0x1219cc10: "movk x11, #0xfc87, lsl #16" x11=0xffffffffffff2290 => x11=0xfffffffffc872290
+[19:14:42 274][libtiny.so 0x19cc14] [8a9dbff2] 0x1219cc14: "movk x10, #0xfcec, lsl #16" x10=0xffffffffffff9d14 => x10=0xfffffffffcec9d14
+[19:14:42 274][libtiny.so 0x19cc18] [29010b8b] 0x1219cc18: "add x9, x9, x11" x9=0x1592a678 x11=0xfffffffffc872290 => x9=0x1219c908
+[19:14:42 274][libtiny.so 0x19cc1c] [08010a8b] 0x1219cc1c: "add x8, x8, x10" x8=0x18e828f8 x10=0xfffffffffcec9d14 => x8=0x15d4c60c
+[19:14:42 274][libtiny.so 0x19cc20] [20011fd6] 0x1219cc20: "br x9" x9=0x1219c908
+[19:14:42 274][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0x1219c908 => x9=0xffffffffffff03d8
+[19:14:42 274][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 274][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c60c x9=0xfffffffffc4503d8 => x8=0x1219c9e4
+[19:14:42 274][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219c9e4
+[19:14:42 275][libtiny.so 0x19c9e4] [8abf8d52] 0x1219c9e4: "mov w10, #0x6dfc" w10=0xfcec9d14 => w10=0x6dfc
+[19:14:42 275][libtiny.so 0x19c9e8] [0b000090] 0x1219c9e8: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 275][libtiny.so 0x19c9ec] [e82c00d0] 0x1219c9ec: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 275][libtiny.so 0x19c9f0] [2ae1a072] 0x1219c9f0: "movk w10, #0x709, lsl #16" w10=0x6dfc => w10=0x7096dfc
+[19:14:42 275][libtiny.so 0x19c9f4] [6bd13091] 0x1219c9f4: "add x11, x11, #0xc34" x11=0x1219c000 => x11=0x1219cc34
+[19:14:42 275][libtiny.so 0x19c9f8] [a96645f9] 0x1219c9f8: "ldr x9, [x21, #0xac8]" x21=0x1273a000 => x9=0x1617db80
+[19:14:42 275][libtiny.so 0x19c9fc] [0c7d45f9] 0x1219c9fc: "ldr x12, [x8, #0xaf8]" x8=0x1273a000 => x12=0xffffffffe7f2c970
+[19:14:42 275][libtiny.so 0x19ca00] [68010a8b] 0x1219ca00: "add x8, x11, x10" x11=0x1219cc34 x10=0x7096dfc => x8=0x19233a30
+[19:14:42 275][libtiny.so 0x19ca04] [6a01084b] 0x1219ca04: "sub w10, w11, w8" w11=0x1219cc34 w8=0x19233a30 => w10=0xf8f69204
+[19:14:42 275][libtiny.so 0x19ca08] [0bdf8b52] 0x1219ca08: "mov w11, #0x5ef8" w11=0x1219cc34 => w11=0x5ef8
+[19:14:42 275][libtiny.so 0x19ca0c] [6b61a072] 0x1219ca0c: "movk w11, #0x30b, lsl #16" w11=0x5ef8 => w11=0x30b5ef8
+[19:14:42 275][libtiny.so 0x19ca10] [4a010b0b] 0x1219ca10: "add w10, w10, w11" w10=0xf8f69204 w11=0x30b5ef8 => w10=0xfc01f0fc
+[19:14:42 275][libtiny.so 0x19ca14] [29c12a8b] 0x1219ca14: "add x9, x9, w10, sxtw" x9=0x1617db80 w10=0xfc01f0fc => x9=0x1219cc7c
+[19:14:42 275][libtiny.so 0x19ca18] [6c3600f9] 0x1219ca18: "str x12, [x19, #0x68]" x12=0xffffffffe7f2c970 x19=0xe4fff580
+[19:14:42 275][libtiny.so 0x19ca1c] [20011fd6] 0x1219ca1c: "br x9" x9=0x1219cc7c
+[19:14:42 275][libtiny.so 0x19cc7c] [696345f9] 0x1219cc7c: "ldr x9, [x27, #0xac0]" x27=0x1273a000 => x9=0x160ac7d8
+[19:14:42 275][libtiny.so 0x19cc80] [6b769f92] 0x1219cc80: "mov x11, #-0xfbb4" x11=0x30b5ef8 => x11=0xffffffffffff044c
+[19:14:42 275][libtiny.so 0x19cc84] [ea469892] 0x1219cc84: "mov x10, #-0xc238" x10=0xfc01f0fc => x10=0xffffffffffff3dc8
+[19:14:42 275][libtiny.so 0x19cc88] [eb81bff2] 0x1219cc88: "movk x11, #0xfc0f, lsl #16" x11=0xffffffffffff044c => x11=0xfffffffffc0f044c
+[19:14:42 275][libtiny.so 0x19cc8c] [4a87bff2] 0x1219cc8c: "movk x10, #0xfc3a, lsl #16" x10=0xffffffffffff3dc8 => x10=0xfffffffffc3a3dc8
+[19:14:42 275][libtiny.so 0x19cc90] [29010b8b] 0x1219cc90: "add x9, x9, x11" x9=0x160ac7d8 x11=0xfffffffffc0f044c => x9=0x1219cc24
+[19:14:42 275][libtiny.so 0x19cc94] [08010a8b] 0x1219cc94: "add x8, x8, x10" x8=0x19233a30 x10=0xfffffffffc3a3dc8 => x8=0x155d77f8
+[19:14:42 275][libtiny.so 0x19cc98] [20011fd6] 0x1219cc98: "br x9" x9=0x1219cc24
+[19:14:42 275][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x1219cc24 => x9=0xffffffffffff543c
+[19:14:42 275][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 275][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d77f8 x9=0xfffffffffcbc543c => x8=0x1219cc34
+[19:14:42 275][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219cc34
+[19:14:42 275][libtiny.so 0x19cc34] [683640f9] 0x1219cc34: "ldr x8, [x19, #0x68]" x19=0xe4fff580 => x8=0xffffffffe7f2c970
+[19:14:42 275][libtiny.so 0x19cc38] [09308652] 0x1219cc38: "mov w9, #0x3180" w9=0xfcbc543c => w9=0x3180
+[19:14:42 275][libtiny.so 0x19cc3c] [0951a572] 0x1219cc3c: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 275][libtiny.so 0x19cc40] [0a000090] 0x1219cc40: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 275][libtiny.so 0x19cc44] [0d6969f8] 0x1219cc44: "ldr x13, [x8, x9]" x8=0xffffffffe7f2c970 x9=0x2a883180 => x13=0x12b186c0
+[19:14:42 275][libtiny.so 0x19cc48] [89bf8d52] 0x1219cc48: "mov w9, #0x6dfc" w9=0x2a883180 => w9=0x6dfc
+[19:14:42 275][libtiny.so 0x19cc4c] [29e1a072] 0x1219cc4c: "movk w9, #0x709, lsl #16" w9=0x6dfc => w9=0x7096dfc
+[19:14:42 275][libtiny.so 0x19cc50] [4ad13491] 0x1219cc50: "add x10, x10, #0xd34" x10=0x1219c000 => x10=0x1219cd34
+[19:14:42 276][libtiny.so 0x19cc54] [6b2240f9] 0x1219cc54: "ldr x11, [x19, #0x40]" x19=0xe4fff580 => x11=0xfffe1640
+[19:14:42 276][libtiny.so 0x19cc58] [ac6645f9] 0x1219cc58: "ldr x12, [x21, #0xac8]" x21=0x1273a000 => x12=0x1617db80
+[19:14:42 276][libtiny.so 0x19cc5c] [4801098b] 0x1219cc5c: "add x8, x10, x9" x10=0x1219cd34 x9=0x7096dfc => x8=0x19233b30
+[19:14:42 276][libtiny.so 0x19cc60] [4901084b] 0x1219cc60: "sub w9, w10, w8" w10=0x1219cd34 w8=0x19233b30 => w9=0xf8f69204
+[19:14:42 276][libtiny.so 0x19cc64] [0adf8b52] 0x1219cc64: "mov w10, #0x5ef8" w10=0x1219cd34 => w10=0x5ef8
+[19:14:42 276][libtiny.so 0x19cc68] [6a61a072] 0x1219cc68: "movk w10, #0x30b, lsl #16" w10=0x5ef8 => w10=0x30b5ef8
+[19:14:42 276][libtiny.so 0x19cc6c] [29010a0b] 0x1219cc6c: "add w9, w9, w10" w9=0xf8f69204 w10=0x30b5ef8 => w9=0xfc01f0fc
+[19:14:42 276][libtiny.so 0x19cc70] [89c1298b] 0x1219cc70: "add x9, x12, w9, sxtw" x12=0x1617db80 w9=0xfc01f0fc => x9=0x1219cc7c
+[19:14:42 276][libtiny.so 0x19cc74] [6d2e07a9] 0x1219cc74: "stp x13, x11, [x19, #0x70]" x13=0x12b186c0 x11=0xfffe1640 x19=0xe4fff580
+[19:14:42 276][libtiny.so 0x19cc78] [20011fd6] 0x1219cc78: "br x9" x9=0x1219cc7c
+[19:14:42 276][libtiny.so 0x19cc7c] [696345f9] 0x1219cc7c: "ldr x9, [x27, #0xac0]" x27=0x1273a000 => x9=0x160ac7d8
+[19:14:42 276][libtiny.so 0x19cc80] [6b769f92] 0x1219cc80: "mov x11, #-0xfbb4" x11=0xfffe1640 => x11=0xffffffffffff044c
+[19:14:42 276][libtiny.so 0x19cc84] [ea469892] 0x1219cc84: "mov x10, #-0xc238" x10=0x30b5ef8 => x10=0xffffffffffff3dc8
+[19:14:42 276][libtiny.so 0x19cc88] [eb81bff2] 0x1219cc88: "movk x11, #0xfc0f, lsl #16" x11=0xffffffffffff044c => x11=0xfffffffffc0f044c
+[19:14:42 276][libtiny.so 0x19cc8c] [4a87bff2] 0x1219cc8c: "movk x10, #0xfc3a, lsl #16" x10=0xffffffffffff3dc8 => x10=0xfffffffffc3a3dc8
+[19:14:42 276][libtiny.so 0x19cc90] [29010b8b] 0x1219cc90: "add x9, x9, x11" x9=0x160ac7d8 x11=0xfffffffffc0f044c => x9=0x1219cc24
+[19:14:42 276][libtiny.so 0x19cc94] [08010a8b] 0x1219cc94: "add x8, x8, x10" x8=0x19233b30 x10=0xfffffffffc3a3dc8 => x8=0x155d78f8
+[19:14:42 276][libtiny.so 0x19cc98] [20011fd6] 0x1219cc98: "br x9" x9=0x1219cc24
+[19:14:42 276][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x1219cc24 => x9=0xffffffffffff543c
+[19:14:42 276][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 276][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d78f8 x9=0xfffffffffcbc543c => x8=0x1219cd34
+[19:14:42 276][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219cd34
+[19:14:42 276][libtiny.so 0x19cd34] [683e40f9] 0x1219cd34: "ldr x8, [x19, #0x78]" x19=0xe4fff580 => x8=0xfffe1640
+[19:14:42 276][libtiny.so 0x19cd38] [080140f9] 0x1219cd38: "ldr x8, [x8]" x8=0xfffe1640 => x8=0xfffe0ef0
+[19:14:42 276][libtiny.so 0x19cd3c] [081940f9] 0x1219cd3c: "ldr x8, [x8, #0x30]" x8=0xfffe0ef0 => x8=0xfffe00b0
+[19:14:42 276][libtiny.so 0x19cd40] [602240f9] 0x1219cd40: "ldr x0, [x19, #0x40]" x19=0xe4fff580 => x0=0xfffe1640
+[19:14:42 276][libtiny.so 0x19cd44] [613a40f9] 0x1219cd44: "ldr x1, [x19, #0x70]" x19=0xe4fff580 => x1=0x12b186c0
+[19:14:42 276][libtiny.so 0x19cd48] [00013fd6] 0x1219cd48: "blr x8" x8=0xfffe00b0 => lr=0x1219cd4c
+[19:14:42 277][libtiny.so 0x19cd4c] [604200f9] 0x1219cd4c: "str x0, [x19, #0x80]" x0=0x98adad7e x19=0xe4fff580
+[19:14:42 277][libtiny.so 0x19cd50] [684240f9] 0x1219cd50: "ldr x8, [x19, #0x80]" x19=0xe4fff580 => x8=0x98adad7e
+[19:14:42 277][libtiny.so 0x19cd54] [691a40f9] 0x1219cd54: "ldr x9, [x19, #0x30]" x19=0xe4fff580 => x9=0xe4fff570
+[19:14:42 277][libtiny.so 0x19cd58] [0a008012] 0x1219cd58: "mov w10, #-1" w10=0xfc3a3dc8 => w10=0xffffffff
+[19:14:42 277][libtiny.so 0x19cd5c] [8be28b52] 0x1219cd5c: "mov w11, #0x5f14" w11=0xfc0f044c => w11=0x5f14
+[19:14:42 277][libtiny.so 0x19cd60] [cbd9a072] 0x1219cd60: "movk w11, #0x6ce, lsl #16" w11=0x5f14 => w11=0x6ce5f14
+[19:14:42 277][libtiny.so 0x19cd64] [2a0100b9] 0x1219cd64: "str w10, [x9]" w10=0xffffffff x9=0xe4fff570
+[19:14:42 277][libtiny.so 0x19cd68] [09000090] 0x1219cd68: "adrp x9, #0x1219c000" => x9=0x1219c000
+[19:14:42 277][libtiny.so 0x19cd6c] [0ad98252] 0x1219cd6c: "mov w10, #0x16c8" w10=0xffffffff => w10=0x16c8
+[19:14:42 277][libtiny.so 0x19cd70] [29a12591] 0x1219cd70: "add x9, x9, #0x968" x9=0x1219c000 => x9=0x1219c968
+[19:14:42 277][libtiny.so 0x19cd74] [4a69a072] 0x1219cd74: "movk w10, #0x34a, lsl #16" w10=0x16c8 => w10=0x34a16c8
+[19:14:42 277][libtiny.so 0x19cd78] [2b010b8b] 0x1219cd78: "add x11, x9, x11" x9=0x1219c968 x11=0x6ce5f14 => x11=0x18e8287c
+[19:14:42 277][libtiny.so 0x19cd7c] [29010a0b] 0x1219cd7c: "add w9, w9, w10" w9=0x1219c968 w10=0x34a16c8 => w9=0x1563e030
+[19:14:42 277][libtiny.so 0x19cd80] [0a189652] 0x1219cd80: "mov w10, #0xb0c0" w10=0x34a16c8 => w10=0xb0c0
+[19:14:42 277][libtiny.so 0x19cd84] [0d000090] 0x1219cd84: "adrp x13, #0x1219c000" => x13=0x1219c000
+[19:14:42 277][libtiny.so 0x19cd88] [cacda072] 0x1219cd88: "movk w10, #0x66e, lsl #16" w10=0xb0c0 => w10=0x66eb0c0
+[19:14:42 277][libtiny.so 0x19cd8c] [add10a91] 0x1219cd8c: "add x13, x13, #0x2b4" x13=0x1219c000 => x13=0x1219c2b4
+[19:14:42 277][libtiny.so 0x19cd90] [1f0100f1] 0x1219cd90: "cmp x8, #0" x8=0x98adad7e => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 277][libtiny.so 0x19cd94] [a8010a8b] 0x1219cd94: "add x8, x13, x10" x13=0x1219c2b4 x10=0x66eb0c0 => x8=0x18887374
+[19:14:42 277][libtiny.so 0x19cd98] [0c078052] 0x1219cd98: "mov w12, #0x38" w12=0x1617db80 => w12=0x38
+[19:14:42 277][libtiny.so 0x19cd9c] [08018b9a] 0x1219cd9c: "csel x8, x8, x11, eq" nzcv: N=0, Z=0, C=1, V=0 x8=0x18887374 x11=0x18e8287c => x8=0x18e8287c
+[19:14:42 278][libtiny.so 0x19cda0] [0a018052] 0x1219cda0: "mov w10, #8" w10=0x66eb0c0 => w10=0x8
+[19:14:42 278][libtiny.so 0x19cda4] [eb2c00d0] 0x1219cda4: "adrp x11, #0x1273a000" => x11=0x1273a000
+[19:14:42 278][libtiny.so 0x19cda8] [4a018c9a] 0x1219cda8: "csel x10, x10, x12, eq" nzcv: N=0, Z=0, C=1, V=0 x10=0x8 x12=0x38 => x10=0x38
+[19:14:42 278][libtiny.so 0x19cdac] [6b012a91] 0x1219cdac: "add x11, x11, #0xa80" x11=0x1273a000 => x11=0x1273aa80
+[19:14:42 278][libtiny.so 0x19cdb0] [6a696af8] 0x1219cdb0: "ldr x10, [x11, x10]" x11=0x1273aa80 x10=0x38 => x10=0x159e1450
+[19:14:42 278][libtiny.so 0x19cdb4] [8b709852] 0x1219cdb4: "mov w11, #0xc384" w11=0x1273aa80 => w11=0xc384
+[19:14:42 278][libtiny.so 0x19cdb8] [ab55a072] 0x1219cdb8: "movk w11, #0x2ad, lsl #16" w11=0xc384 => w11=0x2adc384
+[19:14:42 278][libtiny.so 0x19cdbc] [ab010b0b] 0x1219cdbc: "add w11, w13, w11" w13=0x1219c2b4 w11=0x2adc384 => w11=0x14c78638
+[19:14:42 278][libtiny.so 0x19cdc0] [6901891a] 0x1219cdc0: "csel w9, w11, w9, eq" nzcv: N=0, Z=0, C=1, V=0 w11=0x14c78638 w9=0x1563e030 => w9=0x1563e030
+[19:14:42 278][libtiny.so 0x19cdc4] [2901084b] 0x1219cdc4: "sub w9, w9, w8" w9=0x1563e030 w8=0x18e8287c => w9=0xfc7bb7b4
+[19:14:42 278][libtiny.so 0x19cdc8] [49c1298b] 0x1219cdc8: "add x9, x10, w9, sxtw" x10=0x159e1450 w9=0xfc7bb7b4 => x9=0x1219cc04
+[19:14:42 278][libtiny.so 0x19cdcc] [20011fd6] 0x1219cdcc: "br x9" x9=0x1219cc04
+[19:14:42 278][libtiny.so 0x19cc04] [e95a45f9] 0x1219cc04: "ldr x9, [x23, #0xab0]" x23=0x1273a000 => x9=0x1592a678
+[19:14:42 278][libtiny.so 0x19cc08] [ebad9b92] 0x1219cc08: "mov x11, #-0xdd70" x11=0x14c78638 => x11=0xffffffffffff2290
+[19:14:42 278][libtiny.so 0x19cc0c] [6a5d8c92] 0x1219cc0c: "mov x10, #-0x62ec" x10=0x159e1450 => x10=0xffffffffffff9d14
+[19:14:42 278][libtiny.so 0x19cc10] [eb90bff2] 0x1219cc10: "movk x11, #0xfc87, lsl #16" x11=0xffffffffffff2290 => x11=0xfffffffffc872290
+[19:14:42 278][libtiny.so 0x19cc14] [8a9dbff2] 0x1219cc14: "movk x10, #0xfcec, lsl #16" x10=0xffffffffffff9d14 => x10=0xfffffffffcec9d14
+[19:14:42 278][libtiny.so 0x19cc18] [29010b8b] 0x1219cc18: "add x9, x9, x11" x9=0x1592a678 x11=0xfffffffffc872290 => x9=0x1219c908
+[19:14:42 278][libtiny.so 0x19cc1c] [08010a8b] 0x1219cc1c: "add x8, x8, x10" x8=0x18e8287c x10=0xfffffffffcec9d14 => x8=0x15d4c590
+[19:14:42 278][libtiny.so 0x19cc20] [20011fd6] 0x1219cc20: "br x9" x9=0x1219c908
+[19:14:42 278][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0x1219c908 => x9=0xffffffffffff03d8
+[19:14:42 278][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 278][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c590 x9=0xfffffffffc4503d8 => x8=0x1219c968
+[19:14:42 278][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219c968
+[19:14:42 278][libtiny.so 0x19c968] [a8a300d1] 0x1219c968: "sub x8, x29, #0x28" fp=0xe4fff6b0 => x8=0xe4fff688
+[19:14:42 278][libtiny.so 0x19c96c] [09108552] 0x1219c96c: "mov w9, #0x2880" w9=0xfc4503d8 => w9=0x2880
+[19:14:42 278][libtiny.so 0x19c970] [0a000090] 0x1219c970: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 278][libtiny.so 0x19c974] [684600f9] 0x1219c974: "str x8, [x19, #0x88]" x8=0xe4fff688 x19=0xe4fff580
+[19:14:42 278][libtiny.so 0x19c978] [096da072] 0x1219c978: "movk w9, #0x368, lsl #16" w9=0x2880 => w9=0x3682880
+[19:14:42 278][libtiny.so 0x19c97c] [4a311091] 0x1219c97c: "add x10, x10, #0x40c" x10=0x1219c000 => x10=0x1219c40c
+[19:14:42 278][libtiny.so 0x19c980] [684640f9] 0x1219c980: "ldr x8, [x19, #0x88]" x19=0xe4fff580 => x8=0xe4fff688
+[19:14:42 278][libtiny.so 0x19c984] [4b4345f9] 0x1219c984: "ldr x11, [x26, #0xa80]" x26=0x1273a000 => x11=0x155c26b4
+[19:14:42 278][libtiny.so 0x19c988] [4801098b] 0x1219c988: "add x8, x10, x9" x10=0x1219c40c x9=0x3682880 => x8=0x1581ec8c
+[19:14:42 278][libtiny.so 0x19c98c] [4901084b] 0x1219c98c: "sub w9, w10, w8" w10=0x1219c40c w8=0x1581ec8c => w9=0xfc97d780
+[19:14:42 278][libtiny.so 0x19c990] [0a8e9852] 0x1219c990: "mov w10, #0xc470" w10=0x1219c40c => w10=0xc470
+[19:14:42 278][libtiny.so 0x19c994] [aa04a072] 0x1219c994: "movk w10, #0x25, lsl #16" w10=0xc470 => w10=0x25c470
+[19:14:42 278][libtiny.so 0x19c998] [29010a0b] 0x1219c998: "add w9, w9, w10" w9=0xfc97d780 w10=0x25c470 => w9=0xfcbd9bf0
+[19:14:42 278][libtiny.so 0x19c99c] [69c1298b] 0x1219c99c: "add x9, x11, w9, sxtw" x11=0x155c26b4 w9=0xfcbd9bf0 => x9=0x1219c2a4
+[19:14:42 278][libtiny.so 0x19c9a0] [20011fd6] 0x1219c9a0: "br x9" x9=0x1219c2a4
+[19:14:42 278][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0x1219c2a4 => x9=0xffffffffffffd780
+[19:14:42 278][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 278][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581ec8c x9=0xfffffffffc97d780 => x8=0x1219c40c
+[19:14:42 278][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c40c
+[19:14:42 278][libtiny.so 0x19c40c] [e92c00d0] 0x1219c40c: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 278][libtiny.so 0x19c410] [298145f9] 0x1219c410: "ldr x9, [x9, #0xb00]" x9=0x1273a000 => x9=0xffffffffe7f2c958
+[19:14:42 278][libtiny.so 0x19c414] [0a308652] 0x1219c414: "mov w10, #0x3180" w10=0x25c470 => w10=0x3180
+[19:14:42 278][libtiny.so 0x19c418] [a8a300d1] 0x1219c418: "sub x8, x29, #0x28" fp=0xe4fff6b0 => x8=0xe4fff688
+[19:14:42 278][libtiny.so 0x19c41c] [0a51a572] 0x1219c41c: "movk w10, #0x2a88, lsl #16" w10=0x3180 => w10=0x2a883180
+[19:14:42 278][libtiny.so 0x19c420] [8bd98352] 0x1219c420: "mov w11, #0x1ecc" w11=0x155c26b4 => w11=0x1ecc
+[19:14:42 279][libtiny.so 0x19c424] [0c000090] 0x1219c424: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 279][libtiny.so 0x19c428] [eb69a072] 0x1219c428: "movk w11, #0x34f, lsl #16" w11=0x1ecc => w11=0x34f1ecc
+[19:14:42 279][libtiny.so 0x19c42c] [8ce13f91] 0x1219c42c: "add x12, x12, #0xff8" x12=0x1219c000 => x12=0x1219cff8
+[19:14:42 279][libtiny.so 0x19c430] [682209a9] 0x1219c430: "stp x8, x8, [x19, #0x90]" x8=0xe4fff688 x19=0xe4fff580
+[19:14:42 279][libtiny.so 0x19c434] [28010a8b] 0x1219c434: "add x8, x9, x10" x9=0xffffffffe7f2c958 x10=0x2a883180 => x8=0x127afad8
+[19:14:42 279][libtiny.so 0x19c438] [09fddf08] 0x1219c438: "ldarb w9, [x8]" x8=0x127afad8 => w9=0x0
+[19:14:42 279][libtiny.so 0x19c43c] [0a6b45f9] 0x1219c43c: "ldr x10, [x24, #0xad0]" x24=0x1273a000 => x10=0x1546a964
+[19:14:42 279][libtiny.so 0x19c440] [88010b8b] 0x1219c440: "add x8, x12, x11" x12=0x1219cff8 x11=0x34f1ecc => x8=0x1568eec4
+[19:14:42 279][libtiny.so 0x19c444] [8b01084b] 0x1219c444: "sub w11, w12, w8" w12=0x1219cff8 w8=0x1568eec4 => w11=0xfcb0e134
+[19:14:42 279][libtiny.so 0x19c448] [8c768852] 0x1219c448: "mov w12, #0x43b4" w12=0x1219cff8 => w12=0x43b4
+[19:14:42 279][libtiny.so 0x19c44c] [4c04a072] 0x1219c44c: "movk w12, #0x22, lsl #16" w12=0x43b4 => w12=0x2243b4
+[19:14:42 279][libtiny.so 0x19c450] [6b010c0b] 0x1219c450: "add w11, w11, w12" w11=0xfcb0e134 w12=0x2243b4 => w11=0xfcd324e8
+[19:14:42 279][libtiny.so 0x19c454] [4ac12b8b] 0x1219c454: "add x10, x10, w11, sxtw" x10=0x1546a964 w11=0xfcd324e8 => x10=0x1219ce4c
+[19:14:42 279][libtiny.so 0x19c458] [a9431738] 0x1219c458: "sturb w9, [x29, #-0x8c]" w9=0x0 fp=0xe4fff6b0
+[19:14:42 279][libtiny.so 0x19c45c] [40011fd6] 0x1219c45c: "br x10" x10=0x1219ce4c
+[19:14:42 279][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x0 => x9=0xffffffffffffe134
+[19:14:42 279][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 279][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568eec4 x9=0xfffffffffcb0e134 => x8=0x1219cff8
+[19:14:42 279][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219cff8
+[19:14:42 279][libtiny.so 0x19cff8] [a8435738] 0x1219cff8: "ldurb w8, [x29, #-0x8c]" fp=0xe4fff6b0 => w8=0x0
+[19:14:42 279][libtiny.so 0x19cffc] [89ab9852] 0x1219cffc: "mov w9, #0xc55c" w9=0xfcb0e134 => w9=0xc55c
+[19:14:42 279][libtiny.so 0x19d000] [0a608852] 0x1219d000: "mov w10, #0x4300" w10=0x1219ce4c => w10=0x4300
+[19:14:42 279][libtiny.so 0x19d004] [ebfffff0] 0x1219d004: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 279][libtiny.so 0x19d008] [09e4a072] 0x1219d008: "movk w9, #0x720, lsl #16" w9=0xc55c => w9=0x720c55c
+[19:14:42 279][libtiny.so 0x19d00c] [2a68a072] 0x1219d00c: "movk w10, #0x341, lsl #16" w10=0x4300 => w10=0x3414300
+[19:14:42 279][libtiny.so 0x19d010] [6bb11691] 0x1219d010: "add x11, x11, #0x5ac" x11=0x1219c000 => x11=0x1219c5ac
+[19:14:42 279][libtiny.so 0x19d014] [0c058052] 0x1219d014: "mov w12, #0x28" w12=0x2243b4 => w12=0x28
+[19:14:42 279][libtiny.so 0x19d018] [1f010072] 0x1219d018: "tst w8, #1" w8=0x0 => nzcv: N=0, Z=1, C=0, V=0
+[19:14:42 279][libtiny.so 0x19d01c] [0d028052] 0x1219d01c: "mov w13, #0x10" w13=0x1219c2b4 => w13=0x10
+[19:14:42 279][libtiny.so 0x19d020] [c802098b] 0x1219d020: "add x8, x22, x9" x22=0x1219c88c x9=0x720c55c => x8=0x193a8de8
+[19:14:42 279][libtiny.so 0x19d024] [69010a8b] 0x1219d024: "add x9, x11, x10" x11=0x1219c5ac x10=0x3414300 => x9=0x155b08ac
+[19:14:42 279][libtiny.so 0x19d028] [aa018c9a] 0x1219d028: "csel x10, x13, x12, eq" nzcv: N=0, Z=1, C=0, V=0 x13=0x10 x12=0x28 => x10=0x10
+[19:14:42 279][libtiny.so 0x19d02c] [ec2c00b0] 0x1219d02c: "adrp x12, #0x1273a000" => x12=0x1273a000
+[19:14:42 279][libtiny.so 0x19d030] [8c012a91] 0x1219d030: "add x12, x12, #0xa80" x12=0x1273a000 => x12=0x1273aa80
+[19:14:42 279][libtiny.so 0x19d034] [2801889a] 0x1219d034: "csel x8, x9, x8, eq" nzcv: N=0, Z=1, C=0, V=0 x9=0x155b08ac x8=0x193a8de8 => x8=0x155b08ac
+[19:14:42 279][libtiny.so 0x19d038] [09619752] 0x1219d038: "mov w9, #0xbb08" w9=0x155b08ac => w9=0xbb08
+[19:14:42 279][libtiny.so 0x19d03c] [8a696af8] 0x1219d03c: "ldr x10, [x12, x10]" x12=0x1273aa80 x10=0x10 => x10=0x1561717c
+[19:14:42 279][libtiny.so 0x19d040] [0cc89252] 0x1219d040: "mov w12, #0x9640" w12=0x1273aa80 => w12=0x9640
+[19:14:42 279][libtiny.so 0x19d044] [697fa072] 0x1219d044: "movk w9, #0x3fb, lsl #16" w9=0xbb08 => w9=0x3fbbb08
+[19:14:42 279][libtiny.so 0x19d048] [2cffbf72] 0x1219d048: "movk w12, #0xfff9, lsl #16" w12=0x9640 => w12=0xfff99640
+[19:14:42 279][libtiny.so 0x19d04c] [c902090b] 0x1219d04c: "add w9, w22, w9" w22=0x1219c88c w9=0x3fbbb08 => w9=0x16158394
+[19:14:42 279][libtiny.so 0x19d050] [6b010c0b] 0x1219d050: "add w11, w11, w12" w11=0x1219c5ac w12=0xfff99640 => w11=0x12135bec
+[19:14:42 279][libtiny.so 0x19d054] [6901891a] 0x1219d054: "csel w9, w11, w9, eq" nzcv: N=0, Z=1, C=0, V=0 w11=0x12135bec w9=0x16158394 => w9=0x12135bec
+[19:14:42 279][libtiny.so 0x19d058] [2901084b] 0x1219d058: "sub w9, w9, w8" w9=0x12135bec w8=0x155b08ac => w9=0xfcb85340
+[19:14:42 279][libtiny.so 0x19d05c] [49c1298b] 0x1219d05c: "add x9, x10, w9, sxtw" x10=0x1561717c w9=0xfcb85340 => x9=0x1219c4bc
+[19:14:42 279][libtiny.so 0x19d060] [20011fd6] 0x1219d060: "br x9" x9=0x1219c4bc
+[19:14:42 280][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 280][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 280][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b08ac x9=0xfffffffffcbebd00 => x8=0x1219c5ac
+[19:14:42 280][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c5ac
+[19:14:42 280][libtiny.so 0x19c5ac] [803000f0] 0x1219c5ac: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 280][libtiny.so 0x19c5b0] [00602b91] 0x1219c5b0: "add x0, x0, #0xad8" x0=0x127af000 => x0=0x127afad8
+[19:14:42 280][libtiny.so 0x19c5b4] [4f9afe97] 0x1219c5b4: "bl #0x12142ef0" => lr=0x1219c5b8
+[19:14:42 280][libtiny.so 0x19c5b8] [e82c00d0] 0x1219c5b8: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 280][libtiny.so 0x19c5bc] [097545f9] 0x1219c5bc: "ldr x9, [x8, #0xae8]" x8=0x1273a000 => x9=0x1556e328
+[19:14:42 280][libtiny.so 0x19c5c0] [085b9652] 0x1219c5c0: "mov w8, #0xb2d8" w8=0x1273a000 => w8=0xb2d8
+[19:14:42 280][libtiny.so 0x19c5c4] [0a000090] 0x1219c5c4: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 280][libtiny.so 0x19c5c8] [a8efa072] 0x1219c5c8: "movk w8, #0x77d, lsl #16" w8=0xb2d8 => w8=0x77db2d8
+[19:14:42 280][libtiny.so 0x19c5cc] [4aa12b91] 0x1219c5cc: "add x10, x10, #0xae8" x10=0x1219c000 => x10=0x1219cae8
+[19:14:42 280][libtiny.so 0x19c5d0] [4801088b] 0x1219c5d0: "add x8, x10, x8" x10=0x1219cae8 x8=0x77db2d8 => x8=0x19977dc0
+[19:14:42 280][libtiny.so 0x19c5d4] [8b649252] 0x1219c5d4: "mov w11, #0x9324" w11=0x12135bec => w11=0x9324
+[19:14:42 280][libtiny.so 0x19c5d8] [4a01084b] 0x1219c5d8: "sub w10, w10, w8" w10=0x1219cae8 w8=0x19977dc0 => w10=0xf8824d28
+[19:14:42 280][libtiny.so 0x19c5dc] [0b88a072] 0x1219c5dc: "movk w11, #0x440, lsl #16" w11=0x9324 => w11=0x4409324
+[19:14:42 280][libtiny.so 0x19c5e0] [4a010b0b] 0x1219c5e0: "add w10, w10, w11" w10=0xf8824d28 w11=0x4409324 => w10=0xfcc2e04c
+[19:14:42 280][libtiny.so 0x19c5e4] [29c12a8b] 0x1219c5e4: "add x9, x9, w10, sxtw" x9=0x1556e328 w10=0xfcc2e04c => x9=0x1219c374
+[19:14:42 280][libtiny.so 0x19c5e8] [a08317b8] 0x1219c5e8: "stur w0, [x29, #-0x88]" w0=0x1 fp=0xe4fff6b0
+[19:14:42 280][libtiny.so 0x19c5ec] [20011fd6] 0x1219c5ec: "br x9" x9=0x1219c374
+[19:14:42 280][libtiny.so 0x19c374] [297345f9] 0x1219c374: "ldr x9, [x25, #0xae0]" x25=0x1273a000 => x9=0x155a6864
+[19:14:42 280][libtiny.so 0x19c378] [6bb19392] 0x1219c378: "mov x11, #-0x9d8c" x11=0x4409324 => x11=0xffffffffffff6274
+[19:14:42 280][libtiny.so 0x19c37c] [ea899592] 0x1219c37c: "mov x10, #-0xac50" x10=0xfcc2e04c => x10=0xffffffffffff53b0
+[19:14:42 280][libtiny.so 0x19c380] [eb97bff2] 0x1219c380: "movk x11, #0xfcbf, lsl #16" x11=0xffffffffffff6274 => x11=0xfffffffffcbf6274
+[19:14:42 280][libtiny.so 0x19c384] [8a87bff2] 0x1219c384: "movk x10, #0xfc3c, lsl #16" x10=0xffffffffffff53b0 => x10=0xfffffffffc3c53b0
+[19:14:42 280][libtiny.so 0x19c388] [29010b8b] 0x1219c388: "add x9, x9, x11" x9=0x155a6864 x11=0xfffffffffcbf6274 => x9=0x1219cad8
+[19:14:42 280][libtiny.so 0x19c38c] [08010a8b] 0x1219c38c: "add x8, x8, x10" x8=0x19977dc0 x10=0xfffffffffc3c53b0 => x8=0x15d3d170
+[19:14:42 280][libtiny.so 0x19c390] [20011fd6] 0x1219c390: "br x9" x9=0x1219cad8
+[19:14:42 280][libtiny.so 0x19cad8] [e9d08092] 0x1219cad8: "mov x9, #-0x688" x9=0x1219cad8 => x9=0xfffffffffffff978
+[19:14:42 280][libtiny.so 0x19cadc] [a988bff2] 0x1219cadc: "movk x9, #0xfc45, lsl #16" x9=0xfffffffffffff978 => x9=0xfffffffffc45f978
+[19:14:42 280][libtiny.so 0x19cae0] [0801098b] 0x1219cae0: "add x8, x8, x9" x8=0x15d3d170 x9=0xfffffffffc45f978 => x8=0x1219cae8
+[19:14:42 280][libtiny.so 0x19cae4] [00011fd6] 0x1219cae4: "br x8" x8=0x1219cae8
+[19:14:42 280][libtiny.so 0x19cae8] [a98357b8] 0x1219cae8: "ldur w9, [x29, #-0x88]" fp=0xe4fff6b0 => w9=0x1
+[19:14:42 280][libtiny.so 0x19caec] [88bf8d52] 0x1219caec: "mov w8, #0x6dfc" w8=0x1219cae8 => w8=0x6dfc
+[19:14:42 280][libtiny.so 0x19caf0] [0b000090] 0x1219caf0: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 280][libtiny.so 0x19caf4] [aa6645f9] 0x1219caf4: "ldr x10, [x21, #0xac8]" x21=0x1273a000 => x10=0x1617db80
+[19:14:42 280][libtiny.so 0x19caf8] [28e1a072] 0x1219caf8: "movk w8, #0x709, lsl #16" w8=0x6dfc => w8=0x7096dfc
+[19:14:42 280][libtiny.so 0x19cafc] [6b413791] 0x1219cafc: "add x11, x11, #0xdd0" x11=0x1219c000 => x11=0x1219cdd0
+[19:14:42 280][libtiny.so 0x19cb00] [0cdf8b52] 0x1219cb00: "mov w12, #0x5ef8" w12=0xfff99640 => w12=0x5ef8
+[19:14:42 280][libtiny.so 0x19cb04] [6801088b] 0x1219cb04: "add x8, x11, x8" x11=0x1219cdd0 x8=0x7096dfc => x8=0x19233bcc
+[19:14:42 280][libtiny.so 0x19cb08] [6c61a072] 0x1219cb08: "movk w12, #0x30b, lsl #16" w12=0x5ef8 => w12=0x30b5ef8
+[19:14:42 280][libtiny.so 0x19cb0c] [6b01084b] 0x1219cb0c: "sub w11, w11, w8" w11=0x1219cdd0 w8=0x19233bcc => w11=0xf8f69204
+[19:14:42 280][libtiny.so 0x19cb10] [6b010c0b] 0x1219cb10: "add w11, w11, w12" w11=0xf8f69204 w12=0x30b5ef8 => w11=0xfc01f0fc
+[19:14:42 280][libtiny.so 0x19cb14] [3f010071] 0x1219cb14: "cmp w9, #0" w9=0x1 => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 280][libtiny.so 0x19cb18] [e9179f1a] 0x1219cb18: "cset w9, eq" nzcv: N=0, Z=0, C=1, V=0 => w9=0x0
+[19:14:42 280][libtiny.so 0x19cb1c] [4ac12b8b] 0x1219cb1c: "add x10, x10, w11, sxtw" x10=0x1617db80 w11=0xfc01f0fc => x10=0x1219cc7c
+[19:14:42 280][libtiny.so 0x19cb20] [a9f31738] 0x1219cb20: "sturb w9, [x29, #-0x81]" w9=0x0 fp=0xe4fff6b0
+[19:14:42 280][libtiny.so 0x19cb24] [40011fd6] 0x1219cb24: "br x10" x10=0x1219cc7c
+[19:14:42 280][libtiny.so 0x19cc7c] [696345f9] 0x1219cc7c: "ldr x9, [x27, #0xac0]" x27=0x1273a000 => x9=0x160ac7d8
+[19:14:42 280][libtiny.so 0x19cc80] [6b769f92] 0x1219cc80: "mov x11, #-0xfbb4" x11=0xfc01f0fc => x11=0xffffffffffff044c
+[19:14:42 280][libtiny.so 0x19cc84] [ea469892] 0x1219cc84: "mov x10, #-0xc238" x10=0x1219cc7c => x10=0xffffffffffff3dc8
+[19:14:42 281][libtiny.so 0x19cc88] [eb81bff2] 0x1219cc88: "movk x11, #0xfc0f, lsl #16" x11=0xffffffffffff044c => x11=0xfffffffffc0f044c
+[19:14:42 281][libtiny.so 0x19cc8c] [4a87bff2] 0x1219cc8c: "movk x10, #0xfc3a, lsl #16" x10=0xffffffffffff3dc8 => x10=0xfffffffffc3a3dc8
+[19:14:42 281][libtiny.so 0x19cc90] [29010b8b] 0x1219cc90: "add x9, x9, x11" x9=0x160ac7d8 x11=0xfffffffffc0f044c => x9=0x1219cc24
+[19:14:42 281][libtiny.so 0x19cc94] [08010a8b] 0x1219cc94: "add x8, x8, x10" x8=0x19233bcc x10=0xfffffffffc3a3dc8 => x8=0x155d7994
+[19:14:42 281][libtiny.so 0x19cc98] [20011fd6] 0x1219cc98: "br x9" x9=0x1219cc24
+[19:14:42 281][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x1219cc24 => x9=0xffffffffffff543c
+[19:14:42 281][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 281][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d7994 x9=0xfffffffffcbc543c => x8=0x1219cdd0
+[19:14:42 281][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219cdd0
+[19:14:42 281][libtiny.so 0x19cdd0] [89d98352] 0x1219cdd0: "mov w9, #0x1ecc" w9=0xfcbc543c => w9=0x1ecc
+[19:14:42 281][libtiny.so 0x19cdd4] [0a0000b0] 0x1219cdd4: "adrp x10, #0x1219d000" => x10=0x1219d000
+[19:14:42 281][libtiny.so 0x19cdd8] [8c768852] 0x1219cdd8: "mov w12, #0x43b4" w12=0x30b5ef8 => w12=0x43b4
+[19:14:42 281][libtiny.so 0x19cddc] [a8f35738] 0x1219cddc: "ldurb w8, [x29, #-0x81]" fp=0xe4fff6b0 => w8=0x0
+[19:14:42 281][libtiny.so 0x19cde0] [e969a072] 0x1219cde0: "movk w9, #0x34f, lsl #16" w9=0x1ecc => w9=0x34f1ecc
+[19:14:42 281][libtiny.so 0x19cde4] [4a910291] 0x1219cde4: "add x10, x10, #0xa4" x10=0x1219d000 => x10=0x1219d0a4
+[19:14:42 281][libtiny.so 0x19cde8] [4c04a072] 0x1219cde8: "movk w12, #0x22, lsl #16" w12=0x43b4 => w12=0x2243b4
+[19:14:42 281][libtiny.so 0x19cdec] [4901098b] 0x1219cdec: "add x9, x10, x9" x10=0x1219d0a4 x9=0x34f1ecc => x9=0x1568ef70
+[19:14:42 281][libtiny.so 0x19cdf0] [4a010c0b] 0x1219cdf0: "add w10, w10, w12" w10=0x1219d0a4 w12=0x2243b4 => w10=0x123c1458
+[19:14:42 281][libtiny.so 0x19cdf4] [acf35738] 0x1219cdf4: "ldurb w12, [x29, #-0x81]" fp=0xe4fff6b0 => w12=0x0
+[19:14:42 281][libtiny.so 0x19cdf8] [adf35738] 0x1219cdf8: "ldurb w13, [x29, #-0x81]" fp=0xe4fff6b0 => w13=0x0
+[19:14:42 281][libtiny.so 0x19cdfc] [0b829a52] 0x1219cdfc: "mov w11, #0xd410" w11=0xfc0f044c => w11=0xd410
+[19:14:42 281][libtiny.so 0x19ce00] [6b70a072] 0x1219ce00: "movk w11, #0x383, lsl #16" w11=0xd410 => w11=0x383d410
+[19:14:42 281][libtiny.so 0x19ce04] [1f010071] 0x1219ce04: "cmp w8, #0" w8=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 281][libtiny.so 0x19ce08] [c8020b8b] 0x1219ce08: "add x8, x22, x11" x22=0x1219c88c x11=0x383d410 => x8=0x159d9c9c
+[19:14:42 281][libtiny.so 0x19ce0c] [0811899a] 0x1219ce0c: "csel x8, x8, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x8=0x159d9c9c x9=0x1568ef70 => x8=0x1568ef70
+[19:14:42 281][libtiny.so 0x19ce10] [090a8052] 0x1219ce10: "mov w9, #0x50" w9=0x1568ef70 => w9=0x50
+[19:14:42 281][libtiny.so 0x19ce14] [bf010071] 0x1219ce14: "cmp w13, #0" w13=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 281][libtiny.so 0x19ce18] [0b048052] 0x1219ce18: "mov w11, #0x20" w11=0x383d410 => w11=0x20
+[19:14:42 281][libtiny.so 0x19ce1c] [ed2c00d0] 0x1219ce1c: "adrp x13, #0x1273a000" => x13=0x1273a000
+[19:14:42 281][libtiny.so 0x19ce20] [6911899a] 0x1219ce20: "csel x9, x11, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x11=0x20 x9=0x50 => x9=0x50
+[19:14:42 281][libtiny.so 0x19ce24] [8b939652] 0x1219ce24: "mov w11, #0xb49c" w11=0x20 => w11=0xb49c
+[19:14:42 281][libtiny.so 0x19ce28] [ad012a91] 0x1219ce28: "add x13, x13, #0xa80" x13=0x1273a000 => x13=0x1273aa80
+[19:14:42 281][libtiny.so 0x19ce2c] [0b0da072] 0x1219ce2c: "movk w11, #0x68, lsl #16" w11=0xb49c => w11=0x68b49c
+[19:14:42 281][libtiny.so 0x19ce30] [a96969f8] 0x1219ce30: "ldr x9, [x13, x9]" x13=0x1273aa80 x9=0x50 => x9=0x1546a964
+[19:14:42 281][libtiny.so 0x19ce34] [cb020b0b] 0x1219ce34: "add w11, w22, w11" w22=0x1219c88c w11=0x68b49c => w11=0x12827d28
+[19:14:42 281][libtiny.so 0x19ce38] [9f010071] 0x1219ce38: "cmp w12, #0" w12=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 281][libtiny.so 0x19ce3c] [6a118a1a] 0x1219ce3c: "csel w10, w11, w10, ne" nzcv: N=0, Z=1, C=1, V=0 w11=0x12827d28 w10=0x123c1458 => w10=0x123c1458
+[19:14:42 281][libtiny.so 0x19ce40] [4a01084b] 0x1219ce40: "sub w10, w10, w8" w10=0x123c1458 w8=0x1568ef70 => w10=0xfcd324e8
+[19:14:42 281][libtiny.so 0x19ce44] [29c12a8b] 0x1219ce44: "add x9, x9, w10, sxtw" x9=0x1546a964 w10=0xfcd324e8 => x9=0x1219ce4c
+[19:14:42 281][libtiny.so 0x19ce48] [20011fd6] 0x1219ce48: "br x9" x9=0x1219ce4c
+[19:14:42 281][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x1219ce4c => x9=0xffffffffffffe134
+[19:14:42 281][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 281][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568ef70 x9=0xfffffffffcb0e134 => x8=0x1219d0a4
+[19:14:42 281][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219d0a4
+[19:14:42 281][libtiny.so 0x19d0a4] [e82c00b0] 0x1219d0a4: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 281][libtiny.so 0x19d0a8] [0b829a52] 0x1219d0a8: "mov w11, #0xd410" w11=0x12827d28 => w11=0xd410
+[19:14:42 281][libtiny.so 0x19d0ac] [ecfffff0] 0x1219d0ac: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 281][libtiny.so 0x19d0b0] [8a5345f9] 0x1219d0b0: "ldr x10, [x28, #0xaa0]" x28=0x1273a000 => x10=0x1534e678
+[19:14:42 281][libtiny.so 0x19d0b4] [6b70a072] 0x1219d0b4: "movk w11, #0x383, lsl #16" w11=0xd410 => w11=0x383d410
+[19:14:42 281][libtiny.so 0x19d0b8] [8c511c91] 0x1219d0b8: "add x12, x12, #0x714" x12=0x1219c000 => x12=0x1219c714
+[19:14:42 281][libtiny.so 0x19d0bc] [0e9545f9] 0x1219d0bc: "ldr x14, [x8, #0xb28]" x8=0x1273a000 => x14=0xffffffff93fb3f34
+[19:14:42 281][libtiny.so 0x19d0c0] [8d939652] 0x1219d0c0: "mov w13, #0xb49c" w13=0x1273aa80 => w13=0xb49c
+[19:14:42 281][libtiny.so 0x19d0c4] [88010b8b] 0x1219d0c4: "add x8, x12, x11" x12=0x1219c714 x11=0x383d410 => x8=0x159d9b24
+[19:14:42 281][libtiny.so 0x19d0c8] [89899652] 0x1219d0c8: "mov w9, #0xb44c" w9=0xfcb0e134 => w9=0xb44c
+[19:14:42 281][libtiny.so 0x19d0cc] [0d0da072] 0x1219d0cc: "movk w13, #0x68, lsl #16" w13=0xb49c => w13=0x68b49c
+[19:14:42 282][libtiny.so 0x19d0d0] [8b01084b] 0x1219d0d0: "sub w11, w12, w8" w12=0x1219c714 w8=0x159d9b24 => w11=0xfc7c2bf0
+[19:14:42 282][libtiny.so 0x19d0d4] [c9c3af72] 0x1219d0d4: "movk w9, #0x7e1e, lsl #16" w9=0xb44c => w9=0x7e1eb44c
+[19:14:42 282][libtiny.so 0x19d0d8] [6b010d0b] 0x1219d0d8: "add w11, w11, w13" w11=0xfc7c2bf0 w13=0x68b49c => w11=0xfce4e08c
+[19:14:42 282][libtiny.so 0x19d0dc] [c901098b] 0x1219d0dc: "add x9, x14, x9" x14=0xffffffff93fb3f34 x9=0x7e1eb44c => x9=0x1219f380
+[19:14:42 282][libtiny.so 0x19d0e0] [4ac12b8b] 0x1219d0e0: "add x10, x10, w11, sxtw" x10=0x1534e678 w11=0xfce4e08c => x10=0x1219c704
+[19:14:42 282][libtiny.so 0x19d0e4] [a90318f8] 0x1219d0e4: "stur x9, [x29, #-0x80]" x9=0x1219f380 fp=0xe4fff6b0
+[19:14:42 282][libtiny.so 0x19d0e8] [40011fd6] 0x1219d0e8: "br x10" x10=0x1219c704
+[19:14:42 282][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x1219f380 => x9=0xffffffffffff2bf0
+[19:14:42 282][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 282][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9b24 x9=0xfffffffffc7c2bf0 => x8=0x1219c714
+[19:14:42 282][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c714
+[19:14:42 282][libtiny.so 0x19c714] [a80358f8] 0x1219c714: "ldur x8, [x29, #-0x80]" fp=0xe4fff6b0 => x8=0x1219f380
+[19:14:42 282][libtiny.so 0x19c718] [00013fd6] 0x1219c718: "blr x8" x8=0x1219f380
+[19:14:42 282][libtiny.so 0x19f380] [ffc300d1] 0x1219f380: "sub sp, sp, #0x30" sp=0xe4fff570 => sp=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f384] [fe0b00f9] 0x1219f384: "str x30, [sp, #0x10]" lr=0x1219c71c sp=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f388] [f44f02a9] 0x1219f388: "stp x20, x19, [sp, #0x20]" x20=0x1273a000 x19=0xe4fff580 sp=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f38c] [54d03bd5] 0x1219f38c: "mrs x20, tpidr_el0" x20=0x1273a000 => x20=0xe4fff718
+[19:14:42 282][libtiny.so 0x19f390] [881640f9] 0x1219f390: "ldr x8, [x20, #0x28]" x20=0xe4fff718 => x8=0x0
+[19:14:42 282][libtiny.so 0x19f394] [29158052] 0x1219f394: "mov w9, #0xa9" w9=0xfc7c2bf0 => w9=0xa9
+[19:14:42 282][libtiny.so 0x19f398] [40008052] 0x1219f398: "mov w0, #2" w0=0x1 => w0=0x2
+[19:14:42 282][libtiny.so 0x19f39c] [e80700f9] 0x1219f39c: "str x8, [sp, #8]" x8=0x0 sp=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f3a0] [e90300f9] 0x1219f3a0: "str x9, [sp]" x9=0xa9 sp=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f3a4] [9687fe97] 0x1219f3a4: "bl #0x121411fc" => lr=0x1219f3a8
+[19:14:42 282][libtiny.so 0x19f3a8] [e1030091] 0x1219f3a8: "mov x1, sp" sp=0xe4fff540 => x1=0xe4fff540
+[19:14:42 282][libtiny.so 0x19f3ac] [22008052] 0x1219f3ac: "mov w2, #1" w2=0x3 => w2=0x1
+[19:14:42 282][libtiny.so 0x19f3b0] [f30300aa] 0x1219f3b0: "mov x19, x0" x0=0x12b17888 => x19=0x12b17888
+[19:14:42 282][libtiny.so 0x19f3b4] [1f040039] 0x1219f3b4: "strb wzr, [x0, #1]" x0=0x12b17888
+[19:14:42 282][libtiny.so 0x19f3b8] [969f0e94] 0x1219f3b8: "bl #0x12547210" => lr=0x1219f3bc
+[19:14:42 282][libtiny.so 0x19f3bc] [21008052] 0x1219f3bc: "mov w1, #1" w1=0xe4fff540 => w1=0x1
+[19:14:42 282][libtiny.so 0x19f3c0] [d7f2fe97] 0x1219f3c0: "bl #0x1215bf1c" => lr=0x1219f3c4
+[19:14:42 282][libtiny.so 0x19f3c4] [881640f9] 0x1219f3c4: "ldr x8, [x20, #0x28]" x20=0xe4fff718 => x8=0x0
+[19:14:42 282][libtiny.so 0x19f3c8] [e90740f9] 0x1219f3c8: "ldr x9, [sp, #8]" sp=0xe4fff540 => x9=0x0
+[19:14:42 282][libtiny.so 0x19f3cc] [1f0109eb] 0x1219f3cc: "cmp x8, x9" x8=0x0 x9=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 282][libtiny.so 0x19f3d0] [c1000054] 0x1219f3d0: "b.ne #0x1219f3e8" nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 282][libtiny.so 0x19f3d4] [e00313aa] 0x1219f3d4: "mov x0, x19" x19=0x12b17888 => x0=0x12b17888
+[19:14:42 282][libtiny.so 0x19f3d8] [f44f42a9] 0x1219f3d8: "ldp x20, x19, [sp, #0x20]" sp=0xe4fff540 => x20=0x1273a000 x19=0xe4fff580
+[19:14:42 282][libtiny.so 0x19f3dc] [fe0b40f9] 0x1219f3dc: "ldr x30, [sp, #0x10]" sp=0xe4fff540 => lr=0x1219c71c
+[19:14:42 282][libtiny.so 0x19f3e0] [ffc30091] 0x1219f3e0: "add sp, sp, #0x30" sp=0xe4fff540 => sp=0xe4fff570
+[19:14:42 282][libtiny.so 0x19f3e4] [c0035fd6] 0x1219f3e4: "ret"
+[19:14:42 282][libtiny.so 0x19c71c] [e82c00d0] 0x1219c71c: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 282][libtiny.so 0x19c720] [088545f9] 0x1219c720: "ldr x8, [x8, #0xb08]" x8=0x1273a000 => x8=0xffffffffe7f2c960
+[19:14:42 282][libtiny.so 0x19c724] [09308652] 0x1219c724: "mov w9, #0x3180" w9=0x0 => w9=0x3180
+[19:14:42 282][libtiny.so 0x19c728] [0951a572] 0x1219c728: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 282][libtiny.so 0x19c72c] [006929f8] 0x1219c72c: "str x0, [x8, x9]" x0=0x12b17888 x8=0xffffffffe7f2c960 x9=0x2a883180
+[19:14:42 282][libtiny.so 0x19c730] [803000f0] 0x1219c730: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 282][libtiny.so 0x19c734] [00602b91] 0x1219c734: "add x0, x0, #0xad8" x0=0x127af000 => x0=0x127afad8
+[19:14:42 282][libtiny.so 0x19c738] [3b9afe97] 0x1219c738: "bl #0x12143024" => lr=0x1219c73c
+[19:14:42 282][libtiny.so 0x19c73c] [88ab9852] 0x1219c73c: "mov w8, #0xc55c" w8=0x1 => w8=0xc55c
+[19:14:42 282][libtiny.so 0x19c740] [0a000090] 0x1219c740: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 282][libtiny.so 0x19c744] [895645f9] 0x1219c744: "ldr x9, [x20, #0xaa8]" x20=0x1273a000 => x9=0x153ed33c
+[19:14:42 282][libtiny.so 0x19c748] [08e4a072] 0x1219c748: "movk w8, #0x720, lsl #16" w8=0xc55c => w8=0x720c55c
+[19:14:42 282][libtiny.so 0x19c74c] [4a711b91] 0x1219c74c: "add x10, x10, #0x6dc" x10=0x1219c000 => x10=0x1219c6dc
+[19:14:42 282][libtiny.so 0x19c750] [4801088b] 0x1219c750: "add x8, x10, x8" x10=0x1219c6dc x8=0x720c55c => x8=0x193a8c38
+[19:14:42 282][libtiny.so 0x19c754] [0b619752] 0x1219c754: "mov w11, #0xbb08" w11=0x1273a000 => w11=0xbb08
+[19:14:42 282][libtiny.so 0x19c758] [4a01084b] 0x1219c758: "sub w10, w10, w8" w10=0x1219c6dc w8=0x193a8c38 => w10=0xf8df3aa4
+[19:14:42 282][libtiny.so 0x19c75c] [6b7fa072] 0x1219c75c: "movk w11, #0x3fb, lsl #16" w11=0xbb08 => w11=0x3fbbb08
+[19:14:42 282][libtiny.so 0x19c760] [4a010b0b] 0x1219c760: "add w10, w10, w11" w10=0xf8df3aa4 w11=0x3fbbb08 => w10=0xfcdaf5ac
+[19:14:42 282][libtiny.so 0x19c764] [29c12a8b] 0x1219c764: "add x9, x9, w10, sxtw" x9=0x153ed33c w10=0xfcdaf5ac => x9=0x1219c8e8
+[19:14:42 282][libtiny.so 0x19c768] [20011fd6] 0x1219c768: "br x9" x9=0x1219c8e8
+[19:14:42 282][libtiny.so 0x19c8e8] [895345f9] 0x1219c8e8: "ldr x9, [x28, #0xaa0]" x28=0x1273a000 => x9=0x1534e678
+[19:14:42 282][libtiny.so 0x19c8ec] [6bee8392] 0x1219c8ec: "mov x11, #-0x1f74" x11=0x3fbbb08 => x11=0xffffffffffffe08c
+[19:14:42 282][libtiny.so 0x19c8f0] [6a299e92] 0x1219c8f0: "mov x10, #-0xf14c" x10=0xfcdaf5ac => x10=0xffffffffffff0eb4
+[19:14:42 282][libtiny.so 0x19c8f4] [8b9cbff2] 0x1219c8f4: "movk x11, #0xfce4, lsl #16" x11=0xffffffffffffe08c => x11=0xfffffffffce4e08c
+[19:14:42 282][libtiny.so 0x19c8f8] [6a8cbff2] 0x1219c8f8: "movk x10, #0xfc63, lsl #16" x10=0xffffffffffff0eb4 => x10=0xfffffffffc630eb4
+[19:14:42 282][libtiny.so 0x19c8fc] [29010b8b] 0x1219c8fc: "add x9, x9, x11" x9=0x1534e678 x11=0xfffffffffce4e08c => x9=0x1219c704
+[19:14:42 282][libtiny.so 0x19c900] [08010a8b] 0x1219c900: "add x8, x8, x10" x8=0x193a8c38 x10=0xfffffffffc630eb4 => x8=0x159d9aec
+[19:14:42 282][libtiny.so 0x19c904] [20011fd6] 0x1219c904: "br x9" x9=0x1219c704
+[19:14:42 283][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x1219c704 => x9=0xffffffffffff2bf0
+[19:14:42 283][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 283][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9aec x9=0xfffffffffc7c2bf0 => x8=0x1219c6dc
+[19:14:42 283][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c6dc
+[19:14:42 283][libtiny.so 0x19c6dc] [88ab9852] 0x1219c6dc: "mov w8, #0xc55c" w8=0x1219c6dc => w8=0xc55c
+[19:14:42 283][libtiny.so 0x19c6e0] [895645f9] 0x1219c6e0: "ldr x9, [x20, #0xaa8]" x20=0x1273a000 => x9=0x153ed33c
+[19:14:42 283][libtiny.so 0x19c6e4] [08e4a072] 0x1219c6e4: "movk w8, #0x720, lsl #16" w8=0xc55c => w8=0x720c55c
+[19:14:42 283][libtiny.so 0x19c6e8] [c802088b] 0x1219c6e8: "add x8, x22, x8" x22=0x1219c88c x8=0x720c55c => x8=0x193a8de8
+[19:14:42 283][libtiny.so 0x19c6ec] [0b619752] 0x1219c6ec: "mov w11, #0xbb08" w11=0xfce4e08c => w11=0xbb08
+[19:14:42 283][libtiny.so 0x19c6f0] [ca02084b] 0x1219c6f0: "sub w10, w22, w8" w22=0x1219c88c w8=0x193a8de8 => w10=0xf8df3aa4
+[19:14:42 283][libtiny.so 0x19c6f4] [6b7fa072] 0x1219c6f4: "movk w11, #0x3fb, lsl #16" w11=0xbb08 => w11=0x3fbbb08
+[19:14:42 283][libtiny.so 0x19c6f8] [4a010b0b] 0x1219c6f8: "add w10, w10, w11" w10=0xf8df3aa4 w11=0x3fbbb08 => w10=0xfcdaf5ac
+[19:14:42 283][libtiny.so 0x19c6fc] [29c12a8b] 0x1219c6fc: "add x9, x9, w10, sxtw" x9=0x153ed33c w10=0xfcdaf5ac => x9=0x1219c8e8
+[19:14:42 283][libtiny.so 0x19c700] [20011fd6] 0x1219c700: "br x9" x9=0x1219c8e8
+[19:14:42 283][libtiny.so 0x19c8e8] [895345f9] 0x1219c8e8: "ldr x9, [x28, #0xaa0]" x28=0x1273a000 => x9=0x1534e678
+[19:14:42 283][libtiny.so 0x19c8ec] [6bee8392] 0x1219c8ec: "mov x11, #-0x1f74" x11=0x3fbbb08 => x11=0xffffffffffffe08c
+[19:14:42 283][libtiny.so 0x19c8f0] [6a299e92] 0x1219c8f0: "mov x10, #-0xf14c" x10=0xfcdaf5ac => x10=0xffffffffffff0eb4
+[19:14:42 283][libtiny.so 0x19c8f4] [8b9cbff2] 0x1219c8f4: "movk x11, #0xfce4, lsl #16" x11=0xffffffffffffe08c => x11=0xfffffffffce4e08c
+[19:14:42 283][libtiny.so 0x19c8f8] [6a8cbff2] 0x1219c8f8: "movk x10, #0xfc63, lsl #16" x10=0xffffffffffff0eb4 => x10=0xfffffffffc630eb4
+[19:14:42 283][libtiny.so 0x19c8fc] [29010b8b] 0x1219c8fc: "add x9, x9, x11" x9=0x1534e678 x11=0xfffffffffce4e08c => x9=0x1219c704
+[19:14:42 283][libtiny.so 0x19c900] [08010a8b] 0x1219c900: "add x8, x8, x10" x8=0x193a8de8 x10=0xfffffffffc630eb4 => x8=0x159d9c9c
+[19:14:42 283][libtiny.so 0x19c904] [20011fd6] 0x1219c904: "br x9" x9=0x1219c704
+[19:14:42 283][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x1219c704 => x9=0xffffffffffff2bf0
+[19:14:42 283][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 283][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9c9c x9=0xfffffffffc7c2bf0 => x8=0x1219c88c
+[19:14:42 283][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c88c
+[19:14:42 283][libtiny.so 0x19c88c] [e82c00d0] 0x1219c88c: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 283][libtiny.so 0x19c890] [088545f9] 0x1219c890: "ldr x8, [x8, #0xb08]" x8=0x1273a000 => x8=0xffffffffe7f2c960
+[19:14:42 283][libtiny.so 0x19c894] [09308652] 0x1219c894: "mov w9, #0x3180" w9=0xfc7c2bf0 => w9=0x3180
+[19:14:42 283][libtiny.so 0x19c898] [0951a572] 0x1219c898: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 283][libtiny.so 0x19c89c] [8a718d52] 0x1219c89c: "mov w10, #0x6b8c" w10=0xfc630eb4 => w10=0x6b8c
+[19:14:42 283][libtiny.so 0x19c8a0] [096969f8] 0x1219c8a0: "ldr x9, [x8, x9]" x8=0xffffffffe7f2c960 x9=0x2a883180 => x9=0x12b17888
+[19:14:42 283][libtiny.so 0x19c8a4] [6b4e40f9] 0x1219c8a4: "ldr x11, [x19, #0x98]" x19=0xe4fff580 => x11=0xe4fff688
+[19:14:42 283][libtiny.so 0x19c8a8] [0c000090] 0x1219c8a8: "adrp x12, #0x1219c000" => x12=0x1219c000
+[19:14:42 283][libtiny.so 0x19c8ac] [aacda072] 0x1219c8ac: "movk w10, #0x66d, lsl #16" w10=0x6b8c => w10=0x66d6b8c
+[19:14:42 283][libtiny.so 0x19c8b0] [8c311391] 0x1219c8b0: "add x12, x12, #0x4cc" x12=0x1219c000 => x12=0x1219c4cc
+[19:14:42 283][libtiny.so 0x19c8b4] [690100f9] 0x1219c8b4: "str x9, [x11]" x9=0x12b17888 x11=0xe4fff688
+[19:14:42 283][libtiny.so 0x19c8b8] [e92c00d0] 0x1219c8b8: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 283][libtiny.so 0x19c8bc] [294d45f9] 0x1219c8bc: "ldr x9, [x9, #0xa98]" x9=0x1273a000 => x9=0x15b32e14
+[19:14:42 283][libtiny.so 0x19c8c0] [88010a8b] 0x1219c8c0: "add x8, x12, x10" x12=0x1219c4cc x10=0x66d6b8c => x8=0x18873058
+[19:14:42 283][libtiny.so 0x19c8c4] [0b868052] 0x1219c8c4: "mov w11, #0x430" w11=0xe4fff688 => w11=0x430
+[19:14:42 283][libtiny.so 0x19c8c8] [8a01084b] 0x1219c8c8: "sub w10, w12, w8" w12=0x1219c4cc w8=0x18873058 => w10=0xf9929474
+[19:14:42 283][libtiny.so 0x19c8cc] [8b5aa072] 0x1219c8cc: "movk w11, #0x2d4, lsl #16" w11=0x430 => w11=0x2d40430
+[19:14:42 283][libtiny.so 0x19c8d0] [4a010b0b] 0x1219c8d0: "add w10, w10, w11" w10=0xf9929474 w11=0x2d40430 => w10=0xfc6698a4
+[19:14:42 283][libtiny.so 0x19c8d4] [aba300d1] 0x1219c8d4: "sub x11, x29, #0x28" fp=0xe4fff6b0 => x11=0xe4fff688
+[19:14:42 283][libtiny.so 0x19c8d8] [6b210091] 0x1219c8d8: "add x11, x11, #8" x11=0xe4fff688 => x11=0xe4fff690
+[19:14:42 283][libtiny.so 0x19c8dc] [29c12a8b] 0x1219c8dc: "add x9, x9, w10, sxtw" x9=0x15b32e14 w10=0xfc6698a4 => x9=0x1219c6b8
+[19:14:42 283][libtiny.so 0x19c8e0] [ab8318f8] 0x1219c8e0: "stur x11, [x29, #-0x78]" x11=0xe4fff690 fp=0xe4fff6b0
+[19:14:42 283][libtiny.so 0x19c8e4] [20011fd6] 0x1219c8e4: "br x9" x9=0x1219c6b8
+[19:14:42 283][libtiny.so 0x19c6b8] [e92c00d0] 0x1219c6b8: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 283][libtiny.so 0x19c6bc] [294945f9] 0x1219c6bc: "ldr x9, [x9, #0xa90]" x9=0x1273a000 => x9=0x1561717c
+[19:14:42 283][libtiny.so 0x19c6c0] [eb979592] 0x1219c6c0: "mov x11, #-0xacc0" x11=0xe4fff690 => x11=0xffffffffffff5340
+[19:14:42 283][libtiny.so 0x19c6c4] [6a118592] 0x1219c6c4: "mov x10, #-0x288c" x10=0xfc6698a4 => x10=0xffffffffffffd774
+[19:14:42 283][libtiny.so 0x19c6c8] [0b97bff2] 0x1219c6c8: "movk x11, #0xfcb8, lsl #16" x11=0xffffffffffff5340 => x11=0xfffffffffcb85340
+[19:14:42 283][libtiny.so 0x19c6cc] [6a9abff2] 0x1219c6cc: "movk x10, #0xfcd3, lsl #16" x10=0xffffffffffffd774 => x10=0xfffffffffcd3d774
+[19:14:42 283][libtiny.so 0x19c6d0] [29010b8b] 0x1219c6d0: "add x9, x9, x11" x9=0x1561717c x11=0xfffffffffcb85340 => x9=0x1219c4bc
+[19:14:42 283][libtiny.so 0x19c6d4] [08010a8b] 0x1219c6d4: "add x8, x8, x10" x8=0x18873058 x10=0xfffffffffcd3d774 => x8=0x155b07cc
+[19:14:42 283][libtiny.so 0x19c6d8] [20011fd6] 0x1219c6d8: "br x9" x9=0x1219c4bc
+[19:14:42 283][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 283][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 283][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b07cc x9=0xfffffffffcbebd00 => x8=0x1219c4cc
+[19:14:42 283][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c4cc
+[19:14:42 283][libtiny.so 0x19c4cc] [e82c00d0] 0x1219c4cc: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 283][libtiny.so 0x19c4d0] [088945f9] 0x1219c4d0: "ldr x8, [x8, #0xb10]" x8=0x1273a000 => x8=0xffffffffe7f2c948
+[19:14:42 283][libtiny.so 0x19c4d4] [09308652] 0x1219c4d4: "mov w9, #0x3180" w9=0xfcbebd00 => w9=0x3180
+[19:14:42 283][libtiny.so 0x19c4d8] [0951a572] 0x1219c4d8: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 283][libtiny.so 0x19c4dc] [0a829a52] 0x1219c4dc: "mov w10, #0xd410" w10=0xfcd3d774 => w10=0xd410
+[19:14:42 283][libtiny.so 0x19c4e0] [0b000090] 0x1219c4e0: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 283][libtiny.so 0x19c4e4] [6a70a072] 0x1219c4e4: "movk w10, #0x383, lsl #16" w10=0xd410 => w10=0x383d410
+[19:14:42 283][libtiny.so 0x19c4e8] [6bb11d91] 0x1219c4e8: "add x11, x11, #0x76c" x11=0x1219c000 => x11=0x1219c76c
+[19:14:42 283][libtiny.so 0x19c4ec] [0801098b] 0x1219c4ec: "add x8, x8, x9" x8=0xffffffffe7f2c948 x9=0x2a883180 => x8=0x127afac8
+[19:14:42 283][libtiny.so 0x19c4f0] [09fddf08] 0x1219c4f0: "ldarb w9, [x8]" x8=0x127afac8 => w9=0x0
+[19:14:42 283][libtiny.so 0x19c4f4] [8c5345f9] 0x1219c4f4: "ldr x12, [x28, #0xaa0]" x28=0x1273a000 => x12=0x1534e678
+[19:14:42 283][libtiny.so 0x19c4f8] [68010a8b] 0x1219c4f8: "add x8, x11, x10" x11=0x1219c76c x10=0x383d410 => x8=0x159d9b7c
+[19:14:42 283][libtiny.so 0x19c4fc] [6a01084b] 0x1219c4fc: "sub w10, w11, w8" w11=0x1219c76c w8=0x159d9b7c => w10=0xfc7c2bf0
+[19:14:42 283][libtiny.so 0x19c500] [8b939652] 0x1219c500: "mov w11, #0xb49c" w11=0x1219c76c => w11=0xb49c
+[19:14:42 283][libtiny.so 0x19c504] [0b0da072] 0x1219c504: "movk w11, #0x68, lsl #16" w11=0xb49c => w11=0x68b49c
+[19:14:42 283][libtiny.so 0x19c508] [4a010b0b] 0x1219c508: "add w10, w10, w11" w10=0xfc7c2bf0 w11=0x68b49c => w10=0xfce4e08c
+[19:14:42 283][libtiny.so 0x19c50c] [8ac12a8b] 0x1219c50c: "add x10, x12, w10, sxtw" x12=0x1534e678 w10=0xfce4e08c => x10=0x1219c704
+[19:14:42 283][libtiny.so 0x19c510] [a9431938] 0x1219c510: "sturb w9, [x29, #-0x6c]" w9=0x0 fp=0xe4fff6b0
+[19:14:42 283][libtiny.so 0x19c514] [40011fd6] 0x1219c514: "br x10" x10=0x1219c704
+[19:14:42 283][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x0 => x9=0xffffffffffff2bf0
+[19:14:42 283][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 284][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9b7c x9=0xfffffffffc7c2bf0 => x8=0x1219c76c
+[19:14:42 284][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c76c
+[19:14:42 284][libtiny.so 0x19c76c] [a8435938] 0x1219c76c: "ldurb w8, [x29, #-0x6c]" fp=0xe4fff6b0 => w8=0x0
+[19:14:42 284][libtiny.so 0x19c770] [09d18052] 0x1219c770: "mov w9, #0x688" w9=0xfc7c2bf0 => w9=0x688
+[19:14:42 284][libtiny.so 0x19c774] [8a789552] 0x1219c774: "mov w10, #0xabc4" w10=0x1219c704 => w10=0xabc4
+[19:14:42 284][libtiny.so 0x19c778] [0b000090] 0x1219c778: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 284][libtiny.so 0x19c77c] [0e000090] 0x1219c77c: "adrp x14, #0x1219c000" => x14=0x1219c000
+[19:14:42 284][libtiny.so 0x19c780] [4977a072] 0x1219c780: "movk w9, #0x3ba, lsl #16" w9=0x688 => w9=0x3ba0688
+[19:14:42 284][libtiny.so 0x19c784] [6a68a072] 0x1219c784: "movk w10, #0x343, lsl #16" w10=0xabc4 => w10=0x343abc4
+[19:14:42 284][libtiny.so 0x19c788] [6b513391] 0x1219c788: "add x11, x11, #0xcd4" x11=0x1219c000 => x11=0x1219ccd4
+[19:14:42 284][libtiny.so 0x19c78c] [0c0c8052] 0x1219c78c: "mov w12, #0x60" w12=0x1534e678 => w12=0x60
+[19:14:42 284][libtiny.so 0x19c790] [1f010072] 0x1219c790: "tst w8, #1" w8=0x0 => nzcv: N=0, Z=1, C=0, V=0
+[19:14:42 284][libtiny.so 0x19c794] [0d088052] 0x1219c794: "mov w13, #0x40" w13=0x1273a000 => w13=0x40
+[19:14:42 284][libtiny.so 0x19c798] [cea12e91] 0x1219c798: "add x14, x14, #0xba8" x14=0x1219c000 => x14=0x1219cba8
+[19:14:42 284][libtiny.so 0x19c79c] [c801098b] 0x1219c79c: "add x8, x14, x9" x14=0x1219cba8 x9=0x3ba0688 => x8=0x15d3d230
+[19:14:42 284][libtiny.so 0x19c7a0] [69010a8b] 0x1219c7a0: "add x9, x11, x10" x11=0x1219ccd4 x10=0x343abc4 => x9=0x155d7898
+[19:14:42 284][libtiny.so 0x19c7a4] [aa018c9a] 0x1219c7a4: "csel x10, x13, x12, eq" nzcv: N=0, Z=1, C=0, V=0 x13=0x40 x12=0x60 => x10=0x40
+[19:14:42 284][libtiny.so 0x19c7a8] [ec2c00d0] 0x1219c7a8: "adrp x12, #0x1273a000" => x12=0x1273a000
+[19:14:42 284][libtiny.so 0x19c7ac] [8c012a91] 0x1219c7ac: "add x12, x12, #0xa80" x12=0x1273a000 => x12=0x1273aa80
+[19:14:42 284][libtiny.so 0x19c7b0] [2801889a] 0x1219c7b0: "csel x8, x9, x8, eq" nzcv: N=0, Z=1, C=0, V=0 x9=0x155d7898 x8=0x15d3d230 => x8=0x155d7898
+[19:14:42 284][libtiny.so 0x19c7b4] [891f8d52] 0x1219c7b4: "mov w9, #0x68fc" w9=0x155d7898 => w9=0x68fc
+[19:14:42 284][libtiny.so 0x19c7b8] [8a696af8] 0x1219c7b8: "ldr x10, [x12, x10]" x12=0x1273aa80 x10=0x40 => x10=0x160ac7d8
+[19:14:42 284][libtiny.so 0x19c7bc] [0c029652] 0x1219c7bc: "mov w12, #0xb010" w12=0x1273aa80 => w12=0xb010
+[19:14:42 284][libtiny.so 0x19c7c0] [290fa072] 0x1219c7c0: "movk w9, #0x79, lsl #16" w9=0x68fc => w9=0x7968fc
+[19:14:42 284][libtiny.so 0x19c7c4] [4ceabf72] 0x1219c7c4: "movk w12, #0xff52, lsl #16" w12=0xb010 => w12=0xff52b010
+[19:14:42 284][libtiny.so 0x19c7c8] [c901090b] 0x1219c7c8: "add w9, w14, w9" w14=0x1219cba8 w9=0x7968fc => w9=0x129334a4
+[19:14:42 284][libtiny.so 0x19c7cc] [6b010c0b] 0x1219c7cc: "add w11, w11, w12" w11=0x1219ccd4 w12=0xff52b010 => w11=0x116c7ce4
+[19:14:42 284][libtiny.so 0x19c7d0] [6901891a] 0x1219c7d0: "csel w9, w11, w9, eq" nzcv: N=0, Z=1, C=0, V=0 w11=0x116c7ce4 w9=0x129334a4 => w9=0x116c7ce4
+[19:14:42 284][libtiny.so 0x19c7d4] [2901084b] 0x1219c7d4: "sub w9, w9, w8" w9=0x116c7ce4 w8=0x155d7898 => w9=0xfc0f044c
+[19:14:42 284][libtiny.so 0x19c7d8] [49c1298b] 0x1219c7d8: "add x9, x10, w9, sxtw" x10=0x160ac7d8 w9=0xfc0f044c => x9=0x1219cc24
+[19:14:42 284][libtiny.so 0x19c7dc] [20011fd6] 0x1219c7dc: "br x9" x9=0x1219cc24
+[19:14:42 284][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x1219cc24 => x9=0xffffffffffff543c
+[19:14:42 284][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 284][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d7898 x9=0xfffffffffcbc543c => x8=0x1219ccd4
+[19:14:42 284][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219ccd4
+[19:14:42 284][libtiny.so 0x19ccd4] [803000f0] 0x1219ccd4: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 284][libtiny.so 0x19ccd8] [00202b91] 0x1219ccd8: "add x0, x0, #0xac8" x0=0x127af000 => x0=0x127afac8
+[19:14:42 284][libtiny.so 0x19ccdc] [8598fe97] 0x1219ccdc: "bl #0x12142ef0" => lr=0x1219cce0
+[19:14:42 284][libtiny.so 0x19cce0] [88d98352] 0x1219cce0: "mov w8, #0x1ecc" w8=0x2 => w8=0x1ecc
+[19:14:42 284][libtiny.so 0x19cce4] [0a0000b0] 0x1219cce4: "adrp x10, #0x1219d000" => x10=0x1219d000
+[19:14:42 284][libtiny.so 0x19cce8] [096b45f9] 0x1219cce8: "ldr x9, [x24, #0xad0]" x24=0x1273a000 => x9=0x1546a964
+[19:14:42 284][libtiny.so 0x19ccec] [e869a072] 0x1219ccec: "movk w8, #0x34f, lsl #16" w8=0x1ecc => w8=0x34f1ecc
+[19:14:42 284][libtiny.so 0x19ccf0] [4a910191] 0x1219ccf0: "add x10, x10, #0x64" x10=0x1219d000 => x10=0x1219d064
+[19:14:42 284][libtiny.so 0x19ccf4] [4801088b] 0x1219ccf4: "add x8, x10, x8" x10=0x1219d064 x8=0x34f1ecc => x8=0x1568ef30
+[19:14:42 286][libtiny.so 0x19ccf8] [8b768852] 0x1219ccf8: "mov w11, #0x43b4" w11=0x116c7ce4 => w11=0x43b4
+[19:14:42 286][libtiny.so 0x19ccfc] [4a01084b] 0x1219ccfc: "sub w10, w10, w8" w10=0x1219d064 w8=0x1568ef30 => w10=0xfcb0e134
+[19:14:42 286][libtiny.so 0x19cd00] [4b04a072] 0x1219cd00: "movk w11, #0x22, lsl #16" w11=0x43b4 => w11=0x2243b4
+[19:14:42 286][libtiny.so 0x19cd04] [4a010b0b] 0x1219cd04: "add w10, w10, w11" w10=0xfcb0e134 w11=0x2243b4 => w10=0xfcd324e8
+[19:14:42 286][libtiny.so 0x19cd08] [29c12a8b] 0x1219cd08: "add x9, x9, w10, sxtw" x9=0x1546a964 w10=0xfcd324e8 => x9=0x1219ce4c
+[19:14:42 286][libtiny.so 0x19cd0c] [a08319b8] 0x1219cd0c: "stur w0, [x29, #-0x68]" w0=0x1 fp=0xe4fff6b0
+[19:14:42 286][libtiny.so 0x19cd10] [20011fd6] 0x1219cd10: "br x9" x9=0x1219ce4c
+[19:14:42 286][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x1219ce4c => x9=0xffffffffffffe134
+[19:14:42 286][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 286][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568ef30 x9=0xfffffffffcb0e134 => x8=0x1219d064
+[19:14:42 286][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219d064
+[19:14:42 286][libtiny.so 0x19d064] [a98359b8] 0x1219d064: "ldur w9, [x29, #-0x68]" fp=0xe4fff6b0 => w9=0x1
+[19:14:42 286][libtiny.so 0x19d068] [08108552] 0x1219d068: "mov w8, #0x2880" w8=0x1219d064 => w8=0x2880
+[19:14:42 286][libtiny.so 0x19d06c] [ebfffff0] 0x1219d06c: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 286][libtiny.so 0x19d070] [4a4345f9] 0x1219d070: "ldr x10, [x26, #0xa80]" x26=0x1273a000 => x10=0x155c26b4
+[19:14:42 286][libtiny.so 0x19d074] [086da072] 0x1219d074: "movk w8, #0x368, lsl #16" w8=0x2880 => w8=0x3682880
+[19:14:42 286][libtiny.so 0x19d078] [6bc10b91] 0x1219d078: "add x11, x11, #0x2f0" x11=0x1219c000 => x11=0x1219c2f0
+[19:14:42 286][libtiny.so 0x19d07c] [0c8e9852] 0x1219d07c: "mov w12, #0xc470" w12=0xff52b010 => w12=0xc470
+[19:14:42 286][libtiny.so 0x19d080] [6801088b] 0x1219d080: "add x8, x11, x8" x11=0x1219c2f0 x8=0x3682880 => x8=0x1581eb70
+[19:14:42 286][libtiny.so 0x19d084] [ac04a072] 0x1219d084: "movk w12, #0x25, lsl #16" w12=0xc470 => w12=0x25c470
+[19:14:42 286][libtiny.so 0x19d088] [6b01084b] 0x1219d088: "sub w11, w11, w8" w11=0x1219c2f0 w8=0x1581eb70 => w11=0xfc97d780
+[19:14:42 286][libtiny.so 0x19d08c] [6b010c0b] 0x1219d08c: "add w11, w11, w12" w11=0xfc97d780 w12=0x25c470 => w11=0xfcbd9bf0
+[19:14:42 287][libtiny.so 0x19d090] [3f010071] 0x1219d090: "cmp w9, #0" w9=0x1 => nzcv: N=0, Z=0, C=1, V=0
+[19:14:42 287][libtiny.so 0x19d094] [e9179f1a] 0x1219d094: "cset w9, eq" nzcv: N=0, Z=0, C=1, V=0 => w9=0x0
+[19:14:42 287][libtiny.so 0x19d098] [4ac12b8b] 0x1219d098: "add x10, x10, w11, sxtw" x10=0x155c26b4 w11=0xfcbd9bf0 => x10=0x1219c2a4
+[19:14:42 287][libtiny.so 0x19d09c] [a9f31938] 0x1219d09c: "sturb w9, [x29, #-0x61]" w9=0x0 fp=0xe4fff6b0
+[19:14:42 287][libtiny.so 0x19d0a0] [40011fd6] 0x1219d0a0: "br x10" x10=0x1219c2a4
+[19:14:42 287][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0x0 => x9=0xffffffffffffd780
+[19:14:42 287][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 287][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581eb70 x9=0xfffffffffc97d780 => x8=0x1219c2f0
+[19:14:42 287][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c2f0
+[19:14:42 287][libtiny.so 0x19c2f0] [89528852] 0x1219c2f0: "mov w9, #0x4294" w9=0xfc97d780 => w9=0x4294
+[19:14:42 287][libtiny.so 0x19c2f4] [0a000090] 0x1219c2f4: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 287][libtiny.so 0x19c2f8] [8c5e8a52] 0x1219c2f8: "mov w12, #0x52f4" w12=0x25c470 => w12=0x52f4
+[19:14:42 287][libtiny.so 0x19c2fc] [a8f35938] 0x1219c2fc: "ldurb w8, [x29, #-0x61]" fp=0xe4fff6b0 => w8=0x0
+[19:14:42 287][libtiny.so 0x19c300] [a9e9a072] 0x1219c300: "movk w9, #0x74d, lsl #16" w9=0x4294 => w9=0x74d4294
+[19:14:42 287][libtiny.so 0x19c304] [4a713991] 0x1219c304: "add x10, x10, #0xe5c" x10=0x1219c000 => x10=0x1219ce5c
+[19:14:42 287][libtiny.so 0x19c308] [ac71a072] 0x1219c308: "movk w12, #0x38d, lsl #16" w12=0x52f4 => w12=0x38d52f4
+[19:14:42 287][libtiny.so 0x19c30c] [4901098b] 0x1219c30c: "add x9, x10, x9" x10=0x1219ce5c x9=0x74d4294 => x9=0x196710f0
+[19:14:42 287][libtiny.so 0x19c310] [4a010c0b] 0x1219c310: "add w10, w10, w12" w10=0x1219ce5c w12=0x38d52f4 => w10=0x15a72150
+[19:14:42 287][libtiny.so 0x19c314] [acf35938] 0x1219c314: "ldurb w12, [x29, #-0x61]" fp=0xe4fff6b0 => w12=0x0
+[19:14:42 287][libtiny.so 0x19c318] [adf35938] 0x1219c318: "ldurb w13, [x29, #-0x61]" fp=0xe4fff6b0 => w13=0x0
+[19:14:42 287][libtiny.so 0x19c31c] [0b5b9652] 0x1219c31c: "mov w11, #0xb2d8" w11=0xfcbd9bf0 => w11=0xb2d8
+[19:14:42 287][libtiny.so 0x19c320] [0e000090] 0x1219c320: "adrp x14, #0x1219c000" => x14=0x1219c000
+[19:14:42 287][libtiny.so 0x19c324] [abefa072] 0x1219c324: "movk w11, #0x77d, lsl #16" w11=0xb2d8 => w11=0x77db2d8
+[19:14:42 287][libtiny.so 0x19c328] [cea12e91] 0x1219c328: "add x14, x14, #0xba8" x14=0x1219c000 => x14=0x1219cba8
+[19:14:42 287][libtiny.so 0x19c32c] [1f010071] 0x1219c32c: "cmp w8, #0" w8=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 287][libtiny.so 0x19c330] [c8010b8b] 0x1219c330: "add x8, x14, x11" x14=0x1219cba8 x11=0x77db2d8 => x8=0x19977e80
+[19:14:42 287][libtiny.so 0x19c334] [0811899a] 0x1219c334: "csel x8, x8, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x8=0x19977e80 x9=0x196710f0 => x8=0x196710f0
+[19:14:42 287][libtiny.so 0x19c338] [090b8052] 0x1219c338: "mov w9, #0x58" w9=0x196710f0 => w9=0x58
+[19:14:42 287][libtiny.so 0x19c33c] [bf010071] 0x1219c33c: "cmp w13, #0" w13=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 287][libtiny.so 0x19c340] [0b0d8052] 0x1219c340: "mov w11, #0x68" w11=0x77db2d8 => w11=0x68
+[19:14:42 287][libtiny.so 0x19c344] [ed2c00d0] 0x1219c344: "adrp x13, #0x1273a000" => x13=0x1273a000
+[19:14:42 287][libtiny.so 0x19c348] [6911899a] 0x1219c348: "csel x9, x11, x9, ne" nzcv: N=0, Z=1, C=1, V=0 x11=0x68 x9=0x58 => x9=0x58
+[19:14:42 287][libtiny.so 0x19c34c] [8b649252] 0x1219c34c: "mov w11, #0x9324" w11=0x68 => w11=0x9324
+[19:14:42 287][libtiny.so 0x19c350] [ad012a91] 0x1219c350: "add x13, x13, #0xa80" x13=0x1273a000 => x13=0x1273aa80
+[19:14:42 287][libtiny.so 0x19c354] [0b88a072] 0x1219c354: "movk w11, #0x440, lsl #16" w11=0x9324 => w11=0x4409324
+[19:14:42 287][libtiny.so 0x19c358] [a96969f8] 0x1219c358: "ldr x9, [x13, x9]" x13=0x1273aa80 x9=0x58 => x9=0x15d9bcb4
+[19:14:42 287][libtiny.so 0x19c35c] [cb010b0b] 0x1219c35c: "add w11, w14, w11" w14=0x1219cba8 w11=0x4409324 => w11=0x165a5ecc
+[19:14:42 287][libtiny.so 0x19c360] [9f010071] 0x1219c360: "cmp w12, #0" w12=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 287][libtiny.so 0x19c364] [6a118a1a] 0x1219c364: "csel w10, w11, w10, ne" nzcv: N=0, Z=1, C=1, V=0 w11=0x165a5ecc w10=0x15a72150 => w10=0x15a72150
+[19:14:42 287][libtiny.so 0x19c368] [4a01084b] 0x1219c368: "sub w10, w10, w8" w10=0x15a72150 w8=0x196710f0 => w10=0xfc401060
+[19:14:42 287][libtiny.so 0x19c36c] [29c12a8b] 0x1219c36c: "add x9, x9, w10, sxtw" x9=0x15d9bcb4 w10=0xfc401060 => x9=0x1219cd14
+[19:14:42 287][libtiny.so 0x19c370] [20011fd6] 0x1219c370: "br x9" x9=0x1219cd14
+[19:14:42 287][libtiny.so 0x19cd14] [096b45f9] 0x1219cd14: "ldr x9, [x24, #0xad0]" x24=0x1273a000 => x9=0x1546a964
+[19:14:42 287][libtiny.so 0x19cd18] [eb629b92] 0x1219cd18: "mov x11, #-0xdb18" x11=0x165a5ecc => x11=0xffffffffffff24e8
+[19:14:42 287][libtiny.so 0x19cd1c] [ea788492] 0x1219cd1c: "mov x10, #-0x23c8" x10=0xfc401060 => x10=0xffffffffffffdc38
+[19:14:42 287][libtiny.so 0x19cd20] [6b9abff2] 0x1219cd20: "movk x11, #0xfcd3, lsl #16" x11=0xffffffffffff24e8 => x11=0xfffffffffcd324e8
+[19:14:42 287][libtiny.so 0x19cd24] [2a80bff2] 0x1219cd24: "movk x10, #0xfc01, lsl #16" x10=0xffffffffffffdc38 => x10=0xfffffffffc01dc38
+[19:14:42 287][libtiny.so 0x19cd28] [29010b8b] 0x1219cd28: "add x9, x9, x11" x9=0x1546a964 x11=0xfffffffffcd324e8 => x9=0x1219ce4c
+[19:14:42 287][libtiny.so 0x19cd2c] [08010a8b] 0x1219cd2c: "add x8, x8, x10" x8=0x196710f0 x10=0xfffffffffc01dc38 => x8=0x1568ed28
+[19:14:42 287][libtiny.so 0x19cd30] [20011fd6] 0x1219cd30: "br x9" x9=0x1219ce4c
+[19:14:42 287][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x1219ce4c => x9=0xffffffffffffe134
+[19:14:42 287][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 287][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568ed28 x9=0xfffffffffcb0e134 => x8=0x1219ce5c
+[19:14:42 287][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219ce5c
+[19:14:42 287][libtiny.so 0x19ce5c] [e82c00d0] 0x1219ce5c: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 287][libtiny.so 0x19ce60] [089945f9] 0x1219ce60: "ldr x8, [x8, #0xb30]" x8=0x1273a000 => x8=0xffffffff93fb3eb8
+[19:14:42 288][libtiny.so 0x19ce64] [89899652] 0x1219ce64: "mov w9, #0xb44c" w9=0xfcb0e134 => w9=0xb44c
+[19:14:42 288][libtiny.so 0x19ce68] [c9c3af72] 0x1219ce68: "movk w9, #0x7e1e, lsl #16" w9=0xb44c => w9=0x7e1eb44c
+[19:14:42 288][libtiny.so 0x19ce6c] [0801098b] 0x1219ce6c: "add x8, x8, x9" x8=0xffffffff93fb3eb8 x9=0x7e1eb44c => x8=0x1219f304
+[19:14:42 288][libtiny.so 0x19ce70] [00013fd6] 0x1219ce70: "blr x8" x8=0x1219f304
+[19:14:42 288][libtiny.so 0x19f304] [ff8301d1] 0x1219f304: "sub sp, sp, #0x60" sp=0xe4fff570 => sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f308] [fe2300f9] 0x1219f308: "str x30, [sp, #0x40]" lr=0x1219ce74 sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f30c] [f44f05a9] 0x1219f30c: "stp x20, x19, [sp, #0x50]" x20=0x1273a000 x19=0xe4fff580 sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f310] [28fbfff0] 0x1219f310: "adrp x8, #0x12106000" => x8=0x12106000
+[19:14:42 288][libtiny.so 0x19f314] [54d03bd5] 0x1219f314: "mrs x20, tpidr_el0" x20=0x1273a000 => x20=0xe4fff718
+[19:14:42 288][libtiny.so 0x19f318] [08110591] 0x1219f318: "add x8, x8, #0x144" x8=0x12106000 => x8=0x12106144
+[19:14:42 288][libtiny.so 0x19f31c] [891640f9] 0x1219f31c: "ldr x9, [x20, #0x28]" x20=0xe4fff718 => x9=0x0
+[19:14:42 288][libtiny.so 0x19f320] [000540ad] 0x1219f320: "ldp q0, q1, [x8]" x8=0x12106144
+[19:14:42 288][libtiny.so 0x19f324] [02c1c13c] 0x1219f324: "ldur q2, [x8, #0x1c]" x8=0x12106144
+[19:14:42 288][libtiny.so 0x19f328] [20058052] 0x1219f328: "mov w0, #0x29" w0=0x1 => w0=0x29
+[19:14:42 288][libtiny.so 0x19f32c] [e91f00f9] 0x1219f32c: "str x9, [sp, #0x38]" x9=0x0 sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f330] [e00700ad] 0x1219f330: "stp q0, q1, [sp]" sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f334] [e2c3813c] 0x1219f334: "stur q2, [sp, #0x1c]" sp=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f338] [b187fe97] 0x1219f338: "bl #0x121411fc" => lr=0x1219f33c
+[19:14:42 288][libtiny.so 0x19f33c] [e1030091] 0x1219f33c: "mov x1, sp" sp=0xe4fff510 => x1=0xe4fff510
+[19:14:42 288][libtiny.so 0x19f340] [02058052] 0x1219f340: "mov w2, #0x28" w2=0x3 => w2=0x28
+[19:14:42 288][libtiny.so 0x19f344] [f30300aa] 0x1219f344: "mov x19, x0" x0=0x12b13600 => x19=0x12b13600
+[19:14:42 288][libtiny.so 0x19f348] [1fa00039] 0x1219f348: "strb wzr, [x0, #0x28]" x0=0x12b13600
+[19:14:42 288][libtiny.so 0x19f34c] [b19f0e94] 0x1219f34c: "bl #0x12547210" => lr=0x1219f350
+[19:14:42 288][libtiny.so 0x19f350] [01058052] 0x1219f350: "mov w1, #0x28" w1=0xe4fff510 => w1=0x28
+[19:14:42 288][libtiny.so 0x19f354] [34fdff97] 0x1219f354: "bl #0x1219e824" => lr=0x1219f358
+[19:14:42 288][libtiny.so 0x19f358] [881640f9] 0x1219f358: "ldr x8, [x20, #0x28]" x20=0xe4fff718 => x8=0x0
+[19:14:42 288][libtiny.so 0x19f35c] [e91f40f9] 0x1219f35c: "ldr x9, [sp, #0x38]" sp=0xe4fff510 => x9=0x0
+[19:14:42 288][libtiny.so 0x19f360] [1f0109eb] 0x1219f360: "cmp x8, x9" x8=0x0 x9=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 288][libtiny.so 0x19f364] [c1000054] 0x1219f364: "b.ne #0x1219f37c" nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 288][libtiny.so 0x19f368] [e00313aa] 0x1219f368: "mov x0, x19" x19=0x12b13600 => x0=0x12b13600
+[19:14:42 288][libtiny.so 0x19f36c] [f44f45a9] 0x1219f36c: "ldp x20, x19, [sp, #0x50]" sp=0xe4fff510 => x20=0x1273a000 x19=0xe4fff580
+[19:14:42 288][libtiny.so 0x19f370] [fe2340f9] 0x1219f370: "ldr x30, [sp, #0x40]" sp=0xe4fff510 => lr=0x1219ce74
+[19:14:42 288][libtiny.so 0x19f374] [ff830191] 0x1219f374: "add sp, sp, #0x60" sp=0xe4fff510 => sp=0xe4fff570
+[19:14:42 288][libtiny.so 0x19f378] [c0035fd6] 0x1219f378: "ret"
+[19:14:42 288][libtiny.so 0x19ce74] [08859f52] 0x1219ce74: "mov w8, #0xfc28" w8=0x0 => w8=0xfc28
+[19:14:42 288][libtiny.so 0x19ce78] [0a000090] 0x1219ce78: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 288][libtiny.so 0x19ce7c] [e95a45f9] 0x1219ce7c: "ldr x9, [x23, #0xab0]" x23=0x1273a000 => x9=0x1592a678
+[19:14:42 288][libtiny.so 0x19ce80] [4877a072] 0x1219ce80: "movk w8, #0x3ba, lsl #16" w8=0xfc28 => w8=0x3bafc28
+[19:14:42 288][libtiny.so 0x19ce84] [4a912691] 0x1219ce84: "add x10, x10, #0x9a4" x10=0x1219c000 => x10=0x1219c9a4
+[19:14:42 288][libtiny.so 0x19ce88] [4801088b] 0x1219ce88: "add x8, x10, x8" x10=0x1219c9a4 x8=0x3bafc28 => x8=0x15d4c5cc
+[19:14:42 288][libtiny.so 0x19ce8c] [0bd78352] 0x1219ce8c: "mov w11, #0x1eb8" w11=0x1273a000 => w11=0x1eb8
+[19:14:42 288][libtiny.so 0x19ce90] [4a01084b] 0x1219ce90: "sub w10, w10, w8" w10=0x1219c9a4 w8=0x15d4c5cc => w10=0xfc4503d8
+[19:14:42 288][libtiny.so 0x19ce94] [4b08a072] 0x1219ce94: "movk w11, #0x42, lsl #16" w11=0x1eb8 => w11=0x421eb8
+[19:14:42 288][libtiny.so 0x19ce98] [4a010b0b] 0x1219ce98: "add w10, w10, w11" w10=0xfc4503d8 w11=0x421eb8 => w10=0xfc872290
+[19:14:42 288][libtiny.so 0x19ce9c] [29c12a8b] 0x1219ce9c: "add x9, x9, w10, sxtw" x9=0x1592a678 w10=0xfc872290 => x9=0x1219c908
+[19:14:42 288][libtiny.so 0x19cea0] [a0031af8] 0x1219cea0: "stur x0, [x29, #-0x60]" x0=0x12b13600 fp=0xe4fff6b0
+[19:14:42 288][libtiny.so 0x19cea4] [20011fd6] 0x1219cea4: "br x9" x9=0x1219c908
+[19:14:42 288][libtiny.so 0x19c908] [e9849f92] 0x1219c908: "mov x9, #-0xfc28" x9=0x1219c908 => x9=0xffffffffffff03d8
+[19:14:42 288][libtiny.so 0x19c90c] [a988bff2] 0x1219c90c: "movk x9, #0xfc45, lsl #16" x9=0xffffffffffff03d8 => x9=0xfffffffffc4503d8
+[19:14:42 288][libtiny.so 0x19c910] [0801098b] 0x1219c910: "add x8, x8, x9" x8=0x15d4c5cc x9=0xfffffffffc4503d8 => x8=0x1219c9a4
+[19:14:42 288][libtiny.so 0x19c914] [00011fd6] 0x1219c914: "br x8" x8=0x1219c9a4
+[19:14:42 288][libtiny.so 0x19c9a4] [e82c00d0] 0x1219c9a4: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 288][libtiny.so 0x19c9a8] [098d45f9] 0x1219c9a8: "ldr x9, [x8, #0xb18]" x8=0x1273a000 => x9=0xffffffffe7f2c950
+[19:14:42 288][libtiny.so 0x19c9ac] [e82c00d0] 0x1219c9ac: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 288][libtiny.so 0x19c9b0] [0a4d45f9] 0x1219c9b0: "ldr x10, [x8, #0xa98]" x8=0x1273a000 => x10=0x15b32e14
+[19:14:42 288][libtiny.so 0x19c9b4] [88718d52] 0x1219c9b4: "mov w8, #0x6b8c" w8=0x1273a000 => w8=0x6b8c
+[19:14:42 288][libtiny.so 0x19c9b8] [0b000090] 0x1219c9b8: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 288][libtiny.so 0x19c9bc] [a8cda072] 0x1219c9bc: "movk w8, #0x66d, lsl #16" w8=0x6b8c => w8=0x66d6b8c
+[19:14:42 288][libtiny.so 0x19c9c0] [6b611491] 0x1219c9c0: "add x11, x11, #0x518" x11=0x1219c000 => x11=0x1219c518
+[19:14:42 288][libtiny.so 0x19c9c4] [6801088b] 0x1219c9c4: "add x8, x11, x8" x11=0x1219c518 x8=0x66d6b8c => x8=0x188730a4
+[19:14:42 288][libtiny.so 0x19c9c8] [0c868052] 0x1219c9c8: "mov w12, #0x430" w12=0x1273a8e0 => w12=0x430
+[19:14:42 288][libtiny.so 0x19c9cc] [6b01084b] 0x1219c9cc: "sub w11, w11, w8" w11=0x1219c518 w8=0x188730a4 => w11=0xf9929474
+[19:14:42 288][libtiny.so 0x19c9d0] [8c5aa072] 0x1219c9d0: "movk w12, #0x2d4, lsl #16" w12=0x430 => w12=0x2d40430
+[19:14:42 288][libtiny.so 0x19c9d4] [6b010c0b] 0x1219c9d4: "add w11, w11, w12" w11=0xf9929474 w12=0x2d40430 => w11=0xfc6698a4
+[19:14:42 288][libtiny.so 0x19c9d8] [4ac12b8b] 0x1219c9d8: "add x10, x10, w11, sxtw" x10=0x15b32e14 w11=0xfc6698a4 => x10=0x1219c6b8
+[19:14:42 288][libtiny.so 0x19c9dc] [a9831af8] 0x1219c9dc: "stur x9, [x29, #-0x58]" x9=0xffffffffe7f2c950 fp=0xe4fff6b0
+[19:14:42 288][libtiny.so 0x19c9e0] [40011fd6] 0x1219c9e0: "br x10" x10=0x1219c6b8
+[19:14:42 288][libtiny.so 0x19c6b8] [e92c00d0] 0x1219c6b8: "adrp x9, #0x1273a000" => x9=0x1273a000
+[19:14:42 288][libtiny.so 0x19c6bc] [294945f9] 0x1219c6bc: "ldr x9, [x9, #0xa90]" x9=0x1273a000 => x9=0x1561717c
+[19:14:42 288][libtiny.so 0x19c6c0] [eb979592] 0x1219c6c0: "mov x11, #-0xacc0" x11=0xfc6698a4 => x11=0xffffffffffff5340
+[19:14:42 289][libtiny.so 0x19c6c4] [6a118592] 0x1219c6c4: "mov x10, #-0x288c" x10=0x1219c6b8 => x10=0xffffffffffffd774
+[19:14:42 289][libtiny.so 0x19c6c8] [0b97bff2] 0x1219c6c8: "movk x11, #0xfcb8, lsl #16" x11=0xffffffffffff5340 => x11=0xfffffffffcb85340
+[19:14:42 289][libtiny.so 0x19c6cc] [6a9abff2] 0x1219c6cc: "movk x10, #0xfcd3, lsl #16" x10=0xffffffffffffd774 => x10=0xfffffffffcd3d774
+[19:14:42 289][libtiny.so 0x19c6d0] [29010b8b] 0x1219c6d0: "add x9, x9, x11" x9=0x1561717c x11=0xfffffffffcb85340 => x9=0x1219c4bc
+[19:14:42 289][libtiny.so 0x19c6d4] [08010a8b] 0x1219c6d4: "add x8, x8, x10" x8=0x188730a4 x10=0xfffffffffcd3d774 => x8=0x155b0818
+[19:14:42 289][libtiny.so 0x19c6d8] [20011fd6] 0x1219c6d8: "br x9" x9=0x1219c4bc
+[19:14:42 289][libtiny.so 0x19c4bc] [e95f8892] 0x1219c4bc: "mov x9, #-0x4300" x9=0x1219c4bc => x9=0xffffffffffffbd00
+[19:14:42 289][libtiny.so 0x19c4c0] [c997bff2] 0x1219c4c0: "movk x9, #0xfcbe, lsl #16" x9=0xffffffffffffbd00 => x9=0xfffffffffcbebd00
+[19:14:42 289][libtiny.so 0x19c4c4] [0801098b] 0x1219c4c4: "add x8, x8, x9" x8=0x155b0818 x9=0xfffffffffcbebd00 => x8=0x1219c518
+[19:14:42 289][libtiny.so 0x19c4c8] [00011fd6] 0x1219c4c8: "br x8" x8=0x1219c518
+[19:14:42 289][libtiny.so 0x19c518] [a8835af8] 0x1219c518: "ldur x8, [x29, #-0x58]" fp=0xe4fff6b0 => x8=0xffffffffe7f2c950
+[19:14:42 289][libtiny.so 0x19c51c] [a9035af8] 0x1219c51c: "ldur x9, [x29, #-0x60]" fp=0xe4fff6b0 => x9=0x12b13600
+[19:14:42 289][libtiny.so 0x19c520] [0a308652] 0x1219c520: "mov w10, #0x3180" w10=0xfcd3d774 => w10=0x3180
+[19:14:42 289][libtiny.so 0x19c524] [803000f0] 0x1219c524: "adrp x0, #0x127af000" => x0=0x127af000
+[19:14:42 289][libtiny.so 0x19c528] [0a51a572] 0x1219c528: "movk w10, #0x2a88, lsl #16" w10=0x3180 => w10=0x2a883180
+[19:14:42 289][libtiny.so 0x19c52c] [00202b91] 0x1219c52c: "add x0, x0, #0xac8" x0=0x127af000 => x0=0x127afac8
+[19:14:42 289][libtiny.so 0x19c530] [09692af8] 0x1219c530: "str x9, [x8, x10]" x9=0x12b13600 x8=0xffffffffe7f2c950 x10=0x2a883180
+[19:14:42 289][libtiny.so 0x19c534] [bc9afe97] 0x1219c534: "bl #0x12143024" => lr=0x1219c538
+[19:14:42 289][libtiny.so 0x19c538] [e82c00d0] 0x1219c538: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 289][libtiny.so 0x19c53c] [097545f9] 0x1219c53c: "ldr x9, [x8, #0xae8]" x8=0x1273a000 => x9=0x1556e328
+[19:14:42 289][libtiny.so 0x19c540] [085b9652] 0x1219c540: "mov w8, #0xb2d8" w8=0x1273a000 => w8=0xb2d8
+[19:14:42 289][libtiny.so 0x19c544] [0a000090] 0x1219c544: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 289][libtiny.so 0x19c548] [a8efa072] 0x1219c548: "movk w8, #0x77d, lsl #16" w8=0xb2d8 => w8=0x77db2d8
+[19:14:42 289][libtiny.so 0x19c54c] [4aa12e91] 0x1219c54c: "add x10, x10, #0xba8" x10=0x1219c000 => x10=0x1219cba8
+[19:14:42 289][libtiny.so 0x19c550] [4801088b] 0x1219c550: "add x8, x10, x8" x10=0x1219cba8 x8=0x77db2d8 => x8=0x19977e80
+[19:14:42 289][libtiny.so 0x19c554] [8b649252] 0x1219c554: "mov w11, #0x9324" w11=0xfcb85340 => w11=0x9324
+[19:14:42 289][libtiny.so 0x19c558] [4a01084b] 0x1219c558: "sub w10, w10, w8" w10=0x1219cba8 w8=0x19977e80 => w10=0xf8824d28
+[19:14:42 289][libtiny.so 0x19c55c] [0b88a072] 0x1219c55c: "movk w11, #0x440, lsl #16" w11=0x9324 => w11=0x4409324
+[19:14:42 289][libtiny.so 0x19c560] [4a010b0b] 0x1219c560: "add w10, w10, w11" w10=0xf8824d28 w11=0x4409324 => w10=0xfcc2e04c
+[19:14:42 289][libtiny.so 0x19c564] [29c12a8b] 0x1219c564: "add x9, x9, w10, sxtw" x9=0x1556e328 w10=0xfcc2e04c => x9=0x1219c374
+[19:14:42 289][libtiny.so 0x19c568] [20011fd6] 0x1219c568: "br x9" x9=0x1219c374
+[19:14:42 289][libtiny.so 0x19c374] [297345f9] 0x1219c374: "ldr x9, [x25, #0xae0]" x25=0x1273a000 => x9=0x155a6864
+[19:14:42 289][libtiny.so 0x19c378] [6bb19392] 0x1219c378: "mov x11, #-0x9d8c" x11=0x4409324 => x11=0xffffffffffff6274
+[19:14:42 289][libtiny.so 0x19c37c] [ea899592] 0x1219c37c: "mov x10, #-0xac50" x10=0xfcc2e04c => x10=0xffffffffffff53b0
+[19:14:42 289][libtiny.so 0x19c380] [eb97bff2] 0x1219c380: "movk x11, #0xfcbf, lsl #16" x11=0xffffffffffff6274 => x11=0xfffffffffcbf6274
+[19:14:42 289][libtiny.so 0x19c384] [8a87bff2] 0x1219c384: "movk x10, #0xfc3c, lsl #16" x10=0xffffffffffff53b0 => x10=0xfffffffffc3c53b0
+[19:14:42 289][libtiny.so 0x19c388] [29010b8b] 0x1219c388: "add x9, x9, x11" x9=0x155a6864 x11=0xfffffffffcbf6274 => x9=0x1219cad8
+[19:14:42 289][libtiny.so 0x19c38c] [08010a8b] 0x1219c38c: "add x8, x8, x10" x8=0x19977e80 x10=0xfffffffffc3c53b0 => x8=0x15d3d230
+[19:14:42 289][libtiny.so 0x19c390] [20011fd6] 0x1219c390: "br x9" x9=0x1219cad8
+[19:14:42 289][libtiny.so 0x19cad8] [e9d08092] 0x1219cad8: "mov x9, #-0x688" x9=0x1219cad8 => x9=0xfffffffffffff978
+[19:14:42 289][libtiny.so 0x19cadc] [a988bff2] 0x1219cadc: "movk x9, #0xfc45, lsl #16" x9=0xfffffffffffff978 => x9=0xfffffffffc45f978
+[19:14:42 289][libtiny.so 0x19cae0] [0801098b] 0x1219cae0: "add x8, x8, x9" x8=0x15d3d230 x9=0xfffffffffc45f978 => x8=0x1219cba8
+[19:14:42 289][libtiny.so 0x19cae4] [00011fd6] 0x1219cae4: "br x8" x8=0x1219cba8
+[19:14:42 289][libtiny.so 0x19cba8] [e82c00d0] 0x1219cba8: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 289][libtiny.so 0x19cbac] [088d45f9] 0x1219cbac: "ldr x8, [x8, #0xb18]" x8=0x1273a000 => x8=0xffffffffe7f2c950
+[19:14:42 289][libtiny.so 0x19cbb0] [09308652] 0x1219cbb0: "mov w9, #0x3180" w9=0xfc45f978 => w9=0x3180
+[19:14:42 289][libtiny.so 0x19cbb4] [0951a572] 0x1219cbb4: "movk w9, #0x2a88, lsl #16" w9=0x3180 => w9=0x2a883180
+[19:14:42 289][libtiny.so 0x19cbb8] [ea2c00d0] 0x1219cbb8: "adrp x10, #0x1273a000" => x10=0x1273a000
+[19:14:42 289][libtiny.so 0x19cbbc] [086969f8] 0x1219cbbc: "ldr x8, [x8, x9]" x8=0xffffffffe7f2c950 x9=0x2a883180 => x8=0x12b13600
+[19:14:42 289][libtiny.so 0x19cbc0] [a98358f8] 0x1219cbc0: "ldur x9, [x29, #-0x78]" fp=0xe4fff6b0 => x9=0xe4fff690
+[19:14:42 289][libtiny.so 0x19cbc4] [8b528852] 0x1219cbc4: "mov w11, #0x4294" w11=0xfcbf6274 => w11=0x4294
+[19:14:42 289][libtiny.so 0x19cbc8] [abe9a072] 0x1219cbc8: "movk w11, #0x74d, lsl #16" w11=0x4294 => w11=0x74d4294
+[19:14:42 289][libtiny.so 0x19cbcc] [280100f9] 0x1219cbcc: "str x8, [x9]" x8=0x12b13600 x9=0xe4fff690
+[19:14:42 289][libtiny.so 0x19cbd0] [09000090] 0x1219cbd0: "adrp x9, #0x1219c000" => x9=0x1219c000
+[19:14:42 289][libtiny.so 0x19cbd4] [29c13e91] 0x1219cbd4: "add x9, x9, #0xfb0" x9=0x1219c000 => x9=0x1219cfb0
+[19:14:42 289][libtiny.so 0x19cbd8] [4a6d45f9] 0x1219cbd8: "ldr x10, [x10, #0xad8]" x10=0x1273a000 => x10=0x15d9bcb4
+[19:14:42 289][libtiny.so 0x19cbdc] [28010b8b] 0x1219cbdc: "add x8, x9, x11" x9=0x1219cfb0 x11=0x74d4294 => x8=0x19671244
+[19:14:42 289][libtiny.so 0x19cbe0] [8b5e8a52] 0x1219cbe0: "mov w11, #0x52f4" w11=0x74d4294 => w11=0x52f4
+[19:14:42 289][libtiny.so 0x19cbe4] [2901084b] 0x1219cbe4: "sub w9, w9, w8" w9=0x1219cfb0 w8=0x19671244 => w9=0xf8b2bd6c
+[19:14:42 289][libtiny.so 0x19cbe8] [ab71a072] 0x1219cbe8: "movk w11, #0x38d, lsl #16" w11=0x52f4 => w11=0x38d52f4
+[19:14:42 289][libtiny.so 0x19cbec] [29010b0b] 0x1219cbec: "add w9, w9, w11" w9=0xf8b2bd6c w11=0x38d52f4 => w9=0xfc401060
+[19:14:42 289][libtiny.so 0x19cbf0] [aba300d1] 0x1219cbf0: "sub x11, x29, #0x28" fp=0xe4fff6b0 => x11=0xe4fff688
+[19:14:42 289][libtiny.so 0x19cbf4] [6b410091] 0x1219cbf4: "add x11, x11, #0x10" x11=0xe4fff688 => x11=0xe4fff698
+[19:14:42 289][libtiny.so 0x19cbf8] [49c1298b] 0x1219cbf8: "add x9, x10, w9, sxtw" x10=0x15d9bcb4 w9=0xfc401060 => x9=0x1219cd14
+[19:14:42 289][libtiny.so 0x19cbfc] [ab031bf8] 0x1219cbfc: "stur x11, [x29, #-0x50]" x11=0xe4fff698 fp=0xe4fff6b0
+[19:14:42 289][libtiny.so 0x19cc00] [20011fd6] 0x1219cc00: "br x9" x9=0x1219cd14
+[19:14:42 289][libtiny.so 0x19cd14] [096b45f9] 0x1219cd14: "ldr x9, [x24, #0xad0]" x24=0x1273a000 => x9=0x1546a964
+[19:14:42 289][libtiny.so 0x19cd18] [eb629b92] 0x1219cd18: "mov x11, #-0xdb18" x11=0xe4fff698 => x11=0xffffffffffff24e8
+[19:14:42 289][libtiny.so 0x19cd1c] [ea788492] 0x1219cd1c: "mov x10, #-0x23c8" x10=0x15d9bcb4 => x10=0xffffffffffffdc38
+[19:14:42 289][libtiny.so 0x19cd20] [6b9abff2] 0x1219cd20: "movk x11, #0xfcd3, lsl #16" x11=0xffffffffffff24e8 => x11=0xfffffffffcd324e8
+[19:14:42 289][libtiny.so 0x19cd24] [2a80bff2] 0x1219cd24: "movk x10, #0xfc01, lsl #16" x10=0xffffffffffffdc38 => x10=0xfffffffffc01dc38
+[19:14:42 289][libtiny.so 0x19cd28] [29010b8b] 0x1219cd28: "add x9, x9, x11" x9=0x1546a964 x11=0xfffffffffcd324e8 => x9=0x1219ce4c
+[19:14:42 289][libtiny.so 0x19cd2c] [08010a8b] 0x1219cd2c: "add x8, x8, x10" x8=0x19671244 x10=0xfffffffffc01dc38 => x8=0x1568ee7c
+[19:14:42 289][libtiny.so 0x19cd30] [20011fd6] 0x1219cd30: "br x9" x9=0x1219ce4c
+[19:14:42 289][libtiny.so 0x19ce4c] [69d98392] 0x1219ce4c: "mov x9, #-0x1ecc" x9=0x1219ce4c => x9=0xffffffffffffe134
+[19:14:42 289][libtiny.so 0x19ce50] [0996bff2] 0x1219ce50: "movk x9, #0xfcb0, lsl #16" x9=0xffffffffffffe134 => x9=0xfffffffffcb0e134
+[19:14:42 289][libtiny.so 0x19ce54] [0801098b] 0x1219ce54: "add x8, x8, x9" x8=0x1568ee7c x9=0xfffffffffcb0e134 => x8=0x1219cfb0
+[19:14:42 289][libtiny.so 0x19ce58] [00011fd6] 0x1219ce58: "br x8" x8=0x1219cfb0
+[19:14:42 289][libtiny.so 0x19cfb0] [a8035bf8] 0x1219cfb0: "ldur x8, [x29, #-0x50]" fp=0xe4fff6b0 => x8=0xe4fff698
+[19:14:42 289][libtiny.so 0x19cfb4] [c9feffb0] 0x1219cfb4: "adrp x9, #0x12175000" => x9=0x12175000
+[19:14:42 289][libtiny.so 0x19cfb8] [29610491] 0x1219cfb8: "add x9, x9, #0x118" x9=0x12175000 => x9=0x12175118
+[19:14:42 289][libtiny.so 0x19cfbc] [8aab9852] 0x1219cfbc: "mov w10, #0xc55c" w10=0xfc01dc38 => w10=0xc55c
+[19:14:42 289][libtiny.so 0x19cfc0] [0b000090] 0x1219cfc0: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 289][libtiny.so 0x19cfc4] [0ae4a072] 0x1219cfc4: "movk w10, #0x720, lsl #16" w10=0xc55c => w10=0x720c55c
+[19:14:42 289][libtiny.so 0x19cfc8] [6b812091] 0x1219cfc8: "add x11, x11, #0x820" x11=0x1219c000 => x11=0x1219c820
+[19:14:42 289][libtiny.so 0x19cfcc] [090100f9] 0x1219cfcc: "str x9, [x8]" x9=0x12175118 x8=0xe4fff698
+[19:14:42 289][libtiny.so 0x19cfd0] [8c5645f9] 0x1219cfd0: "ldr x12, [x20, #0xaa8]" x20=0x1273a000 => x12=0x153ed33c
+[19:14:42 289][libtiny.so 0x19cfd4] [68010a8b] 0x1219cfd4: "add x8, x11, x10" x11=0x1219c820 x10=0x720c55c => x8=0x193a8d7c
+[19:14:42 289][libtiny.so 0x19cfd8] [a9835cf8] 0x1219cfd8: "ldur x9, [x29, #-0x38]" fp=0xe4fff6b0 => x9=0xfffe1640
+[19:14:42 289][libtiny.so 0x19cfdc] [6a01084b] 0x1219cfdc: "sub w10, w11, w8" w11=0x1219c820 w8=0x193a8d7c => w10=0xf8df3aa4
+[19:14:42 289][libtiny.so 0x19cfe0] [0b619752] 0x1219cfe0: "mov w11, #0xbb08" w11=0x1219c820 => w11=0xbb08
+[19:14:42 289][libtiny.so 0x19cfe4] [6b7fa072] 0x1219cfe4: "movk w11, #0x3fb, lsl #16" w11=0xbb08 => w11=0x3fbbb08
+[19:14:42 289][libtiny.so 0x19cfe8] [4a010b0b] 0x1219cfe8: "add w10, w10, w11" w10=0xf8df3aa4 w11=0x3fbbb08 => w10=0xfcdaf5ac
+[19:14:42 289][libtiny.so 0x19cfec] [8ac12a8b] 0x1219cfec: "add x10, x12, w10, sxtw" x12=0x153ed33c w10=0xfcdaf5ac => x10=0x1219c8e8
+[19:14:42 289][libtiny.so 0x19cff0] [a9831bf8] 0x1219cff0: "stur x9, [x29, #-0x48]" x9=0xfffe1640 fp=0xe4fff6b0
+[19:14:42 289][libtiny.so 0x19cff4] [40011fd6] 0x1219cff4: "br x10" x10=0x1219c8e8
+[19:14:42 289][libtiny.so 0x19c8e8] [895345f9] 0x1219c8e8: "ldr x9, [x28, #0xaa0]" x28=0x1273a000 => x9=0x1534e678
+[19:14:42 289][libtiny.so 0x19c8ec] [6bee8392] 0x1219c8ec: "mov x11, #-0x1f74" x11=0x3fbbb08 => x11=0xffffffffffffe08c
+[19:14:42 289][libtiny.so 0x19c8f0] [6a299e92] 0x1219c8f0: "mov x10, #-0xf14c" x10=0x1219c8e8 => x10=0xffffffffffff0eb4
+[19:14:42 289][libtiny.so 0x19c8f4] [8b9cbff2] 0x1219c8f4: "movk x11, #0xfce4, lsl #16" x11=0xffffffffffffe08c => x11=0xfffffffffce4e08c
+[19:14:42 289][libtiny.so 0x19c8f8] [6a8cbff2] 0x1219c8f8: "movk x10, #0xfc63, lsl #16" x10=0xffffffffffff0eb4 => x10=0xfffffffffc630eb4
+[19:14:42 289][libtiny.so 0x19c8fc] [29010b8b] 0x1219c8fc: "add x9, x9, x11" x9=0x1534e678 x11=0xfffffffffce4e08c => x9=0x1219c704
+[19:14:42 290][libtiny.so 0x19c900] [08010a8b] 0x1219c900: "add x8, x8, x10" x8=0x193a8d7c x10=0xfffffffffc630eb4 => x8=0x159d9c30
+[19:14:42 290][libtiny.so 0x19c904] [20011fd6] 0x1219c904: "br x9" x9=0x1219c704
+[19:14:42 290][libtiny.so 0x19c704] [e9819a92] 0x1219c704: "mov x9, #-0xd410" x9=0x1219c704 => x9=0xffffffffffff2bf0
+[19:14:42 290][libtiny.so 0x19c708] [898fbff2] 0x1219c708: "movk x9, #0xfc7c, lsl #16" x9=0xffffffffffff2bf0 => x9=0xfffffffffc7c2bf0
+[19:14:42 290][libtiny.so 0x19c70c] [0801098b] 0x1219c70c: "add x8, x8, x9" x8=0x159d9c30 x9=0xfffffffffc7c2bf0 => x8=0x1219c820
+[19:14:42 290][libtiny.so 0x19c710] [00011fd6] 0x1219c710: "br x8" x8=0x1219c820
+[19:14:42 290][libtiny.so 0x19c820] [a8835bf8] 0x1219c820: "ldur x8, [x29, #-0x48]" fp=0xe4fff6b0 => x8=0xfffe1640
+[19:14:42 290][libtiny.so 0x19c824] [23008052] 0x1219c824: "mov w3, #1" w3=0x0 => w3=0x1
+[19:14:42 290][libtiny.so 0x19c828] [080140f9] 0x1219c828: "ldr x8, [x8]" x8=0xfffe1640 => x8=0xfffe0ef0
+[19:14:42 290][libtiny.so 0x19c82c] [085d43f9] 0x1219c82c: "ldr x8, [x8, #0x6b8]" x8=0xfffe0ef0 => x8=0xfffe0dc0
+[19:14:42 290][libtiny.so 0x19c830] [614240f9] 0x1219c830: "ldr x1, [x19, #0x80]" x19=0xe4fff580 => x1=0x98adad7e
+[19:14:42 290][libtiny.so 0x19c834] [624a40f9] 0x1219c834: "ldr x2, [x19, #0x90]" x19=0xe4fff580 => x2=0xe4fff688
+[19:14:42 290][libtiny.so 0x19c838] [a0835bf8] 0x1219c838: "ldur x0, [x29, #-0x48]" fp=0xe4fff6b0 => x0=0xfffe1640
+[19:14:42 290][libtiny.so 0x19c83c] [00013fd6] 0x1219c83c: "blr x8" x8=0xfffe0dc0 => lr=0x1219c840
+[19:14:42 290][libtiny.so 0x19c840] [684640f9] 0x1219c840: "ldr x8, [x19, #0x88]" x19=0xe4fff580 => x8=0xe4fff688
+[19:14:42 290][libtiny.so 0x19c844] [681a40f9] 0x1219c844: "ldr x8, [x19, #0x30]" x19=0xe4fff580 => x8=0xe4fff570
+[19:14:42 290][libtiny.so 0x19c848] [ca008052] 0x1219c848: "mov w10, #6" w10=0xfc630eb4 => w10=0x6
+[19:14:42 290][libtiny.so 0x19c84c] [1f000071] 0x1219c84c: "cmp w0, #0" w0=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 290][libtiny.so 0x19c850] [2a00a072] 0x1219c850: "movk w10, #1, lsl #16" w10=0x6 => w10=0x10006
+[19:14:42 290][libtiny.so 0x19c854] [09108552] 0x1219c854: "mov w9, #0x2880" w9=0xfc7c2bf0 => w9=0x2880
+[19:14:42 290][libtiny.so 0x19c858] [4a019f5a] 0x1219c858: "csinv w10, w10, wzr, eq" nzcv: N=0, Z=1, C=1, V=0 w10=0x10006 => w10=0x10006
+[19:14:42 290][libtiny.so 0x19c85c] [0b000090] 0x1219c85c: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 290][libtiny.so 0x19c860] [096da072] 0x1219c860: "movk w9, #0x368, lsl #16" w9=0x2880 => w9=0x3682880
+[19:14:42 290][libtiny.so 0x19c864] [0a0100b9] 0x1219c864: "str w10, [x8]" w10=0x10006 x8=0xe4fff570
+[19:14:42 290][libtiny.so 0x19c868] [6bd10a91] 0x1219c868: "add x11, x11, #0x2b4" x11=0x1219c000 => x11=0x1219c2b4
+[19:14:42 290][libtiny.so 0x19c86c] [4a4345f9] 0x1219c86c: "ldr x10, [x26, #0xa80]" x26=0x1273a000 => x10=0x155c26b4
+[19:14:42 290][libtiny.so 0x19c870] [6801098b] 0x1219c870: "add x8, x11, x9" x11=0x1219c2b4 x9=0x3682880 => x8=0x1581eb34
+[19:14:42 290][libtiny.so 0x19c874] [6901084b] 0x1219c874: "sub w9, w11, w8" w11=0x1219c2b4 w8=0x1581eb34 => w9=0xfc97d780
+[19:14:42 290][libtiny.so 0x19c878] [0b8e9852] 0x1219c878: "mov w11, #0xc470" w11=0x1219c2b4 => w11=0xc470
+[19:14:42 290][libtiny.so 0x19c87c] [ab04a072] 0x1219c87c: "movk w11, #0x25, lsl #16" w11=0xc470 => w11=0x25c470
+[19:14:42 290][libtiny.so 0x19c880] [29010b0b] 0x1219c880: "add w9, w9, w11" w9=0xfc97d780 w11=0x25c470 => w9=0xfcbd9bf0
+[19:14:42 290][libtiny.so 0x19c884] [49c1298b] 0x1219c884: "add x9, x10, w9, sxtw" x10=0x155c26b4 w9=0xfcbd9bf0 => x9=0x1219c2a4
+[19:14:42 290][libtiny.so 0x19c888] [20011fd6] 0x1219c888: "br x9" x9=0x1219c2a4
+[19:14:42 290][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0x1219c2a4 => x9=0xffffffffffffd780
+[19:14:42 290][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 290][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581eb34 x9=0xfffffffffc97d780 => x8=0x1219c2b4
+[19:14:42 290][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c2b4
+[19:14:42 290][libtiny.so 0x19c2b4] [691a40f9] 0x1219c2b4: "ldr x9, [x19, #0x30]" x19=0xe4fff580 => x9=0xe4fff570
+[19:14:42 290][libtiny.so 0x19c2b8] [88789552] 0x1219c2b8: "mov w8, #0xabc4" w8=0x1219c2b4 => w8=0xabc4
+[19:14:42 290][libtiny.so 0x19c2bc] [0b000090] 0x1219c2bc: "adrp x11, #0x1219c000" => x11=0x1219c000
+[19:14:42 290][libtiny.so 0x19c2c0] [6a6345f9] 0x1219c2c0: "ldr x10, [x27, #0xac0]" x27=0x1273a000 => x10=0x160ac7d8
+[19:14:42 290][libtiny.so 0x19c2c4] [6868a072] 0x1219c2c4: "movk w8, #0x343, lsl #16" w8=0xabc4 => w8=0x343abc4
+[19:14:42 290][libtiny.so 0x19c2c8] [6b713291] 0x1219c2c8: "add x11, x11, #0xc9c" x11=0x1219c000 => x11=0x1219cc9c
+[19:14:42 290][libtiny.so 0x19c2cc] [6801088b] 0x1219c2cc: "add x8, x11, x8" x11=0x1219cc9c x8=0x343abc4 => x8=0x155d7860
+[19:14:42 290][libtiny.so 0x19c2d0] [290140b9] 0x1219c2d0: "ldr w9, [x9]" x9=0xe4fff570 => w9=0x10006
+[19:14:42 290][libtiny.so 0x19c2d4] [0c029652] 0x1219c2d4: "mov w12, #0xb010" w12=0x153ed33c => w12=0xb010
+[19:14:42 290][libtiny.so 0x19c2d8] [6b01084b] 0x1219c2d8: "sub w11, w11, w8" w11=0x1219cc9c w8=0x155d7860 => w11=0xfcbc543c
+[19:14:42 290][libtiny.so 0x19c2dc] [4ceabf72] 0x1219c2dc: "movk w12, #0xff52, lsl #16" w12=0xb010 => w12=0xff52b010
+[19:14:42 290][libtiny.so 0x19c2e0] [6b010c0b] 0x1219c2e0: "add w11, w11, w12" w11=0xfcbc543c w12=0xff52b010 => w11=0xfc0f044c
+[19:14:42 290][libtiny.so 0x19c2e4] [4ac12b8b] 0x1219c2e4: "add x10, x10, w11, sxtw" x10=0x160ac7d8 w11=0xfc0f044c => x10=0x1219cc24
+[19:14:42 290][libtiny.so 0x19c2e8] [a9431cb8] 0x1219c2e8: "stur w9, [x29, #-0x3c]" w9=0x10006 fp=0xe4fff6b0
+[19:14:42 290][libtiny.so 0x19c2ec] [40011fd6] 0x1219c2ec: "br x10" x10=0x1219cc24
+[19:14:42 290][libtiny.so 0x19cc24] [69789592] 0x1219cc24: "mov x9, #-0xabc4" x9=0x10006 => x9=0xffffffffffff543c
+[19:14:42 290][libtiny.so 0x19cc28] [8997bff2] 0x1219cc28: "movk x9, #0xfcbc, lsl #16" x9=0xffffffffffff543c => x9=0xfffffffffcbc543c
+[19:14:42 290][libtiny.so 0x19cc2c] [0801098b] 0x1219cc2c: "add x8, x8, x9" x8=0x155d7860 x9=0xfffffffffcbc543c => x8=0x1219cc9c
+[19:14:42 290][libtiny.so 0x19cc30] [00011fd6] 0x1219cc30: "br x8" x8=0x1219cc9c
+[19:14:42 290][libtiny.so 0x19cc9c] [680a40f9] 0x1219cc9c: "ldr x8, [x19, #0x10]" x19=0xe4fff580 => x8=0xe4fff678
+[19:14:42 290][libtiny.so 0x19cca0] [09189652] 0x1219cca0: "mov w9, #0xb0c0" w9=0xfcbc543c => w9=0xb0c0
+[19:14:42 290][libtiny.so 0x19cca4] [0a000090] 0x1219cca4: "adrp x10, #0x1219c000" => x10=0x1219c000
+[19:14:42 290][libtiny.so 0x19cca8] [e82c00d0] 0x1219cca8: "adrp x8, #0x1273a000" => x8=0x1273a000
+[19:14:42 290][libtiny.so 0x19ccac] [c9cda072] 0x1219ccac: "movk w9, #0x66e, lsl #16" w9=0xb0c0 => w9=0x66eb0c0
+[19:14:42 290][libtiny.so 0x19ccb0] [4a811191] 0x1219ccb0: "add x10, x10, #0x460" x10=0x1219c000 => x10=0x1219c460
+[19:14:42 290][libtiny.so 0x19ccb4] [0b4545f9] 0x1219ccb4: "ldr x11, [x8, #0xa88]" x8=0x1273a000 => x11=0x15dab1d8
+[19:14:42 290][libtiny.so 0x19ccb8] [4801098b] 0x1219ccb8: "add x8, x10, x9" x10=0x1219c460 x9=0x66eb0c0 => x8=0x18887520
+[19:14:42 290][libtiny.so 0x19ccbc] [4901084b] 0x1219ccbc: "sub w9, w10, w8" w10=0x1219c460 w8=0x18887520 => w9=0xf9914f40
+[19:14:42 290][libtiny.so 0x19ccc0] [8a709852] 0x1219ccc0: "mov w10, #0xc384" w10=0x1219c460 => w10=0xc384
+[19:14:42 290][libtiny.so 0x19ccc4] [aa55a072] 0x1219ccc4: "movk w10, #0x2ad, lsl #16" w10=0xc384 => w10=0x2adc384
+[19:14:42 290][libtiny.so 0x19ccc8] [29010a0b] 0x1219ccc8: "add w9, w9, w10" w9=0xf9914f40 w10=0x2adc384 => w9=0xfc3f12c4
+[19:14:42 290][libtiny.so 0x19cccc] [69c1298b] 0x1219cccc: "add x9, x11, w9, sxtw" x11=0x15dab1d8 w9=0xfc3f12c4 => x9=0x1219c49c
+[19:14:42 290][libtiny.so 0x19ccd0] [20011fd6] 0x1219ccd0: "br x9" x9=0x1219c49c
+[19:14:42 290][libtiny.so 0x19c49c] [494345f9] 0x1219c49c: "ldr x9, [x26, #0xa80]" x26=0x1273a000 => x9=0x155c26b4
+[19:14:42 290][libtiny.so 0x19c4a0] [eb818c92] 0x1219c4a0: "mov x11, #-0x6410" x11=0x15dab1d8 => x11=0xffffffffffff9bf0
+[19:14:42 290][libtiny.so 0x19c4a4] [ea079192] 0x1219c4a4: "mov x10, #-0x8840" x10=0x2adc384 => x10=0xffffffffffff77c0
+[19:14:42 290][libtiny.so 0x19c4a8] [ab97bff2] 0x1219c4a8: "movk x11, #0xfcbd, lsl #16" x11=0xffffffffffff9bf0 => x11=0xfffffffffcbd9bf0
+[19:14:42 290][libtiny.so 0x19c4ac] [2a9fbff2] 0x1219c4ac: "movk x10, #0xfcf9, lsl #16" x10=0xffffffffffff77c0 => x10=0xfffffffffcf977c0
+[19:14:42 291][libtiny.so 0x19c4b0] [29010b8b] 0x1219c4b0: "add x9, x9, x11" x9=0x155c26b4 x11=0xfffffffffcbd9bf0 => x9=0x1219c2a4
+[19:14:42 291][libtiny.so 0x19c4b4] [08010a8b] 0x1219c4b4: "add x8, x8, x10" x8=0x18887520 x10=0xfffffffffcf977c0 => x8=0x1581ece0
+[19:14:42 291][libtiny.so 0x19c4b8] [20011fd6] 0x1219c4b8: "br x9" x9=0x1219c2a4
+[19:14:42 291][libtiny.so 0x19c2a4] [e90f8592] 0x1219c2a4: "mov x9, #-0x2880" x9=0x1219c2a4 => x9=0xffffffffffffd780
+[19:14:42 291][libtiny.so 0x19c2a8] [e992bff2] 0x1219c2a8: "movk x9, #0xfc97, lsl #16" x9=0xffffffffffffd780 => x9=0xfffffffffc97d780
+[19:14:42 291][libtiny.so 0x19c2ac] [0801098b] 0x1219c2ac: "add x8, x8, x9" x8=0x1581ece0 x9=0xfffffffffc97d780 => x8=0x1219c460
+[19:14:42 291][libtiny.so 0x19c2b0] [00011fd6] 0x1219c2b0: "br x8" x8=0x1219c460
+[19:14:42 291][libtiny.so 0x19c460] [a0435cb8] 0x1219c460: "ldur w0, [x29, #-0x3c]" fp=0xe4fff6b0 => w0=0x10006
+[19:14:42 291][libtiny.so 0x19c464] [680240f9] 0x1219c464: "ldr x8, [x19]" x19=0xe4fff580 => x8=0xe4fff718
+[19:14:42 291][libtiny.so 0x19c468] [081540f9] 0x1219c468: "ldr x8, [x8, #0x28]" x8=0xe4fff718 => x8=0x0
+[19:14:42 291][libtiny.so 0x19c46c] [a9035ff8] 0x1219c46c: "ldur x9, [x29, #-0x10]" fp=0xe4fff6b0 => x9=0x0
+[19:14:42 291][libtiny.so 0x19c470] [1f0109eb] 0x1219c470: "cmp x8, x9" x8=0x0 x9=0x0 => nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 291][libtiny.so 0x19c474] [21010054] 0x1219c474: "b.ne #0x1219c498" nzcv: N=0, Z=1, C=1, V=0
+[19:14:42 291][libtiny.so 0x19c478] [bf030091] 0x1219c478: "mov sp, x29" fp=0xe4fff6b0 => sp=0xe4fff6b0
+[19:14:42 291][libtiny.so 0x19c47c] [f44f45a9] 0x1219c47c: "ldp x20, x19, [sp, #0x50]" sp=0xe4fff6b0 => x20=0x0 x19=0x0
+[19:14:42 291][libtiny.so 0x19c480] [f65744a9] 0x1219c480: "ldp x22, x21, [sp, #0x40]" sp=0xe4fff6b0 => x22=0x0 x21=0x0
+[19:14:42 291][libtiny.so 0x19c484] [f85f43a9] 0x1219c484: "ldp x24, x23, [sp, #0x30]" sp=0xe4fff6b0 => x24=0x0 x23=0x0
+[19:14:42 291][libtiny.so 0x19c488] [fa6742a9] 0x1219c488: "ldp x26, x25, [sp, #0x20]" sp=0xe4fff6b0 => x26=0x0 x25=0x0
+[19:14:42 291][libtiny.so 0x19c48c] [fc6f41a9] 0x1219c48c: "ldp x28, x27, [sp, #0x10]" sp=0xe4fff6b0 => x28=0x0 x27=0x0
+[19:14:42 291][libtiny.so 0x19c490] [fd7bc6a8] 0x1219c490: "ldp x29, x30, [sp], #0x60" lr=0x1219c840 sp=0xe4fff6b0 => fp=0x0 lr=0x7ffff0000 sp=0xe4fff710
+[19:14:42 291][libtiny.so 0x19c494] [c0035fd6] 0x1219c494: "ret"
